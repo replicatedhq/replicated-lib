@@ -1,0 +1,24 @@
+name: 'Inspect Channel'
+description: 'Inspect a channel'
+inputs:
+  replicated-app:
+    description: 'Replicated App Slug.'
+    required: true
+    default: ''
+  replicated-api-token:
+    description: 'Replicated API Token.'
+    required: true
+    default: ''
+  channel-name:
+    description: 'The name of the channel to inspect.'
+    required: true
+outputs:
+  channel-id: # id of the channel
+    description: 'Contains the channel id.'
+  channel-slug: # slug of the channel
+    description: 'Contains the channel slug.'
+  release-sequence: # Release sequence active on the channel
+    description: 'Release sequence active on the channel.'
+runs:
+  using: 'node16'
+  main: 'dist/run/index.js'
