@@ -25,7 +25,7 @@ exports.Channel = Channel;
 function getChannelDetails(appSlug, channelName) {
     return __awaiter(this, void 0, void 0, function* () {
         const http = new httpClient.HttpClient();
-        const replicatedEndpoint = 'https://api.replicated.com';
+        const replicatedEndpoint = 'https://api.replicated.com/vendor/v3';
         http.requestOptions = {
             headers: {
                 "Authorization": core.getInput('replicated-api-token'),
@@ -33,7 +33,7 @@ function getChannelDetails(appSlug, channelName) {
         };
         // 1. get the app id from the app slug
         core.info('Getting app id from app slug...');
-        const listAppsUri = `${replicatedEndpoint}/v3/apps`;
+        const listAppsUri = `${replicatedEndpoint}/apps`;
         const listAppsRes = yield http.get(listAppsUri);
         if (listAppsRes.message.statusCode != 200) {
             throw new Error(`Failed to list apps: Server responded with ${listAppsRes.message.statusCode}`);
@@ -43,7 +43,7 @@ function getChannelDetails(appSlug, channelName) {
         core.info(`Found app id ${appId} for app slug ${appSlug}`);
         // 2. get the channel id from the channel name
         core.info('Getting channel id from channel name...');
-        const listChannelsUri = `${replicatedEndpoint}/v3/app/${appId}/channels?channelName=${channelName}&excludeDetail=true}`;
+        const listChannelsUri = `${replicatedEndpoint}/app/${appId}/channels?channelName=${channelName}&excludeDetail=true}`;
         const listChannelsRes = yield http.get(listChannelsUri);
         if (listChannelsRes.message.statusCode != 200) {
             throw new Error(`Failed to list channels: Server responded with ${listChannelsRes.message.statusCode}`);
