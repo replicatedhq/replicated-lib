@@ -1,5 +1,6 @@
 import * as core from '@actions/core';
 import * as httpClient from '@actions/http-client';
+import { getApplicationDetails } from './application';
 
 export class Channel {
     name: string;
@@ -18,19 +19,11 @@ export async function getChannelDetails(appSlug: string, channelName: string): P
     }
   
     // 1. get the app id from the app slug
-    core.info('Getting app id from app slug...');
-    const listAppsUri = `${replicatedEndpoint}/apps`;
-    const listAppsRes = await http.get(listAppsUri);
-    if (listAppsRes.message.statusCode != 200) {
-      throw new Error(`Failed to list apps: Server responded with ${listAppsRes.message.statusCode}`);
-    }
-    const listAppsBody: any = JSON.parse(await listAppsRes.readBody());
-    const appId = listAppsBody.apps.find((app: any) => app.slug === appSlug).id;
-    core.info(`Found app id ${appId} for app slug ${appSlug}`);
+    const app = await getApplicationDetails(appSlug);
   
     // 2. get the channel id from the channel name
     core.info('Getting channel id from channel name...');
-    const listChannelsUri = `${replicatedEndpoint}/app/${appId}/channels?channelName=${channelName}&excludeDetail=true}`;
+    const listChannelsUri = `${replicatedEndpoint}/app/${app.id}/channels?channelName=${channelName}&excludeDetail=true}`;
     const listChannelsRes = await http.get(listChannelsUri);
     if (listChannelsRes.message.statusCode != 200) {
       throw new Error(`Failed to list channels: Server responded with ${listChannelsRes.message.statusCode}`);
@@ -44,7 +37,7 @@ export async function getChannelDetails(appSlug: string, channelName: string): P
     return channel;
 }
 
-  export async function archiveChannel(appSlug: string, channelName: string) {
+export async function archiveChannel(appSlug: string, channelName: string) {
     const channel = await getChannelDetails(appSlug, channelName)
 
     const http = new httpClient.HttpClient()
@@ -56,22 +49,14 @@ export async function getChannelDetails(appSlug: string, channelName: string): P
     }
 
     // 1. get the app id from the app slug
-    core.info('Getting app id from app slug...');
-    const listAppsUri = `${replicatedEndpoint}/apps`;
-    const listAppsRes = await http.get(listAppsUri);
-    if (listAppsRes.message.statusCode != 200) {
-      throw new Error(`Failed to list apps: Server responded with ${listAppsRes.message.statusCode}`);
-    }
-    const listAppsBody: any = JSON.parse(await listAppsRes.readBody());
-    const appId = listAppsBody.apps.find((app: any) => app.slug === appSlug).id;
-    core.info(`Found app id ${appId} for app slug ${appSlug}`);
+    const app = await getApplicationDetails(appSlug);
   
     // 2. Archive the channel
-    core.info('Archive Channel...');
-    const archiveChannelUri = `${replicatedEndpoint}/app/${appId}/channel/${channel.id}`;
+    core.info(`Archive Channel with id: ${channel.id} ...`);
+    const archiveChannelUri = `${replicatedEndpoint}/app/${app.id}/channel/${channel.id}`;
     const archiveChannelRes = await http.del(archiveChannelUri);
     if (archiveChannelRes.message.statusCode != 200) {
-      throw new Error(`Failed to archive channels: Server responded with ${archiveChannelRes.message.statusCode}`);
+      throw new Error(`Failed to archive channel: Server responded with ${archiveChannelRes.message.statusCode}`);
     }
     
 }
