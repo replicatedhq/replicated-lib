@@ -1,5 +1,5 @@
 import * as core from '@actions/core';
-import { getChannelDetails } from './channels';
+import { getChannelDetails } from 'replicated-lib';
 
 
 async function run() {
