@@ -16,6 +16,7 @@ export async function createCustomer(appSlug: string, name: string, email: strin
 
     core.info('Creating customer on appId ' + app.id + ' and channelId ' + channel.id);
     const http = new httpClient.HttpClient()
+    const replicatedEndpoint= 'https://api.replicated.com/vendor/v3';
     http.requestOptions = {
       headers: {
         "Authorization": core.getInput('replicated-api-token'),
@@ -24,7 +25,7 @@ export async function createCustomer(appSlug: string, name: string, email: strin
     }
 
     // 1. create the customer
-    const createCustomerUri = `${core.getInput('replicated-endpoint')}/v3/customer`;
+    const createCustomerUri = `${replicatedEndpoint}/customer`;
     const createCustomerReqBody = {
       name: name,
       email: email,
@@ -40,7 +41,7 @@ export async function createCustomer(appSlug: string, name: string, email: strin
     const createCustomerBody: any = JSON.parse(await createCustomerRes.readBody());
 
     // 2. download the license
-    const downloadLicenseUri = `${core.getInput('replicated-endpoint')}/v3/app/${app.id}/customer/${createCustomerBody.customer.id}/license-download`;
+    const downloadLicenseUri = `${replicatedEndpoint}/app/${app.id}/customer/${createCustomerBody.customer.id}/license-download`;
     const downloadLicenseRes = await http.get(downloadLicenseUri);
     if (downloadLicenseRes.message.statusCode != 200) {
       throw new Error(`Failed to download created license: Server responded with ${downloadLicenseRes.message.statusCode}`);
