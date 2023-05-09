@@ -1,5 +1,4 @@
-import * as httpClient from '@actions/http-client';
-import * as core from '@actions/core';
+import { VendorPortalApi, client } from './configuration';
 
 export class Application {
     name: string;
@@ -7,25 +6,19 @@ export class Application {
     slug: string;
 }
 
-export async function getApplicationDetails(appSlug: string): Promise<Application> {
-    const http = new httpClient.HttpClient()
-    const replicatedEndpoint= 'https://api.replicated.com/vendor/v3';
-    http.requestOptions = {
-      headers: {
-        "Authorization": core.getInput('replicated-api-token'),
-      }
-    }
+export async function getApplicationDetails(vendorPortalApi: VendorPortalApi, appSlug: string): Promise<Application> {
+    const http = await client(vendorPortalApi);
   
     // 1. get the app id from the app slug
-    core.info('Getting app id from app slug...');
-    const listAppsUri = `${replicatedEndpoint}/apps`;
+    console.log('Getting app id from app slug...');
+    const listAppsUri = `${vendorPortalApi.endpoint}/apps`;
     const listAppsRes = await http.get(listAppsUri);
     if (listAppsRes.message.statusCode != 200) {
       throw new Error(`Failed to list apps: Server responded with ${listAppsRes.message.statusCode}`);
     }
     const listAppsBody: any = JSON.parse(await listAppsRes.readBody());
     const app = await findApplicationDetailsInOutput(listAppsBody.apps, appSlug);
-    core.info(`Found app id ${app.id} for app slug ${app.slug}`);
+    console.log(`Found app id ${app.id} for app slug ${app.slug}`);
     return app;
 
 }

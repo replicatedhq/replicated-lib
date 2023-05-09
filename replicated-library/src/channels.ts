@@ -1,6 +1,5 @@
-import * as core from '@actions/core';
-import * as httpClient from '@actions/http-client';
-import { getApplicationDetails } from './application';
+import { getApplicationDetails } from './applications';
+import { VendorPortalApi, client } from './configuration';
 
 export class Channel {
     name: string;
@@ -9,21 +8,15 @@ export class Channel {
     releaseSequence: number;
   }
 
-export async function getChannelDetails(appSlug: string, channelName: string): Promise<Channel> {
-    const http = new httpClient.HttpClient()
-    const replicatedEndpoint= 'https://api.replicated.com/vendor/v3';
-    http.requestOptions = {
-      headers: {
-        "Authorization": core.getInput('replicated-api-token'),
-      }
-    }
+export async function getChannelDetails(vendorPortalApi: VendorPortalApi, appSlug: string, channelName: string): Promise<Channel> {
+    const http = await client(vendorPortalApi);
   
     // 1. get the app id from the app slug
-    const app = await getApplicationDetails(appSlug);
+    const app = await getApplicationDetails(vendorPortalApi, appSlug);
   
     // 2. get the channel id from the channel name
-    core.info('Getting channel id from channel name...');
-    const listChannelsUri = `${replicatedEndpoint}/app/${app.id}/channels?channelName=${channelName}&excludeDetail=true}`;
+    console.log('Getting channel id from channel name...');
+    const listChannelsUri = `${vendorPortalApi.endpoint}/app/${app.id}/channels?channelName=${channelName}&excludeDetail=true}`;
     const listChannelsRes = await http.get(listChannelsUri);
     if (listChannelsRes.message.statusCode != 200) {
       throw new Error(`Failed to list channels: Server responded with ${listChannelsRes.message.statusCode}`);
@@ -31,29 +24,23 @@ export async function getChannelDetails(appSlug: string, channelName: string): P
     const listChannelsBody: any = JSON.parse(await listChannelsRes.readBody());
   
     const channel = await findChannelDetailsInOutput(listChannelsBody.channels, channelName);
-    core.info(`Found channel for channel name ${channelName}`);
+    console.log(`Found channel for channel name ${channelName}`);
   
     
     return channel;
 }
 
-export async function archiveChannel(appSlug: string, channelName: string) {
-    const channel = await getChannelDetails(appSlug, channelName)
+export async function archiveChannel(vendorPortalApi: VendorPortalApi, appSlug: string, channelName: string) {
+    const channel = await getChannelDetails(vendorPortalApi, appSlug, channelName)
 
-    const http = new httpClient.HttpClient()
-    const replicatedEndpoint= 'https://api.replicated.com/vendor/v3';
-    http.requestOptions = {
-      headers: {
-        "Authorization": core.getInput('replicated-api-token'),
-      }
-    }
+    const http = await client(vendorPortalApi);
 
     // 1. get the app id from the app slug
-    const app = await getApplicationDetails(appSlug);
+    const app = await getApplicationDetails(vendorPortalApi, appSlug);
   
     // 2. Archive the channel
-    core.info(`Archive Channel with id: ${channel.id} ...`);
-    const archiveChannelUri = `${replicatedEndpoint}/app/${app.id}/channel/${channel.id}`;
+    console.log(`Archive Channel with id: ${channel.id} ...`);
+    const archiveChannelUri = `${vendorPortalApi.endpoint}/app/${app.id}/channel/${channel.id}`;
     const archiveChannelRes = await http.del(archiveChannelUri);
     if (archiveChannelRes.message.statusCode != 200) {
       throw new Error(`Failed to archive channel: Server responded with ${archiveChannelRes.message.statusCode}`);
