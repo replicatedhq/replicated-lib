@@ -27,7 +27,7 @@ export async function createCluster(vendorPortalApi: VendorPortalApi, clusterNam
     
 }
 
-async function pollForStatus(vendorPortalApi: VendorPortalApi, clusterId: string, expectedStatus: string, timeout: number = 120): Promise<Cluster> {
+export async function pollForStatus(vendorPortalApi: VendorPortalApi, clusterId: string, expectedStatus: string, timeout: number = 120): Promise<Cluster> {
     // get clusters from the api, look for the status of the id to be ${status}
     // if it's not ${status}, sleep for 5 seconds and try again
     // if it is ${status}, return the cluster with that status
@@ -47,7 +47,7 @@ async function pollForStatus(vendorPortalApi: VendorPortalApi, clusterId: string
     throw new Error(`Cluster did not reach state ${expectedStatus} within ${timeout} seconds`);
   }
 
-async function getClusterDetails(vendorPortalApi: VendorPortalApi, clusterId: string): Promise<Cluster> {
+export async function getClusterDetails(vendorPortalApi: VendorPortalApi, clusterId: string): Promise<Cluster> {
     const http = await client(vendorPortalApi);
   
     const uri = `${vendorPortalApi.endpoint}/clusters`;
@@ -65,7 +65,7 @@ async function getClusterDetails(vendorPortalApi: VendorPortalApi, clusterId: st
     return {name: cluster.name, id: cluster.id, status: cluster.status};
 }
 
-async function getKubeconfig(vendorPortalApi: VendorPortalApi, clusterId: string): Promise<string> {
+export async function getKubeconfig(vendorPortalApi: VendorPortalApi, clusterId: string): Promise<string> {
     const http = await client(vendorPortalApi);
   
     const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/kubeconfig`;
@@ -77,4 +77,15 @@ async function getKubeconfig(vendorPortalApi: VendorPortalApi, clusterId: string
     const body: any = JSON.parse(await res.readBody());
   
     return atob(body.kubeconfig);
+}
+
+export async function removeCluster(vendorPortalApi: VendorPortalApi, clusterId: string) {
+    const http = await client(vendorPortalApi);
+
+    const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}`;
+    const res = await http.del(uri);
+    if (res.message.statusCode != 200) {
+      throw new Error(`Failed to remove cluster: Server responded with ${res.message.statusCode}`);
+    }
+
 }
