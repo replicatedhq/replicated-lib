@@ -19,7 +19,8 @@
     "include": [
         "src/**/*.js",
         "src/**/*.ts",
-        "src/index.ts", "../replicated-library/src/channels.test.ts"  ],
+        "src/index.ts"
+    ],
     "exclude": [
         "node_modules",
         "src/**/*_test.ts",
