@@ -27,7 +27,7 @@ export async function createChannel(vendorPortalApi: VendorPortalApi, appSlug: s
     const createChannelBody: any = JSON.parse(await createChannelRes.readBody());
   
     console.log(`Created channel with id ${createChannelBody.channel.id}`);
-    return {name: createChannelBody.channel.name, id: createChannelBody.channel.id, slug: createChannelBody.channel.slug};
+    return {name: createChannelBody.channel.name, id: createChannelBody.channel.id, slug: createChannelBody.channel.channelSlug};
   
 }
 
