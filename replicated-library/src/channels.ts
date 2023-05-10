@@ -5,8 +5,31 @@ export class Channel {
     name: string;
     id: string;
     slug: string;
-    releaseSequence: number;
+    releaseSequence?: number;
   }
+
+export async function createChannel(vendorPortalApi: VendorPortalApi, appSlug: string, channelName: string): Promise<Channel> {
+    const http = await client(vendorPortalApi);
+  
+    // 1. get the app id from the app slug
+    const app = await getApplicationDetails(vendorPortalApi, appSlug);
+  
+    // 2. create the channel
+    console.log(`Creating channel ${channelName}...`);
+    const reqBody = {
+      "name": channelName
+    }
+    const createChannelUri = `${vendorPortalApi.endpoint}/app/${app.id}/channel`;
+    const createChannelRes = await http.post(createChannelUri, JSON.stringify(reqBody));
+    if (createChannelRes.message.statusCode != 201) {
+      throw new Error(`Failed to create channel: Server responded with ${createChannelRes.message.statusCode}`);
+    }
+    const createChannelBody: any = JSON.parse(await createChannelRes.readBody());
+  
+    console.log(`Created channel with id ${createChannelBody.channel.id}`);
+    return {name: createChannelBody.channel.name, id: createChannelBody.channel.id, slug: createChannelBody.channel.slug};
+  
+}
 
 export async function getChannelDetails(vendorPortalApi: VendorPortalApi, appSlug: string, channelName: string): Promise<Channel> {
     const http = await client(vendorPortalApi);
@@ -54,5 +77,5 @@ export async function findChannelDetailsInOutput(channels: any[], channelName: s
           return {name: channelName, id: channel.id, slug: channel.channelSlug, releaseSequence: channel.releaseSequence};
       }
   }
-  return Promise.reject(`Could not find channel with name ${channelName}`);
+  return Promise.reject({"channel": null, "reason":`Could not find channel with name ${channelName}`});
 }
