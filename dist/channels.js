@@ -31,7 +31,7 @@ async function getChannelDetails(vendorPortalApi, appSlug, channelName) {
     const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
     // 2. get the channel id from the channel name
     console.log('Getting channel id from channel name...');
-    const listChannelsUri = `${vendorPortalApi.endpoint}/app/${app.id}/channels?channelName=${channelName}&excludeDetail=true}`;
+    const listChannelsUri = `${vendorPortalApi.endpoint}/app/${app.id}/channels?channelName=${channelName}&excludeDetail=true`;
     const listChannelsRes = await http.get(listChannelsUri);
     if (listChannelsRes.message.statusCode != 200) {
         throw new Error(`Failed to list channels: Server responded with ${listChannelsRes.message.statusCode}`);

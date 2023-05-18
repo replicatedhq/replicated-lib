@@ -1,4 +1,4 @@
-import { getApplicationDetails } from './applications';
+import { Application, getApplicationDetails } from './applications';
 import { VendorPortalApi, client } from './configuration';
 
 export class Channel {
@@ -38,19 +38,24 @@ export async function getChannelDetails(vendorPortalApi: VendorPortalApi, appSlu
     const app = await getApplicationDetails(vendorPortalApi, appSlug);
   
     // 2. get the channel id from the channel name
-    console.log('Getting channel id from channel name...');
-    const listChannelsUri = `${vendorPortalApi.endpoint}/app/${app.id}/channels?channelName=${channelName}&excludeDetail=true}`;
-    const listChannelsRes = await http.get(listChannelsUri);
-    if (listChannelsRes.message.statusCode != 200) {
-      throw new Error(`Failed to list channels: Server responded with ${listChannelsRes.message.statusCode}`);
-    }
-    const listChannelsBody: any = JSON.parse(await listChannelsRes.readBody());
-  
-    const channel = await findChannelDetailsInOutput(listChannelsBody.channels, channelName);
-    console.log(`Found channel for channel name ${channelName}`);
-  
-    
-    return channel;
+    return await getChannelByApplicationId(vendorPortalApi, app.id, channelName);
+}
+
+export async function getChannelByApplicationId(vendorPortalApi: VendorPortalApi, appid: string, channelName: string): Promise<Channel> {
+  const http = await client(vendorPortalApi);
+  console.log('Getting channel id from channel name...');
+  const listChannelsUri = `${vendorPortalApi.endpoint}/app/${appid}/channels?channelName=${channelName}&excludeDetail=true`;
+  const listChannelsRes = await http.get(listChannelsUri);
+  if (listChannelsRes.message.statusCode != 200) {
+    throw new Error(`Failed to list channels: Server responded with ${listChannelsRes.message.statusCode}`);
+  }
+  const listChannelsBody: any = JSON.parse(await listChannelsRes.readBody());
+
+  const channel = await findChannelDetailsInOutput(listChannelsBody.channels, channelName);
+  console.log(`Found channel for channel name ${channelName}`);
+
+
+  return channel;
 }
 
 export async function archiveChannel(vendorPortalApi: VendorPortalApi, appSlug: string, channelName: string) {

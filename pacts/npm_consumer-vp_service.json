@@ -1,0 +1,114 @@
+{
+  "consumer": {
+    "name": "npm_consumer"
+  },
+  "interactions": [
+    {
+      "description": "a request for all channels with the builder pattern",
+      "providerState": "I have a list of channels",
+      "request": {
+        "headers": {
+          "Accept": "application/json"
+        },
+        "method": "GET",
+        "path": "/app/1234abcd/channels",
+        "query": "channelName=Stable&excludeDetail=true"
+      },
+      "response": {
+        "body": {
+          "channels": [
+            {
+              "channelSlug": "stable",
+              "id": "1234abcd",
+              "name": "Stable",
+              "releaseSequence": 1
+            },
+            {
+              "channelSlug": "beta",
+              "id": "5678efgh",
+              "name": "Beta",
+              "releaseSequence": 2
+            }
+          ]
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "a request for applications",
+      "providerState": "applications exist",
+      "request": {
+        "method": "GET",
+        "path": "/apps"
+      },
+      "response": {
+        "body": {
+          "apps": [
+            {
+              "id": "1234abcd",
+              "name": "App 1",
+              "slug": "app-1"
+            },
+            {
+              "id": "5678efgh",
+              "name": "App 2",
+              "slug": "app-2"
+            }
+          ]
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "a request for creating a cluster",
+      "providerState": "cluster created",
+      "request": {
+        "body": {
+          "kubernetes_distribution": "kind",
+          "kubernetes_version": "v1.25.1",
+          "name": "cluster1",
+          "ttl": "10m"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/cluster"
+      },
+      "response": {
+        "body": {
+          "cluster": {
+            "id": "1234abcd",
+            "name": "cluster1",
+            "status": "provisioning"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 201
+      }
+    }
+  ],
+  "metadata": {
+    "pact-js": {
+      "version": "11.0.2"
+    },
+    "pactRust": {
+      "ffi": "0.4.0",
+      "models": "1.0.4"
+    },
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  },
+  "provider": {
+    "name": "vp_service"
+  }
+}

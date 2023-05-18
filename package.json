@@ -4,7 +4,7 @@
     "description": "Can interact with the vendor portal api!",
     "scripts": {
         "build": "rm -rf dist && tsc --build",
-        "test": "npx jest --verbose"
+        "test": "npx jest --coverage --verbose --setupFiles ./pacts/configuration.ts"
     },
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -20,6 +20,7 @@
         "yaml": "^2.2.2"
     },
     "devDependencies": {
+        "@pact-foundation/pact": "^11.0.2",
         "@types/jest": "^29.5.1",
         "@types/pako": "^2.0.0",
         "jest": "^29.5.0",

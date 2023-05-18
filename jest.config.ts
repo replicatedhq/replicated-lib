@@ -3,5 +3,11 @@ const config = {
     transform: {
       '^.+\\.(ts|tsx)$': 'esbuild-jest',
     },
-  }
-  export default config
+    collectCoverageFrom: [
+      '**/src/*.{ts,tsx}',
+      '!**/node_modules/**',
+      '!**/vendor/**',
+      '!**/dist/**'
+    ],
+}
+export default config
