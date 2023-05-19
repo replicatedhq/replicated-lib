@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findChannelDetailsInOutput = exports.archiveChannel = exports.getChannelDetails = exports.createChannel = exports.Channel = void 0;
+exports.findChannelDetailsInOutput = exports.archiveChannel = exports.getChannelByApplicationId = exports.getChannelDetails = exports.createChannel = exports.Channel = void 0;
 const applications_1 = require("./applications");
 const configuration_1 = require("./configuration");
 class Channel {
@@ -30,8 +30,13 @@ async function getChannelDetails(vendorPortalApi, appSlug, channelName) {
     // 1. get the app id from the app slug
     const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
     // 2. get the channel id from the channel name
+    return await getChannelByApplicationId(vendorPortalApi, app.id, channelName);
+}
+exports.getChannelDetails = getChannelDetails;
+async function getChannelByApplicationId(vendorPortalApi, appid, channelName) {
+    const http = await (0, configuration_1.client)(vendorPortalApi);
     console.log('Getting channel id from channel name...');
-    const listChannelsUri = `${vendorPortalApi.endpoint}/app/${app.id}/channels?channelName=${channelName}&excludeDetail=true`;
+    const listChannelsUri = `${vendorPortalApi.endpoint}/app/${appid}/channels?channelName=${channelName}&excludeDetail=true`;
     const listChannelsRes = await http.get(listChannelsUri);
     if (listChannelsRes.message.statusCode != 200) {
         throw new Error(`Failed to list channels: Server responded with ${listChannelsRes.message.statusCode}`);
@@ -41,7 +46,7 @@ async function getChannelDetails(vendorPortalApi, appSlug, channelName) {
     console.log(`Found channel for channel name ${channelName}`);
     return channel;
 }
-exports.getChannelDetails = getChannelDetails;
+exports.getChannelByApplicationId = getChannelByApplicationId;
 async function archiveChannel(vendorPortalApi, appSlug, channelName) {
     const channel = await getChannelDetails(vendorPortalApi, appSlug, channelName);
     const http = await (0, configuration_1.client)(vendorPortalApi);

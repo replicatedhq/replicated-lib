@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const pact_1 = require("@pact-foundation/pact");
 const channels_1 = require("./channels");
 const configuration_1 = require("./configuration");
-const applications_spec_1 = require("./applications.spec");
 describe('findChannelDetailsInOutput', () => {
     it('should find the channel id when it exists', async () => {
         const channels = [
@@ -32,51 +31,41 @@ describe('findChannelDetailsInOutput', () => {
     });
 });
 describe('ChannelsService', () => {
-    const provider = new pact_1.Pact({
-        consumer: 'channel_consumer',
-        provider: 'channel_service',
-    });
-    beforeAll(() => provider.setup());
-    afterEach(() => provider.verify());
-    afterAll(() => provider.finalize());
+    beforeAll(() => globalThis.provider.setup());
+    afterEach(() => globalThis.provider.verify());
+    afterAll(() => globalThis.provider.finalize());
     test('should return channel', () => {
         const expectedChannels = { 'channels': [
-                { id: "1234abcd", name: 'Stable', slug: 'stable' },
-                { id: "5678efgh", name: 'Beta', slug: 'beta' },
-                { id: "9012ijkl", name: 'Unstable', slug: 'unstable' }
+                { id: "1234abcd", name: 'Stable', channelSlug: 'stable', releaseSequence: 1 },
+                { id: "5678efgh", name: 'Beta', channelSlug: 'beta', releaseSequence: 2 }
             ] };
-        provider.addInteraction({
-            state: 'app',
-            uponReceiving: 'a request for apps',
-            withRequest: {
-                method: 'GET',
-                path: '/apps'
+        const channelsInteraction = new pact_1.Interaction()
+            .given('I have a list of channels')
+            .uponReceiving('a request for all channels with the builder pattern')
+            .withRequest({
+            method: 'GET',
+            path: '/app/1234abcd/channels',
+            query: { channelName: "Stable", excludeDetail: "true" },
+            headers: {
+                Accept: 'application/json',
             },
-            willRespondWith: {
-                status: 200,
-                headers: { 'Content-Type': 'application/json' },
-                body: applications_spec_1.expectedApplications
-            }
-        });
-        provider.addInteraction({
-            state: 'channel exist',
-            uponReceiving: 'a request for channels',
-            withRequest: {
-                method: 'GET',
-                path: '/app/1234abcd/channels',
-                query: 'channelName=Stable&excludeDetail=true'
+        })
+            .willRespondWith({
+            status: 200,
+            headers: {
+                'Content-Type': 'application/json',
             },
-            willRespondWith: {
-                status: 200,
-                headers: { 'Content-Type': 'application/json' },
-                body: expectedChannels
-            }
+            body: expectedChannels,
         });
+        globalThis.provider.addInteraction(channelsInteraction);
         const apiClient = new configuration_1.VendorPortalApi();
         apiClient.apiToken = "abcd1234";
-        apiClient.endpoint = provider.mockService.baseUrl;
-        return (0, channels_1.getChannelDetails)(apiClient, "app-1", "Stable").then(channel => {
-            expect(channel).toEqual(expectedChannels.channels[0]);
+        apiClient.endpoint = globalThis.provider.mockService.baseUrl;
+        return (0, channels_1.getChannelByApplicationId)(apiClient, "1234abcd", "Stable").then(channel => {
+            expect(channel.id).toEqual(expectedChannels.channels[0].id);
+            expect(channel.name).toEqual(expectedChannels.channels[0].name);
+            expect(channel.slug).toEqual(expectedChannels.channels[0].channelSlug);
+            expect(channel.releaseSequence).toEqual(expectedChannels.channels[0].releaseSequence);
         });
     });
 });

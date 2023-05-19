@@ -7,5 +7,6 @@ export declare class Channel {
 }
 export declare function createChannel(vendorPortalApi: VendorPortalApi, appSlug: string, channelName: string): Promise<Channel>;
 export declare function getChannelDetails(vendorPortalApi: VendorPortalApi, appSlug: string, channelName: string): Promise<Channel>;
+export declare function getChannelByApplicationId(vendorPortalApi: VendorPortalApi, appid: string, channelName: string): Promise<Channel>;
 export declare function archiveChannel(vendorPortalApi: VendorPortalApi, appSlug: string, channelName: string): Promise<void>;
 export declare function findChannelDetailsInOutput(channels: any[], channelName: string): Promise<Channel>;

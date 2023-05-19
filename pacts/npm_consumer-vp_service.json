@@ -94,6 +94,20 @@
         },
         "status": 201
       }
+    },
+    {
+      "description": "a request for archiving a customer",
+      "providerState": "customer archived",
+      "request": {
+        "method": "POST",
+        "path": "/customer/1234abcd/archive"
+      },
+      "response": {
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 204
+      }
     }
   ],
   "metadata": {
