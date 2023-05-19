@@ -8,6 +8,7 @@ export class Customer {
     name: string;
     customerId: string;
     licenseId: string;
+    license: string;
 }
 
 export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: string, name: string, email: string, licenseType: string, channelName: string): Promise<Customer> {
@@ -43,7 +44,7 @@ export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: 
     }
     const downloadLicenseBody: any = parse(await downloadLicenseRes.readBody());
 
-    return {name: name, customerId: createCustomerBody.customer.id, licenseId: downloadLicenseBody.spec.licenseID};
+    return {name: name, customerId: createCustomerBody.customer.id, licenseId: downloadLicenseBody.spec.licenseID, license: atob(downloadLicenseBody)};
 
    
   } catch (error) {
