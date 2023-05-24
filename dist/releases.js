@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.promoteRelease = exports.gzipData = exports.createRelease = void 0;
+exports.promoteReleaseByAppId = exports.promoteRelease = exports.gzipData = exports.createRelease = void 0;
 const applications_1 = require("./applications");
 const configuration_1 = require("./configuration");
 const pako_1 = require("pako");
@@ -102,14 +102,19 @@ async function promoteRelease(vendorPortalApi, appSlug, channelId, releaseSequen
     // 1. get the app id from the app slug
     const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
     // 2. promote the release
+    await promoteReleaseByAppId(vendorPortalApi, app.id, channelId, releaseSequence, version);
+}
+exports.promoteRelease = promoteRelease;
+async function promoteReleaseByAppId(vendorPortalApi, appId, channelId, releaseSequence, version) {
+    const http = await (0, configuration_1.client)(vendorPortalApi);
     const reqBody = {
         "versionLabel": version,
         "channelIds": [channelId],
     };
-    const uri = `${vendorPortalApi.endpoint}/app/${app.id}/release/${releaseSequence}/promote`;
+    const uri = `${vendorPortalApi.endpoint}/app/${appId}/release/${releaseSequence}/promote`;
     const res = await http.post(uri, JSON.stringify(reqBody));
     if (res.message.statusCode != 200) {
         throw new Error(`Failed to promote release: Server responded with ${res.message.statusCode}`);
     }
 }
-exports.promoteRelease = promoteRelease;
+exports.promoteReleaseByAppId = promoteReleaseByAppId;

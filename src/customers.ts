@@ -11,10 +11,16 @@ export class Customer {
     license: string;
 }
 
-export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: string, name: string, email: string, licenseType: string, channelName: string): Promise<Customer> {
+interface entitlementValue {
+  name: string;
+  value: string;
+}
+
+export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: string, name: string, email: string, licenseType: string, channelSlug: string, 
+                                     entitlementValues?: entitlementValue[]): Promise<Customer> {
   try {
     const app = await getApplicationDetails(vendorPortalApi, appSlug);
-    const channel = await getChannelDetails(vendorPortalApi, appSlug, channelName)
+    const channel = await getChannelDetails(vendorPortalApi, appSlug, {slug: channelSlug})
 
     console.log('Creating customer on appId ' + app.id + ' and channelId ' + channel.id);
     
@@ -22,12 +28,15 @@ export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: 
 
     // 1. create the customer
     const createCustomerUri = `${vendorPortalApi.endpoint}/customer`;
-    const createCustomerReqBody = {
+    let createCustomerReqBody = {
       name: name,
       email: email,
       type: licenseType,
       channel_id: channel.id,
       app_id: app.id,
+    }
+    if (entitlementValues) {
+      createCustomerReqBody['entitlementValues'] = entitlementValues
     }
 
     const createCustomerRes = await http.post(createCustomerUri, JSON.stringify(createCustomerReqBody));

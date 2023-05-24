@@ -25,8 +25,8 @@ describe('findChannelDetailsInOutput', () => {
                 "releaseSequence": 2
             }
         ];
-        const channelName = 'ci-reliability-matrix';
-        const channel = await (0, channels_1.findChannelDetailsInOutput)(channels, channelName);
+        const channelSlug = 'ci-reliability-matrix';
+        const channel = await (0, channels_1.findChannelDetailsInOutput)(channels, { slug: channelSlug });
         expect(channel.id).toBe('channelid2');
     });
 });
@@ -45,7 +45,7 @@ describe('ChannelsService', () => {
             .withRequest({
             method: 'GET',
             path: '/app/1234abcd/channels',
-            query: { channelName: "Stable", excludeDetail: "true" },
+            query: { excludeDetail: "true" },
             headers: {
                 Accept: 'application/json',
             },
@@ -61,7 +61,7 @@ describe('ChannelsService', () => {
         const apiClient = new configuration_1.VendorPortalApi();
         apiClient.apiToken = "abcd1234";
         apiClient.endpoint = globalThis.provider.mockService.baseUrl;
-        return (0, channels_1.getChannelByApplicationId)(apiClient, "1234abcd", "Stable").then(channel => {
+        return (0, channels_1.getChannelByApplicationId)(apiClient, "1234abcd", { slug: "stable" }).then(channel => {
             expect(channel.id).toEqual(expectedChannels.channels[0].id);
             expect(channel.name).toEqual(expectedChannels.channels[0].name);
             expect(channel.slug).toEqual(expectedChannels.channels[0].channelSlug);

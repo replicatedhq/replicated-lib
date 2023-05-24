@@ -1,37 +1,37 @@
 import { VendorPortalApi } from "./configuration";
-import { archiveCustomer, createCustomer } from "./customers";
+import { promoteReleaseByAppId } from "./releases";
 
 
 
-describe('CustomerService', () => {
-  
+describe('ReleasesService', () => {
+
     beforeAll(() => globalThis.provider.setup());
     afterEach(() => globalThis.provider.verify());
     afterAll(() => globalThis.provider.finalize());
-  
-    test('archive customer', () => {
+
+    test('promote release', () => {
         globalThis.provider.addInteraction({
-            state: 'customer archived',
-            uponReceiving: 'a request for archiving a customer',
+            state: 'release promoted',
+            uponReceiving: 'a request for promoting a release',
             withRequest: {
                 method: 'POST',
-                path: '/customer/1234abcd/archive'
+                path: '/app/1234abcd/release/1/promote',
             },
             willRespondWith: {
-                status: 204,
+                status: 200,
                 headers: { 'Content-Type': 'application/json' },
             }
         });
-  
+
         const apiClient = new VendorPortalApi();
         apiClient.apiToken = "abcd1234";
         apiClient.endpoint = globalThis.provider.mockService.baseUrl;
 
-        return  archiveCustomer(apiClient,"1234abcd").then(() => {
+        return promoteReleaseByAppId(apiClient, "1234abcd", "channelid", 1, "v1.0.0").then(() => {
             expect(true).toEqual(true);
         }).catch((err) => {
             fail(err);
         });
     });
 
-  });
+});

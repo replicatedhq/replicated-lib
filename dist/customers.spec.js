@@ -7,13 +7,6 @@ describe('CustomerService', () => {
     afterEach(() => globalThis.provider.verify());
     afterAll(() => globalThis.provider.finalize());
     test('archive customer', () => {
-        const expectedCluster = { cluster: { name: "cluster1", id: "1234abcd", status: "provisioning" } };
-        const reqBody = {
-            name: "cluster1",
-            kubernetes_distribution: "kind",
-            kubernetes_version: "v1.25.1",
-            ttl: "10m",
-        };
         globalThis.provider.addInteraction({
             state: 'customer archived',
             uponReceiving: 'a request for archiving a customer',

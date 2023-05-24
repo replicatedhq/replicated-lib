@@ -25,30 +25,33 @@ async function createChannel(vendorPortalApi, appSlug, channelName) {
     return { name: createChannelBody.channel.name, id: createChannelBody.channel.id, slug: createChannelBody.channel.channelSlug };
 }
 exports.createChannel = createChannel;
-async function getChannelDetails(vendorPortalApi, appSlug, channelName) {
+async function getChannelDetails(vendorPortalApi, appSlug, { slug, name }) {
     const http = await (0, configuration_1.client)(vendorPortalApi);
     // 1. get the app id from the app slug
     const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
-    // 2. get the channel id from the channel name
-    return await getChannelByApplicationId(vendorPortalApi, app.id, channelName);
+    if (typeof slug === 'undefined' && typeof name === 'undefined') {
+        throw new Error(`Must provide either a channel slug or channel name`);
+    }
+    // 2. get the channel id from the channel slug
+    return await getChannelByApplicationId(vendorPortalApi, app.id, { slug, name });
 }
 exports.getChannelDetails = getChannelDetails;
-async function getChannelByApplicationId(vendorPortalApi, appid, channelName) {
+async function getChannelByApplicationId(vendorPortalApi, appid, { slug, name }) {
     const http = await (0, configuration_1.client)(vendorPortalApi);
-    console.log('Getting channel id from channel name...');
-    const listChannelsUri = `${vendorPortalApi.endpoint}/app/${appid}/channels?channelName=${channelName}&excludeDetail=true`;
+    console.log(`Getting channel id from channel slug ${slug} or name ${name}...`);
+    const listChannelsUri = `${vendorPortalApi.endpoint}/app/${appid}/channels?excludeDetail=true`;
     const listChannelsRes = await http.get(listChannelsUri);
     if (listChannelsRes.message.statusCode != 200) {
         throw new Error(`Failed to list channels: Server responded with ${listChannelsRes.message.statusCode}`);
     }
     const listChannelsBody = JSON.parse(await listChannelsRes.readBody());
-    const channel = await findChannelDetailsInOutput(listChannelsBody.channels, channelName);
-    console.log(`Found channel for channel name ${channelName}`);
+    const channel = await findChannelDetailsInOutput(listChannelsBody.channels, { slug, name });
+    console.log(`Found channel for channel slug ${channel.slug}`);
     return channel;
 }
 exports.getChannelByApplicationId = getChannelByApplicationId;
-async function archiveChannel(vendorPortalApi, appSlug, channelName) {
-    const channel = await getChannelDetails(vendorPortalApi, appSlug, channelName);
+async function archiveChannel(vendorPortalApi, appSlug, channelSlug) {
+    const channel = await getChannelDetails(vendorPortalApi, appSlug, { slug: channelSlug });
     const http = await (0, configuration_1.client)(vendorPortalApi);
     // 1. get the app id from the app slug
     const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
@@ -61,12 +64,15 @@ async function archiveChannel(vendorPortalApi, appSlug, channelName) {
     }
 }
 exports.archiveChannel = archiveChannel;
-async function findChannelDetailsInOutput(channels, channelName) {
+async function findChannelDetailsInOutput(channels, { slug, name }) {
     for (const channel of channels) {
-        if (channel.name === channelName) {
-            return { name: channelName, id: channel.id, slug: channel.channelSlug, releaseSequence: channel.releaseSequence };
+        if (slug && channel.channelSlug == slug) {
+            return { name: channel.name, id: channel.id, slug: channel.channelSlug, releaseSequence: channel.releaseSequence };
+        }
+        if (name && channel.name == name) {
+            return { name: channel.name, id: channel.id, slug: channel.channelSlug, releaseSequence: channel.releaseSequence };
         }
     }
-    return Promise.reject({ "channel": null, "reason": `Could not find channel with name ${channelName}` });
+    return Promise.reject({ "channel": null, "reason": `Could not find channel with slug ${slug} or name ${name}` });
 }
 exports.findChannelDetailsInOutput = findChannelDetailsInOutput;

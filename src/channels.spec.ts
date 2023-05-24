@@ -1,4 +1,4 @@
-import { Interaction, InteractionObject, Pact } from '@pact-foundation/pact';
+import { Interaction } from '@pact-foundation/pact';
 import { findChannelDetailsInOutput, getChannelByApplicationId } from './channels';
 import { VendorPortalApi } from './configuration';
 
@@ -24,8 +24,8 @@ describe('findChannelDetailsInOutput', () => {
             "releaseSequence": 2
         }
     ];
-    const channelName = 'ci-reliability-matrix';
-    const channel = await findChannelDetailsInOutput(channels, channelName);
+    const channelSlug = 'ci-reliability-matrix';
+    const channel = await findChannelDetailsInOutput(channels, {slug: channelSlug});
     expect(channel.id).toBe('channelid2');
   });
 });
@@ -48,7 +48,7 @@ describe('ChannelsService', () => {
         .withRequest({
           method: 'GET',
           path: '/app/1234abcd/channels',
-          query: {channelName: "Stable", excludeDetail: "true"},
+          query: {excludeDetail: "true"},
           headers: {
             Accept: 'application/json',
           },
@@ -69,7 +69,7 @@ describe('ChannelsService', () => {
     apiClient.apiToken = "abcd1234";
     apiClient.endpoint = globalThis.provider.mockService.baseUrl;
 
-    return getChannelByApplicationId(apiClient,"1234abcd","Stable").then(channel => {
+    return getChannelByApplicationId(apiClient,"1234abcd",{slug: "stable"}).then(channel => {
       expect(channel.id).toEqual(expectedChannels.channels[0].id);
       expect(channel.name).toEqual(expectedChannels.channels[0].name);
       expect(channel.slug).toEqual(expectedChannels.channels[0].channelSlug);

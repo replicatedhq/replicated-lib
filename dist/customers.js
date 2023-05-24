@@ -8,21 +8,24 @@ const yaml_1 = require("yaml");
 class Customer {
 }
 exports.Customer = Customer;
-async function createCustomer(vendorPortalApi, appSlug, name, email, licenseType, channelName) {
+async function createCustomer(vendorPortalApi, appSlug, name, email, licenseType, channelSlug, entitlementValues) {
     try {
         const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
-        const channel = await (0, channels_1.getChannelDetails)(vendorPortalApi, appSlug, channelName);
+        const channel = await (0, channels_1.getChannelDetails)(vendorPortalApi, appSlug, { slug: channelSlug });
         console.log('Creating customer on appId ' + app.id + ' and channelId ' + channel.id);
         const http = await (0, configuration_1.client)(vendorPortalApi);
         // 1. create the customer
         const createCustomerUri = `${vendorPortalApi.endpoint}/customer`;
-        const createCustomerReqBody = {
+        let createCustomerReqBody = {
             name: name,
             email: email,
             type: licenseType,
             channel_id: channel.id,
             app_id: app.id,
         };
+        if (entitlementValues) {
+            createCustomerReqBody['entitlementValues'] = entitlementValues;
+        }
         const createCustomerRes = await http.post(createCustomerUri, JSON.stringify(createCustomerReqBody));
         if (createCustomerRes.message.statusCode != 201) {
             throw new Error(`Failed to create customer: Server responded with ${createCustomerRes.message.statusCode}`);

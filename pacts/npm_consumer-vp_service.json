@@ -12,7 +12,7 @@
         },
         "method": "GET",
         "path": "/app/1234abcd/channels",
-        "query": "channelName=Stable&excludeDetail=true"
+        "query": "excludeDetail=true"
       },
       "response": {
         "body": {
@@ -107,6 +107,20 @@
           "Content-Type": "application/json"
         },
         "status": 204
+      }
+    },
+    {
+      "description": "a request for promoting a release",
+      "providerState": "release promoted",
+      "request": {
+        "method": "POST",
+        "path": "/app/1234abcd/release/1/promote"
+      },
+      "response": {
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 200
       }
     }
   ],

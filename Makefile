@@ -12,3 +12,6 @@ build: deps
 test: build
 	npm run test
 
+.PHONY: publish
+publish: test
+	npm publish

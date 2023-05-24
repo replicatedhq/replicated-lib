@@ -31,35 +31,44 @@ export async function createChannel(vendorPortalApi: VendorPortalApi, appSlug: s
   
 }
 
-export async function getChannelDetails(vendorPortalApi: VendorPortalApi, appSlug: string, channelName: string): Promise<Channel> {
+interface ChannelIdentifier {
+  slug?: string;
+  name?: string;
+}
+
+export async function getChannelDetails(vendorPortalApi: VendorPortalApi, appSlug: string, {slug, name}: ChannelIdentifier): Promise<Channel> {
     const http = await client(vendorPortalApi);
   
     // 1. get the app id from the app slug
     const app = await getApplicationDetails(vendorPortalApi, appSlug);
+
+    if (typeof slug === 'undefined' && typeof name === 'undefined') {
+       throw new Error(`Must provide either a channel slug or channel name`);
+    }
   
-    // 2. get the channel id from the channel name
-    return await getChannelByApplicationId(vendorPortalApi, app.id, channelName);
+    // 2. get the channel id from the channel slug
+    return await getChannelByApplicationId(vendorPortalApi, app.id, {slug, name});
 }
 
-export async function getChannelByApplicationId(vendorPortalApi: VendorPortalApi, appid: string, channelName: string): Promise<Channel> {
+export async function getChannelByApplicationId(vendorPortalApi: VendorPortalApi, appid: string, {slug, name}: ChannelIdentifier): Promise<Channel> {
   const http = await client(vendorPortalApi);
-  console.log('Getting channel id from channel name...');
-  const listChannelsUri = `${vendorPortalApi.endpoint}/app/${appid}/channels?channelName=${channelName}&excludeDetail=true`;
+  console.log(`Getting channel id from channel slug ${slug} or name ${name}...`);
+  const listChannelsUri = `${vendorPortalApi.endpoint}/app/${appid}/channels?excludeDetail=true`;
   const listChannelsRes = await http.get(listChannelsUri);
   if (listChannelsRes.message.statusCode != 200) {
     throw new Error(`Failed to list channels: Server responded with ${listChannelsRes.message.statusCode}`);
   }
   const listChannelsBody: any = JSON.parse(await listChannelsRes.readBody());
 
-  const channel = await findChannelDetailsInOutput(listChannelsBody.channels, channelName);
-  console.log(`Found channel for channel name ${channelName}`);
+  const channel = await findChannelDetailsInOutput(listChannelsBody.channels, {slug, name});
+  console.log(`Found channel for channel slug ${channel.slug}`);
 
 
   return channel;
 }
 
-export async function archiveChannel(vendorPortalApi: VendorPortalApi, appSlug: string, channelName: string) {
-    const channel = await getChannelDetails(vendorPortalApi, appSlug, channelName)
+export async function archiveChannel(vendorPortalApi: VendorPortalApi, appSlug: string, channelSlug: string) {
+    const channel = await getChannelDetails(vendorPortalApi, appSlug, {slug: channelSlug})
 
     const http = await client(vendorPortalApi);
 
@@ -76,11 +85,14 @@ export async function archiveChannel(vendorPortalApi: VendorPortalApi, appSlug: 
     
 }
 
-export async function findChannelDetailsInOutput(channels: any[], channelName: string): Promise<Channel> {
+export async function findChannelDetailsInOutput(channels: any[], {slug, name}: ChannelIdentifier): Promise<Channel> {
   for (const channel of channels) {
-      if (channel.name === channelName) {
-          return {name: channelName, id: channel.id, slug: channel.channelSlug, releaseSequence: channel.releaseSequence};
+      if (slug && channel.channelSlug == slug) {
+          return {name: channel.name, id: channel.id, slug: channel.channelSlug, releaseSequence: channel.releaseSequence};
       }
+      if (name && channel.name == name) {
+        return {name: channel.name, id: channel.id, slug: channel.channelSlug, releaseSequence: channel.releaseSequence};
+    }
   }
-  return Promise.reject({"channel": null, "reason":`Could not find channel with name ${channelName}`});
+  return Promise.reject({"channel": null, "reason":`Could not find channel with slug ${slug} or name ${name}`});
 }
