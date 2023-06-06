@@ -9,6 +9,16 @@ interface entitlementValue {
     name: string;
     value: string;
 }
+export declare class KubernetesDistribution {
+    k8sDistribution: string;
+    k8sVersion: string;
+    kotsVersion: string;
+    cloudProvider: string;
+    isKurl: boolean;
+    numberOfInstances: number;
+    isAirgap: boolean;
+}
 export declare function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: string, name: string, email: string, licenseType: string, channelSlug: string, entitlementValues?: entitlementValue[]): Promise<Customer>;
 export declare function archiveCustomer(vendorPortalApi: VendorPortalApi, customerId: string): Promise<void>;
+export declare function getUsedKubernetesDistributions(vendorPortalApi: VendorPortalApi, appSlug: string): Promise<KubernetesDistribution[]>;
 export {};
