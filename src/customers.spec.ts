@@ -1,5 +1,5 @@
 import { VendorPortalApi } from "./configuration";
-import { archiveCustomer, createCustomer } from "./customers";
+import { archiveCustomer } from "./customers";
 
 
 

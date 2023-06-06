@@ -6,6 +6,11 @@ export class Cluster {
     status: string;
 }
 
+export class SupportedCluster {
+  name: string;
+  version: string;
+}
+
 export async function createCluster(vendorPortalApi: VendorPortalApi, clusterName: string, k8sDistribution: string, k8sVersion: string, clusterTTL: string): Promise<Cluster> {
     const http = await client(vendorPortalApi);
 
@@ -88,4 +93,28 @@ export async function removeCluster(vendorPortalApi: VendorPortalApi, clusterId:
       throw new Error(`Failed to remove cluster: Server responded with ${res.message.statusCode}`);
     }
 
+}
+
+export async function getSupportedClusters(vendorPortalApi: VendorPortalApi): Promise<SupportedCluster[]> {
+    const http = await client(vendorPortalApi);
+    const uri = `${vendorPortalApi.endpoint}/supported-clusters`;
+    const res = await http.get(uri);
+    if (res.message.statusCode != 200) {
+      throw new Error(`Failed to get supported clusters: Server responded with ${res.message.statusCode}`);
+    }
+  
+    const body: any = JSON.parse(await res.readBody());
+  
+    // 2. Convert body into SupportedCluster[]
+    let supportedClusters = [];
+    for (const cluster of body['supported-clusters']) {
+      for (const version of cluster.versions) {
+        supportedClusters.push({
+          name: cluster.name,
+          version: version
+        });
+      }
+    }
+
+    return supportedClusters;
 }
