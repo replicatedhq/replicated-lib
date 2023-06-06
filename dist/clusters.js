@@ -1,10 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.removeCluster = exports.getKubeconfig = exports.getClusterDetails = exports.pollForStatus = exports.createCluster = exports.Cluster = void 0;
+exports.getSupportedClusters = exports.removeCluster = exports.getKubeconfig = exports.getClusterDetails = exports.pollForStatus = exports.createCluster = exports.SupportedCluster = exports.Cluster = void 0;
 const configuration_1 = require("./configuration");
 class Cluster {
 }
 exports.Cluster = Cluster;
+class SupportedCluster {
+}
+exports.SupportedCluster = SupportedCluster;
 async function createCluster(vendorPortalApi, clusterName, k8sDistribution, k8sVersion, clusterTTL) {
     const http = await (0, configuration_1.client)(vendorPortalApi);
     const reqBody = {
@@ -74,3 +77,24 @@ async function removeCluster(vendorPortalApi, clusterId) {
     }
 }
 exports.removeCluster = removeCluster;
+async function getSupportedClusters(vendorPortalApi) {
+    const http = await (0, configuration_1.client)(vendorPortalApi);
+    const uri = `${vendorPortalApi.endpoint}/supported-clusters`;
+    const res = await http.get(uri);
+    if (res.message.statusCode != 200) {
+        throw new Error(`Failed to get supported clusters: Server responded with ${res.message.statusCode}`);
+    }
+    const body = JSON.parse(await res.readBody());
+    // 2. Convert body into SupportedCluster[]
+    let supportedClusters = [];
+    for (const cluster of body['supported-clusters']) {
+        for (const version of cluster.versions) {
+            supportedClusters.push({
+                name: cluster.name,
+                version: version
+            });
+        }
+    }
+    return supportedClusters;
+}
+exports.getSupportedClusters = getSupportedClusters;

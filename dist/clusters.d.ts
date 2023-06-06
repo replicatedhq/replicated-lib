@@ -4,8 +4,13 @@ export declare class Cluster {
     id: string;
     status: string;
 }
+export declare class SupportedCluster {
+    name: string;
+    version: string;
+}
 export declare function createCluster(vendorPortalApi: VendorPortalApi, clusterName: string, k8sDistribution: string, k8sVersion: string, clusterTTL: string): Promise<Cluster>;
 export declare function pollForStatus(vendorPortalApi: VendorPortalApi, clusterId: string, expectedStatus: string, timeout?: number): Promise<Cluster>;
 export declare function getClusterDetails(vendorPortalApi: VendorPortalApi, clusterId: string): Promise<Cluster>;
 export declare function getKubeconfig(vendorPortalApi: VendorPortalApi, clusterId: string): Promise<string>;
 export declare function removeCluster(vendorPortalApi: VendorPortalApi, clusterId: string): Promise<void>;
+export declare function getSupportedClusters(vendorPortalApi: VendorPortalApi): Promise<SupportedCluster[]>;

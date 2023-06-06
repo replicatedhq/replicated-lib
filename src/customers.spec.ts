@@ -1,7 +1,5 @@
 import { VendorPortalApi } from "./configuration";
-import { archiveCustomer, createCustomer, getUsedKubernetesDistributions } from "./customers";
-
-
+import { archiveCustomer } from "./customers";
 
 describe('CustomerService', () => {
 
