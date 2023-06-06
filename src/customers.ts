@@ -16,6 +16,16 @@ interface entitlementValue {
   value: string;
 }
 
+export class KubernetesDistribution {
+  k8sDistribution: string;
+  k8sVersion: string;
+  kotsVersion: string;
+  cloudProvider: string;
+  isKurl: boolean;
+  numberOfInstances: number;
+  isAirgap: boolean;
+}
+
 export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: string, name: string, email: string, licenseType: string, channelSlug: string, 
                                      entitlementValues?: entitlementValue[]): Promise<Customer> {
   try {
@@ -74,4 +84,36 @@ export async function archiveCustomer(vendorPortalApi: VendorPortalApi, customer
     if (archiveCustomerRes.message.statusCode != 204) {
       throw new Error(`Failed to archive customer: Server responded with ${archiveCustomerRes.message.statusCode}`);
     }
+}
+
+export async function getUsedKubernetesDistributions(vendorPortalApi: VendorPortalApi, appSlug: string): Promise<KubernetesDistribution[]> {
+  const http = await client(vendorPortalApi);
+
+  // 1. get the app
+  const app = await getApplicationDetails(vendorPortalApi, appSlug);
+
+  // 1. get the cluster usage
+  const getClusterUsageUri = `${vendorPortalApi.endpoint}/app/${app.id}/cluster-usage`;
+  const getClusterUsageRes = await http.get(getClusterUsageUri);
+  if (getClusterUsageRes.message.statusCode != 200) {
+    throw new Error(`Failed to get Cluster Usage: Server responded with ${getClusterUsageRes.message.statusCode}`);
+  }
+  const getClusterUsageBody: any = JSON.parse(await getClusterUsageRes.readBody());
+
+  // 2. Convert body into KubernetesDistribution
+  let kubernetesDistributions: KubernetesDistribution[] = [];
+  for (const cluster of getClusterUsageBody.clusterUsageDetails) {
+    kubernetesDistributions.push({
+      k8sDistribution: cluster.kubernetes_distribution,
+      k8sVersion: cluster.kubernetes_version,
+      kotsVersion: cluster.kots_version,
+      cloudProvider: cluster.cloud_provider,
+      isKurl: cluster.is_kurl,
+      numberOfInstances: cluster.number_of_instances,
+      isAirgap: cluster.is_airgap
+    })
+
+  }
+
+  return kubernetesDistributions;
 }
