@@ -110,7 +110,7 @@ export async function getSupportedClusters(vendorPortalApi: VendorPortalApi): Pr
     for (const cluster of body['supported-clusters']) {
       for (const version of cluster.versions) {
         supportedClusters.push({
-          name: cluster.name,
+          name: cluster.short_name,
           version: version
         });
       }
