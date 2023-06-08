@@ -1,6 +1,6 @@
 {
     "name": "replicated-lib",
-    "version": "0.0.1-alpha.18",
+    "version": "0.0.1-alpha.19",
     "description": "Can interact with the vendor portal api!",
     "scripts": {
         "build": "rm -rf dist && tsc --build",

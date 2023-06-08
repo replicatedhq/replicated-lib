@@ -102,6 +102,12 @@ export async function getUsedKubernetesDistributions(vendorPortalApi: VendorPort
 
   // 2. Convert body into KubernetesDistribution
   let kubernetesDistributions: KubernetesDistribution[] = [];
+
+  // check if getClusterUsageBody.clusterUsageDetails is undefined
+  if (!getClusterUsageBody.clusterUsageDetails) {
+    return kubernetesDistributions;
+  }
+  
   for (const cluster of getClusterUsageBody.clusterUsageDetails) {
     kubernetesDistributions.push({
       k8sDistribution: cluster.kubernetes_distribution,
