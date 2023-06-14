@@ -58,13 +58,16 @@ export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: 
     // 2. download the license
     const downloadLicenseUri = `${vendorPortalApi.endpoint}/app/${app.id}/customer/${createCustomerBody.customer.id}/license-download`;
     const downloadLicenseRes = await http.get(downloadLicenseUri);
-    if (downloadLicenseRes.message.statusCode != 200) {
+    // If response is 403, ignore as we could be using a trial license (on builders plan)
+    if (downloadLicenseRes.message.statusCode != 200 && downloadLicenseRes.message.statusCode != 403) {
       throw new Error(`Failed to download created license: Server responded with ${downloadLicenseRes.message.statusCode}`);
     }
-    const downloadLicenseBody: any = await downloadLicenseRes.readBody();
-    const licenseYAML = parse(downloadLicenseBody)
+    let downloadLicenseBody: string = "";
+    if (downloadLicenseRes.message.statusCode == 200) {
+      downloadLicenseBody = await downloadLicenseRes.readBody();
+    }
 
-    return {name: name, customerId: createCustomerBody.customer.id, licenseId: licenseYAML.spec.licenseID, license: downloadLicenseBody};
+    return {name: name, customerId: createCustomerBody.customer.id, licenseId: createCustomerBody.customer.installationId, license: downloadLicenseBody};
 
    
   } catch (error) {
