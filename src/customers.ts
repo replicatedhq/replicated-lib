@@ -2,7 +2,8 @@ import { VendorPortalApi, client } from './configuration';
 import { getChannelDetails } from './channels';
 import { getApplicationDetails } from './applications';
 
-import { parse } from 'yaml'
+import { add } from 'date-fns';
+import { zonedTimeToUtc } from 'date-fns-tz';
 
 export class Customer {
     name: string;
@@ -27,7 +28,7 @@ export class KubernetesDistribution {
 }
 
 export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: string, name: string, email: string, licenseType: string, channelSlug: string, 
-                                     entitlementValues?: entitlementValue[]): Promise<Customer> {
+                                     expiresIn: number, entitlementValues?: entitlementValue[]): Promise<Customer> {
   try {
     const app = await getApplicationDetails(vendorPortalApi, appSlug);
     const channel = await getChannelDetails(vendorPortalApi, appSlug, {slug: channelSlug})
@@ -44,6 +45,12 @@ export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: 
       type: licenseType,
       channel_id: channel.id,
       app_id: app.id,
+    }
+    // expiresIn is in days, if it's 0 or less, ignore it - non-expiring license
+    if (expiresIn > 0) {
+      const now = new Date();
+      const expiresAt = zonedTimeToUtc(add(now, { days: expiresIn }), 'UTC');
+      createCustomerReqBody['expires_at'] = expiresAt.toISOString();
     }
     if (entitlementValues) {
       createCustomerReqBody['entitlementValues'] = entitlementValues

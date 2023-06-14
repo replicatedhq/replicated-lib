@@ -4,13 +4,15 @@ exports.getUsedKubernetesDistributions = exports.archiveCustomer = exports.creat
 const configuration_1 = require("./configuration");
 const channels_1 = require("./channels");
 const applications_1 = require("./applications");
+const date_fns_1 = require("date-fns");
+const date_fns_tz_1 = require("date-fns-tz");
 class Customer {
 }
 exports.Customer = Customer;
 class KubernetesDistribution {
 }
 exports.KubernetesDistribution = KubernetesDistribution;
-async function createCustomer(vendorPortalApi, appSlug, name, email, licenseType, channelSlug, entitlementValues) {
+async function createCustomer(vendorPortalApi, appSlug, name, email, licenseType, channelSlug, expiresIn, entitlementValues) {
     try {
         const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
         const channel = await (0, channels_1.getChannelDetails)(vendorPortalApi, appSlug, { slug: channelSlug });
@@ -25,6 +27,12 @@ async function createCustomer(vendorPortalApi, appSlug, name, email, licenseType
             channel_id: channel.id,
             app_id: app.id,
         };
+        // expiresIn is in days, if it's 0 or less, ignore it - non-expiring license
+        if (expiresIn > 0) {
+            const now = new Date();
+            const expiresAt = (0, date_fns_tz_1.zonedTimeToUtc)((0, date_fns_1.add)(now, { days: expiresIn }), 'UTC');
+            createCustomerReqBody['expires_at'] = expiresAt.toISOString();
+        }
         if (entitlementValues) {
             createCustomerReqBody['entitlementValues'] = entitlementValues;
         }
