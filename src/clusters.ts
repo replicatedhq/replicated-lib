@@ -6,7 +6,7 @@ export class Cluster {
     status: string;
 }
 
-export class SupportedCluster {
+export class ClusterVersion {
   name: string;
   version: string;
 }
@@ -96,26 +96,26 @@ export async function removeCluster(vendorPortalApi: VendorPortalApi, clusterId:
 
 }
 
-export async function getSupportedClusters(vendorPortalApi: VendorPortalApi): Promise<SupportedCluster[]> {
+export async function getClusterVersions(vendorPortalApi: VendorPortalApi): Promise<ClusterVersion[]> {
     const http = await client(vendorPortalApi);
-    const uri = `${vendorPortalApi.endpoint}/supported-clusters`;
+    const uri = `${vendorPortalApi.endpoint}/cluster/versions`;
     const res = await http.get(uri);
     if (res.message.statusCode != 200) {
-      throw new Error(`Failed to get supported clusters: Server responded with ${res.message.statusCode}`);
+      throw new Error(`Failed to get cluster versions: Server responded with ${res.message.statusCode}`);
     }
   
     const body: any = JSON.parse(await res.readBody());
   
-    // 2. Convert body into SupportedCluster[]
-    let supportedClusters = [];
-    for (const cluster of body['supported-clusters']) {
+    // 2. Convert body into ClusterVersion[]
+    let clusterVersions = [];
+    for (const cluster of body['cluster-versions']) {
       for (const version of cluster.versions) {
-        supportedClusters.push({
+        clusterVersions.push({
           name: cluster.short_name,
           version: version
         });
       }
     }
 
-    return supportedClusters;
+    return clusterVersions;
 }
