@@ -1,5 +1,5 @@
 import { VendorPortalApi } from "./configuration";
-import { createCluster, getSupportedClusters } from "./clusters";
+import { createCluster } from "./clusters";
 
 describe('ClusterService', () => {
 
@@ -14,6 +14,7 @@ describe('ClusterService', () => {
             kubernetes_distribution: "kind",
             kubernetes_version: "v1.25.1",
             ttl: "10m",
+            disk_gib: 50,
         }
         globalThis.provider.addInteraction({
             state: 'cluster created',
