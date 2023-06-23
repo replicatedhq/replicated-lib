@@ -96,14 +96,14 @@ export async function archiveCustomer(vendorPortalApi: VendorPortalApi, customer
     }
 }
 
-export async function getUsedKubernetesDistributions(vendorPortalApi: VendorPortalApi, appSlug: string): Promise<KubernetesDistribution[]> {
+export async function listCustomerClusters(vendorPortalApi: VendorPortalApi, appSlug: string): Promise<KubernetesDistribution[]> {
   const http = await client(vendorPortalApi);
 
   // 1. get the app
   const app = await getApplicationDetails(vendorPortalApi, appSlug);
 
   // 1. get the cluster usage
-  const getClusterUsageUri = `${vendorPortalApi.endpoint}/app/${app.id}/cluster-usage`;
+  const getClusterUsageUri = `${vendorPortalApi.endpoint}/app/${app.id}/clusters`;
   const getClusterUsageRes = await http.get(getClusterUsageUri);
   if (getClusterUsageRes.message.statusCode != 200) {
     throw new Error(`Failed to get Cluster Usage: Server responded with ${getClusterUsageRes.message.statusCode}`);
@@ -113,12 +113,12 @@ export async function getUsedKubernetesDistributions(vendorPortalApi: VendorPort
   // 2. Convert body into KubernetesDistribution
   let kubernetesDistributions: KubernetesDistribution[] = [];
 
-  // check if getClusterUsageBody.clusterUsageDetails is undefined
-  if (!getClusterUsageBody.clusterUsageDetails) {
+  // check if getClusterUsageBody.customerClustersDetails is undefined
+  if (!getClusterUsageBody.customerClustersDetails) {
     return kubernetesDistributions;
   }
   
-  for (const cluster of getClusterUsageBody.clusterUsageDetails) {
+  for (const cluster of getClusterUsageBody.customerClustersDetails) {
     kubernetesDistributions.push({
       k8sDistribution: cluster.kubernetes_distribution,
       k8sVersion: cluster.kubernetes_version,

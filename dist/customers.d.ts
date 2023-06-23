@@ -20,5 +20,5 @@ export declare class KubernetesDistribution {
 }
 export declare function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: string, name: string, email: string, licenseType: string, channelSlug: string, expiresIn: number, entitlementValues?: entitlementValue[]): Promise<Customer>;
 export declare function archiveCustomer(vendorPortalApi: VendorPortalApi, customerId: string): Promise<void>;
-export declare function getUsedKubernetesDistributions(vendorPortalApi: VendorPortalApi, appSlug: string): Promise<KubernetesDistribution[]>;
+export declare function listCustomerClusters(vendorPortalApi: VendorPortalApi, appSlug: string): Promise<KubernetesDistribution[]>;
 export {};

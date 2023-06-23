@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUsedKubernetesDistributions = exports.archiveCustomer = exports.createCustomer = exports.KubernetesDistribution = exports.Customer = void 0;
+exports.listCustomerClusters = exports.archiveCustomer = exports.createCustomer = exports.KubernetesDistribution = exports.Customer = void 0;
 const configuration_1 = require("./configuration");
 const channels_1 = require("./channels");
 const applications_1 = require("./applications");
@@ -71,12 +71,12 @@ async function archiveCustomer(vendorPortalApi, customerId) {
     }
 }
 exports.archiveCustomer = archiveCustomer;
-async function getUsedKubernetesDistributions(vendorPortalApi, appSlug) {
+async function listCustomerClusters(vendorPortalApi, appSlug) {
     const http = await (0, configuration_1.client)(vendorPortalApi);
     // 1. get the app
     const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
     // 1. get the cluster usage
-    const getClusterUsageUri = `${vendorPortalApi.endpoint}/app/${app.id}/cluster-usage`;
+    const getClusterUsageUri = `${vendorPortalApi.endpoint}/app/${app.id}/clusters`;
     const getClusterUsageRes = await http.get(getClusterUsageUri);
     if (getClusterUsageRes.message.statusCode != 200) {
         throw new Error(`Failed to get Cluster Usage: Server responded with ${getClusterUsageRes.message.statusCode}`);
@@ -84,11 +84,11 @@ async function getUsedKubernetesDistributions(vendorPortalApi, appSlug) {
     const getClusterUsageBody = JSON.parse(await getClusterUsageRes.readBody());
     // 2. Convert body into KubernetesDistribution
     let kubernetesDistributions = [];
-    // check if getClusterUsageBody.clusterUsageDetails is undefined
-    if (!getClusterUsageBody.clusterUsageDetails) {
+    // check if getClusterUsageBody.customerClustersDetails is undefined
+    if (!getClusterUsageBody.customerClustersDetails) {
         return kubernetesDistributions;
     }
-    for (const cluster of getClusterUsageBody.clusterUsageDetails) {
+    for (const cluster of getClusterUsageBody.customerClustersDetails) {
         kubernetesDistributions.push({
             k8sDistribution: cluster.kubernetes_distribution,
             k8sVersion: cluster.kubernetes_version,
@@ -101,4 +101,4 @@ async function getUsedKubernetesDistributions(vendorPortalApi, appSlug) {
     }
     return kubernetesDistributions;
 }
-exports.getUsedKubernetesDistributions = getUsedKubernetesDistributions;
+exports.listCustomerClusters = listCustomerClusters;
