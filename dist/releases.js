@@ -114,7 +114,16 @@ async function promoteReleaseByAppId(vendorPortalApi, appId, channelId, releaseS
     const uri = `${vendorPortalApi.endpoint}/app/${appId}/release/${releaseSequence}/promote`;
     const res = await http.post(uri, JSON.stringify(reqBody));
     if (res.message.statusCode != 200) {
-        throw new Error(`Failed to promote release: Server responded with ${res.message.statusCode}`);
+        // If res has a body, read it and add it to the error message
+        console.log(`Failed to promote release: Server responded with ${res.message.statusCode}`);
+        let body = "";
+        try {
+            body = await res.readBody();
+        }
+        catch (err) {
+            // ignore
+        }
+        throw new Error(`Failed to promote release: Server responded with ${res.message.statusCode}: ${body}`);
     }
 }
 exports.promoteReleaseByAppId = promoteReleaseByAppId;
