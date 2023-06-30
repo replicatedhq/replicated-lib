@@ -4,7 +4,7 @@ export declare class Cluster {
     id: string;
     status: string;
 }
-export declare class SupportedCluster {
+export declare class ClusterVersion {
     name: string;
     version: string;
 }
@@ -13,4 +13,4 @@ export declare function pollForStatus(vendorPortalApi: VendorPortalApi, clusterI
 export declare function getClusterDetails(vendorPortalApi: VendorPortalApi, clusterId: string): Promise<Cluster>;
 export declare function getKubeconfig(vendorPortalApi: VendorPortalApi, clusterId: string): Promise<string>;
 export declare function removeCluster(vendorPortalApi: VendorPortalApi, clusterId: string): Promise<void>;
-export declare function getSupportedClusters(vendorPortalApi: VendorPortalApi): Promise<SupportedCluster[]>;
+export declare function getClusterVersions(vendorPortalApi: VendorPortalApi): Promise<ClusterVersion[]>;
