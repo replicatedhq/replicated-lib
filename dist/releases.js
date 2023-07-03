@@ -115,7 +115,6 @@ async function promoteReleaseByAppId(vendorPortalApi, appId, channelId, releaseS
     const res = await http.post(uri, JSON.stringify(reqBody));
     if (res.message.statusCode != 200) {
         // If res has a body, read it and add it to the error message
-        console.log(`Failed to promote release: Server responded with ${res.message.statusCode}`);
         let body = "";
         try {
             body = await res.readBody();
