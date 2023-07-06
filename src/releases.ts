@@ -37,7 +37,7 @@ export async function createRelease(vendorPortalApi: VendorPortalApi, appSlug: s
   }
   const createReleaseBody: any = JSON.parse(await createReleaseRes.readBody());
 
-  console.log(`Created release with sequence nunmber ${createReleaseBody.release.sequence}`);
+  console.log(`Created release with sequence number ${createReleaseBody.release.sequence}`);
   return { sequence: createReleaseBody.release.sequence };
 
 }
