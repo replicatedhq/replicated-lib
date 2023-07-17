@@ -72,7 +72,7 @@ export async function getClusterDetails(vendorPortalApi: VendorPortalApi, cluste
       }
     
       const body: any = JSON.parse(await res.readBody());
-      if (clusters.length == body.totalClusters || body.clusters == undefined) {
+      if (clusters.length == body.totalClusters || body.clusters == undefined || body.clusters.length == 0) {
         break
       }
       clusters = clusters.concat(body.clusters);
