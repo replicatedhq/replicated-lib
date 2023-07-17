@@ -23,8 +23,14 @@ export async function createCluster(vendorPortalApi: VendorPortalApi, clusterNam
     }
     const uri = `${vendorPortalApi.endpoint}/cluster`;
     const res = await http.post(uri, JSON.stringify(reqBody));
-    if (res.message.statusCode != 201) { 
-       throw new Error(`Failed to queue cluster create: Server responded with ${res.message.statusCode}`);
+    if (res.message.statusCode != 201) {
+      let body = "";
+      try {
+        body = await res.readBody();
+      } catch (err) {
+        // ignore
+      }
+      throw new Error(`Failed to queue cluster create: Server responded with ${res.message.statusCode}: ${body}`);
     }
 
     const body: any = JSON.parse(await res.readBody());
@@ -56,15 +62,23 @@ export async function pollForStatus(vendorPortalApi: VendorPortalApi, clusterId:
 
 export async function getClusterDetails(vendorPortalApi: VendorPortalApi, clusterId: string): Promise<Cluster> {
     const http = await client(vendorPortalApi);
-  
+    let page = 0;
+    let clusters: Cluster[] = [];
     const uri = `${vendorPortalApi.endpoint}/clusters`;
-    const res = await http.get(uri);
-    if (res.message.statusCode != 200) {
-      throw new Error(`Failed to get clusters: Server responded with ${res.message.statusCode}`);
+    while (true) {
+      const res = await http.get(`${uri}?currentPage=${page}`);
+      if (res.message.statusCode != 200) {
+        throw new Error(`Failed to get clusters: Server responded with ${res.message.statusCode}`);
+      }
+    
+      const body: any = JSON.parse(await res.readBody());
+      if (clusters.length == body.totalClusters || body.clusters.length == 0) {
+        break
+      }
+      clusters = clusters.concat(body.clusters);
+      page++;
     }
-  
-    const body: any = JSON.parse(await res.readBody());
-    const cluster = body.clusters.find((c: any) => c.id === clusterId);
+    const cluster = clusters.find((c: any) => c.id === clusterId);
     if (!cluster) {
       throw new Error(`Failed to find cluster with id ${clusterId}`);
     }
