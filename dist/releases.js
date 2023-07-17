@@ -23,7 +23,7 @@ async function createRelease(vendorPortalApi, appSlug, yamlDir) {
         throw new Error(`Failed to create release: Server responded with ${createReleaseRes.message.statusCode}`);
     }
     const createReleaseBody = JSON.parse(await createReleaseRes.readBody());
-    console.log(`Created release with sequence nunmber ${createReleaseBody.release.sequence}`);
+    console.log(`Created release with sequence number ${createReleaseBody.release.sequence}`);
     return { sequence: createReleaseBody.release.sequence };
 }
 exports.createRelease = createRelease;
