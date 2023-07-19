@@ -62,28 +62,16 @@ export async function pollForStatus(vendorPortalApi: VendorPortalApi, clusterId:
 
 export async function getClusterDetails(vendorPortalApi: VendorPortalApi, clusterId: string): Promise<Cluster> {
     const http = await client(vendorPortalApi);
-    let page = 0;
-    let clusters: Cluster[] = [];
-    const uri = `${vendorPortalApi.endpoint}/clusters`;
-    while (true) {
-      const res = await http.get(`${uri}?currentPage=${page}`);
-      if (res.message.statusCode != 200) {
-        throw new Error(`Failed to get clusters: Server responded with ${res.message.statusCode}`);
-      }
-    
-      const body: any = JSON.parse(await res.readBody());
-      if (clusters.length == body.totalClusters || body.clusters == undefined || body.clusters.length == 0) {
-        break
-      }
-      clusters = clusters.concat(body.clusters);
-      page++;
-    }
-    const cluster = clusters.find((c: any) => c.id === clusterId);
-    if (!cluster) {
-      throw new Error(`Failed to find cluster with id ${clusterId}`);
+
+    const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}`;
+    const res = await http.get(uri);
+    if (res.message.statusCode != 200) {
+      throw new Error(`Failed to get cluster: Server responded with ${res.message.statusCode}`);
     }
   
-    return {name: cluster.name, id: cluster.id, status: cluster.status};
+    const body: any = JSON.parse(await res.readBody());
+  
+    return {name: body.cluster.name, id: body.cluster.id, status: body.cluster.status};
 }
 
 export async function getKubeconfig(vendorPortalApi: VendorPortalApi, clusterId: string): Promise<string> {
