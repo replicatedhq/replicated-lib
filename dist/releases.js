@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.promoteReleaseByAppId = exports.promoteRelease = exports.gzipData = exports.createRelease = void 0;
+exports.getReleaseByAppId = exports.getRelease = exports.promoteReleaseByAppId = exports.promoteRelease = exports.gzipData = exports.createRelease = void 0;
 const applications_1 = require("./applications");
 const configuration_1 = require("./configuration");
 const pako_1 = require("pako");
@@ -24,7 +24,7 @@ async function createRelease(vendorPortalApi, appSlug, yamlDir) {
     }
     const createReleaseBody = JSON.parse(await createReleaseRes.readBody());
     console.log(`Created release with sequence number ${createReleaseBody.release.sequence}`);
-    return { sequence: createReleaseBody.release.sequence };
+    return { sequence: createReleaseBody.release.sequence, charts: createReleaseBody.release.charts };
 }
 exports.createRelease = createRelease;
 const gzipData = (data) => {
@@ -126,3 +126,22 @@ async function promoteReleaseByAppId(vendorPortalApi, appId, channelId, releaseS
     }
 }
 exports.promoteReleaseByAppId = promoteReleaseByAppId;
+async function getRelease(vendorPortalApi, appSlug, releaseSequence) {
+    const http = await (0, configuration_1.client)(vendorPortalApi);
+    // 1. get the app id from the app slug
+    const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
+    // 2. get the release by app Id
+    return getReleaseByAppId(vendorPortalApi, app.id, releaseSequence);
+}
+exports.getRelease = getRelease;
+async function getReleaseByAppId(vendorPortalApi, appId, releaseSequence) {
+    const http = await (0, configuration_1.client)(vendorPortalApi);
+    const uri = `${vendorPortalApi.endpoint}/app/${appId}/release/${releaseSequence}`;
+    const res = await http.get(uri);
+    if (res.message.statusCode != 200) {
+        throw new Error(`Failed to get release: Server responded with ${res.message.statusCode}`);
+    }
+    const body = JSON.parse(await res.readBody());
+    return { sequence: body.release.sequence, charts: body.release.charts };
+}
+exports.getReleaseByAppId = getReleaseByAppId;

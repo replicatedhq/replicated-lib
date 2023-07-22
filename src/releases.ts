@@ -9,6 +9,14 @@ import * as base64 from 'base64-js';
 
 export interface Release {
   sequence: string;
+  charts?: ReleaseChart[];
+}
+
+export interface ReleaseChart {
+  name: string;
+  version: string;
+  status: string;
+  error: string;
 }
 
 export interface KotsSingleSpec {
@@ -38,7 +46,7 @@ export async function createRelease(vendorPortalApi: VendorPortalApi, appSlug: s
   const createReleaseBody: any = JSON.parse(await createReleaseRes.readBody());
 
   console.log(`Created release with sequence number ${createReleaseBody.release.sequence}`);
-  return { sequence: createReleaseBody.release.sequence };
+  return { sequence: createReleaseBody.release.sequence, charts: createReleaseBody.release.charts };
 
 }
 
@@ -136,6 +144,7 @@ export async function promoteRelease(vendorPortalApi: VendorPortalApi, appSlug: 
   await promoteReleaseByAppId(vendorPortalApi, app.id, channelId, releaseSequence, version);
 }
 
+
 export async function promoteReleaseByAppId(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, releaseSequence: number, version: string) {
   const http = await client(vendorPortalApi);
   const reqBody = {
@@ -154,4 +163,30 @@ export async function promoteReleaseByAppId(vendorPortalApi: VendorPortalApi, ap
     }
     throw new Error(`Failed to promote release: Server responded with ${res.message.statusCode}: ${body}`);
   }
+}
+
+
+export async function getRelease(vendorPortalApi: VendorPortalApi, appSlug: string, releaseSequence: number): Promise<Release> {
+  const http = await client(vendorPortalApi);
+
+  // 1. get the app id from the app slug
+  const app = await getApplicationDetails(vendorPortalApi, appSlug);
+
+  // 2. get the release by app Id
+  return getReleaseByAppId(vendorPortalApi, app.id, releaseSequence);
+
+}
+
+export async function getReleaseByAppId(vendorPortalApi: VendorPortalApi, appId: string, releaseSequence: number): Promise<Release> {
+  const http = await client(vendorPortalApi);
+
+  const uri = `${vendorPortalApi.endpoint}/app/${appId}/release/${releaseSequence}`;
+  const res = await http.get(uri);
+  if (res.message.statusCode != 200) {
+    throw new Error(`Failed to get release: Server responded with ${res.message.statusCode}`);
+  }
+
+  const body: any = JSON.parse(await res.readBody());
+
+  return { sequence: body.release.sequence, charts: body.release.charts };
 }

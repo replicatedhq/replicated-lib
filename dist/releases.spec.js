@@ -28,4 +28,38 @@ describe('ReleasesService', () => {
             fail(err);
         });
     });
+    test('get release', () => {
+        globalThis.provider.addInteraction({
+            state: 'get promoted',
+            uponReceiving: 'a request for get a release',
+            withRequest: {
+                method: 'GET',
+                path: '/app/1234abcd/release/1',
+            },
+            willRespondWith: {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' },
+                body: {
+                    "release": {
+                        "sequence": 1,
+                        "charts": [
+                            {
+                                "name": "my-chart",
+                                "version": "1.0.0",
+                                "status": "unknowm",
+                            }
+                        ]
+                    }
+                },
+            }
+        });
+        const apiClient = new configuration_1.VendorPortalApi();
+        apiClient.apiToken = "abcd1234";
+        apiClient.endpoint = globalThis.provider.mockService.baseUrl;
+        return (0, releases_1.getReleaseByAppId)(apiClient, "1234abcd", 1).then(() => {
+            expect(true).toEqual(true);
+        }).catch((err) => {
+            fail(err);
+        });
+    });
 });

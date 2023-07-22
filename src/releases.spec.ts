@@ -1,5 +1,5 @@
 import { VendorPortalApi } from "./configuration";
-import { promoteReleaseByAppId } from "./releases";
+import { getReleaseByAppId, promoteReleaseByAppId } from "./releases";
 
 
 
@@ -28,6 +28,42 @@ describe('ReleasesService', () => {
         apiClient.endpoint = globalThis.provider.mockService.baseUrl;
 
         return promoteReleaseByAppId(apiClient, "1234abcd", "channelid", 1, "v1.0.0").then(() => {
+            expect(true).toEqual(true);
+        }).catch((err) => {
+            fail(err);
+        });
+    });
+
+    test('get release', () => {
+        globalThis.provider.addInteraction({
+            state: 'get promoted',
+            uponReceiving: 'a request for get a release',
+            withRequest: {
+                method: 'GET',
+                path: '/app/1234abcd/release/1',
+            },
+            willRespondWith: {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' },
+                body: {
+                    "release": {
+                        "sequence": 1,
+                        "charts": [
+                            {
+                                "name": "my-chart",
+                                "version": "1.0.0",
+                                "status": "unknowm",
+                            }]
+                        }
+                    },
+            }
+        });
+
+        const apiClient = new VendorPortalApi();
+        apiClient.apiToken = "abcd1234";
+        apiClient.endpoint = globalThis.provider.mockService.baseUrl;
+
+        return getReleaseByAppId(apiClient, "1234abcd", 1).then(() => {
             expect(true).toEqual(true);
         }).catch((err) => {
             fail(err);
