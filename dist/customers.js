@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUsedKubernetesDistributions = exports.archiveCustomer = exports.createCustomer = exports.KubernetesDistribution = exports.Customer = void 0;
-const configuration_1 = require("./configuration");
 const channels_1 = require("./channels");
 const applications_1 = require("./applications");
 const date_fns_1 = require("date-fns");
@@ -17,7 +16,7 @@ async function createCustomer(vendorPortalApi, appSlug, name, email, licenseType
         const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
         const channel = await (0, channels_1.getChannelDetails)(vendorPortalApi, appSlug, { slug: channelSlug });
         console.log('Creating customer on appId ' + app.id + ' and channelId ' + channel.id);
-        const http = await (0, configuration_1.client)(vendorPortalApi);
+        const http = await vendorPortalApi.client();
         // 1. create the customer
         const createCustomerUri = `${vendorPortalApi.endpoint}/customer`;
         let createCustomerReqBody = {
@@ -68,7 +67,7 @@ async function createCustomer(vendorPortalApi, appSlug, name, email, licenseType
 }
 exports.createCustomer = createCustomer;
 async function archiveCustomer(vendorPortalApi, customerId) {
-    const http = await (0, configuration_1.client)(vendorPortalApi);
+    const http = await vendorPortalApi.client();
     // 2. Archive a customer
     console.log(`Archive Customer ...`);
     const archiveCustomerUri = `${vendorPortalApi.endpoint}/customer/${customerId}/archive`;
@@ -79,7 +78,7 @@ async function archiveCustomer(vendorPortalApi, customerId) {
 }
 exports.archiveCustomer = archiveCustomer;
 async function getUsedKubernetesDistributions(vendorPortalApi, appSlug) {
-    const http = await (0, configuration_1.client)(vendorPortalApi);
+    const http = await vendorPortalApi.client();
     // 1. get the app
     const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
     // 1. get the cluster usage

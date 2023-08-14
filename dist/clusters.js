@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getClusterVersions = exports.removeCluster = exports.getKubeconfig = exports.getClusterDetails = exports.pollForStatus = exports.createCluster = exports.ClusterVersion = exports.Cluster = void 0;
-const configuration_1 = require("./configuration");
 class Cluster {
 }
 exports.Cluster = Cluster;
@@ -9,7 +8,7 @@ class ClusterVersion {
 }
 exports.ClusterVersion = ClusterVersion;
 async function createCluster(vendorPortalApi, clusterName, k8sDistribution, k8sVersion, clusterTTL) {
-    const http = await (0, configuration_1.client)(vendorPortalApi);
+    const http = await vendorPortalApi.client();
     const reqBody = {
         "name": clusterName,
         "kubernetes_distribution": k8sDistribution,
@@ -52,7 +51,7 @@ async function pollForStatus(vendorPortalApi, clusterId, expectedStatus, timeout
 }
 exports.pollForStatus = pollForStatus;
 async function getClusterDetails(vendorPortalApi, clusterId) {
-    const http = await (0, configuration_1.client)(vendorPortalApi);
+    const http = await vendorPortalApi.client();
     const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}`;
     const res = await http.get(uri);
     if (res.message.statusCode != 200) {
@@ -63,7 +62,7 @@ async function getClusterDetails(vendorPortalApi, clusterId) {
 }
 exports.getClusterDetails = getClusterDetails;
 async function getKubeconfig(vendorPortalApi, clusterId) {
-    const http = await (0, configuration_1.client)(vendorPortalApi);
+    const http = await vendorPortalApi.client();
     const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/kubeconfig`;
     const res = await http.get(uri);
     if (res.message.statusCode != 200) {
@@ -74,7 +73,7 @@ async function getKubeconfig(vendorPortalApi, clusterId) {
 }
 exports.getKubeconfig = getKubeconfig;
 async function removeCluster(vendorPortalApi, clusterId) {
-    const http = await (0, configuration_1.client)(vendorPortalApi);
+    const http = await vendorPortalApi.client();
     const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}`;
     const res = await http.del(uri);
     if (res.message.statusCode != 200) {
@@ -83,7 +82,7 @@ async function removeCluster(vendorPortalApi, clusterId) {
 }
 exports.removeCluster = removeCluster;
 async function getClusterVersions(vendorPortalApi) {
-    const http = await (0, configuration_1.client)(vendorPortalApi);
+    const http = await vendorPortalApi.client();
     const uri = `${vendorPortalApi.endpoint}/cluster/versions`;
     const res = await http.get(uri);
     if (res.message.statusCode != 200) {

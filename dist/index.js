@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.client = exports.promoteRelease = exports.createCustomer = exports.archiveCustomer = exports.removeCluster = exports.getKubeconfig = exports.getClusterDetails = exports.pollForStatus = exports.createCluster = exports.archiveChannel = exports.getChannelDetails = void 0;
+exports.promoteRelease = exports.createCustomer = exports.archiveCustomer = exports.removeCluster = exports.getKubeconfig = exports.getClusterDetails = exports.pollForStatus = exports.createCluster = exports.archiveChannel = exports.getChannelDetails = void 0;
 var channels_1 = require("./channels");
 Object.defineProperty(exports, "getChannelDetails", { enumerable: true, get: function () { return channels_1.getChannelDetails; } });
 Object.defineProperty(exports, "archiveChannel", { enumerable: true, get: function () { return channels_1.archiveChannel; } });
@@ -15,5 +15,3 @@ Object.defineProperty(exports, "archiveCustomer", { enumerable: true, get: funct
 Object.defineProperty(exports, "createCustomer", { enumerable: true, get: function () { return customers_1.createCustomer; } });
 var releases_1 = require("./releases");
 Object.defineProperty(exports, "promoteRelease", { enumerable: true, get: function () { return releases_1.promoteRelease; } });
-var configuration_1 = require("./configuration");
-Object.defineProperty(exports, "client", { enumerable: true, get: function () { return configuration_1.client; } });

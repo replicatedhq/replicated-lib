@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.client = exports.VendorPortalApi = void 0;
+exports.VendorPortalApi = void 0;
 // Replicated Library Configuration
 const httpClient = require("@actions/http-client");
 class VendorPortalApi {
@@ -9,18 +9,17 @@ class VendorPortalApi {
         // apiToken with default value
         this.apiToken = 'default';
     }
+    async client() {
+        const http = new httpClient.HttpClient();
+        const replicatedEndpoint = this.endpoint;
+        http.requestOptions = {
+            headers: {
+                "Authorization": this.apiToken,
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            }
+        };
+        return http;
+    }
 }
 exports.VendorPortalApi = VendorPortalApi;
-async function client(vendorPortalApi) {
-    const http = new httpClient.HttpClient();
-    const replicatedEndpoint = vendorPortalApi.endpoint;
-    http.requestOptions = {
-        headers: {
-            "Authorization": vendorPortalApi.apiToken,
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-        }
-    };
-    return http;
-}
-exports.client = client;

@@ -1,4 +1,4 @@
-import { VendorPortalApi, client } from './configuration';
+import { VendorPortalApi } from './configuration';
 import { getChannelDetails } from './channels';
 import { getApplicationDetails } from './applications';
 
@@ -35,7 +35,7 @@ export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: 
 
     console.log('Creating customer on appId ' + app.id + ' and channelId ' + channel.id);
     
-    const http = await client(vendorPortalApi);
+    const http = await vendorPortalApi.client();
 
     // 1. create the customer
     const createCustomerUri = `${vendorPortalApi.endpoint}/customer`;
@@ -91,7 +91,7 @@ export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: 
 }
 
 export async function archiveCustomer(vendorPortalApi: VendorPortalApi, customerId: string) {
-    const http = await client(vendorPortalApi);
+    const http = await vendorPortalApi.client();
 
     // 2. Archive a customer
     console.log(`Archive Customer ...`);
@@ -103,7 +103,7 @@ export async function archiveCustomer(vendorPortalApi: VendorPortalApi, customer
 }
 
 export async function getUsedKubernetesDistributions(vendorPortalApi: VendorPortalApi, appSlug: string): Promise<KubernetesDistribution[]> {
-  const http = await client(vendorPortalApi);
+  const http = await vendorPortalApi.client();
 
   // 1. get the app
   const app = await getApplicationDetails(vendorPortalApi, appSlug);

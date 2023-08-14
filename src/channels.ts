@@ -1,5 +1,5 @@
 import { Application, getApplicationDetails } from './applications';
-import { VendorPortalApi, client } from './configuration';
+import { VendorPortalApi } from './configuration';
 
 export class Channel {
     name: string;
@@ -9,7 +9,7 @@ export class Channel {
   }
 
 export async function createChannel(vendorPortalApi: VendorPortalApi, appSlug: string, channelName: string): Promise<Channel> {
-    const http = await client(vendorPortalApi);
+    const http = await vendorPortalApi.client();
   
     // 1. get the app id from the app slug
     const app = await getApplicationDetails(vendorPortalApi, appSlug);
@@ -37,7 +37,7 @@ interface ChannelIdentifier {
 }
 
 export async function getChannelDetails(vendorPortalApi: VendorPortalApi, appSlug: string, {slug, name}: ChannelIdentifier): Promise<Channel> {
-    const http = await client(vendorPortalApi);
+    const http = await vendorPortalApi.client();
   
     // 1. get the app id from the app slug
     const app = await getApplicationDetails(vendorPortalApi, appSlug);
@@ -51,7 +51,7 @@ export async function getChannelDetails(vendorPortalApi: VendorPortalApi, appSlu
 }
 
 export async function getChannelByApplicationId(vendorPortalApi: VendorPortalApi, appid: string, {slug, name}: ChannelIdentifier): Promise<Channel> {
-  const http = await client(vendorPortalApi);
+  const http = await vendorPortalApi.client();
   console.log(`Getting channel id from channel slug ${slug} or name ${name}...`);
   const listChannelsUri = `${vendorPortalApi.endpoint}/app/${appid}/channels?excludeDetail=true`;
   const listChannelsRes = await http.get(listChannelsUri);
@@ -70,7 +70,7 @@ export async function getChannelByApplicationId(vendorPortalApi: VendorPortalApi
 export async function archiveChannel(vendorPortalApi: VendorPortalApi, appSlug: string, channelSlug: string) {
     const channel = await getChannelDetails(vendorPortalApi, appSlug, {slug: channelSlug})
 
-    const http = await client(vendorPortalApi);
+    const http = await vendorPortalApi.client();
 
     // 1. get the app id from the app slug
     const app = await getApplicationDetails(vendorPortalApi, appSlug);
