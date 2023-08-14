@@ -1,12 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.findApplicationDetailsInOutput = exports.getApplicationDetails = exports.Application = void 0;
-const configuration_1 = require("./configuration");
 class Application {
 }
 exports.Application = Application;
 async function getApplicationDetails(vendorPortalApi, appSlug) {
-    const http = await (0, configuration_1.client)(vendorPortalApi);
+    const http = await vendorPortalApi.client();
     // 1. get the app id from the app slug
     console.log('Getting app id from app slug...');
     const listAppsUri = `${vendorPortalApi.endpoint}/apps`;

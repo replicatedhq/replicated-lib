@@ -1,8 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getReleaseByAppId = exports.getRelease = exports.areReleaseChartsPushed = exports.promoteReleaseByAppId = exports.promoteRelease = exports.gzipData = exports.createRelease = void 0;
+exports.getReleaseByAppId = exports.getRelease = exports.areReleaseChartsPushed = exports.isReleaseReadyForInstall = exports.promoteReleaseByAppId = exports.promoteRelease = exports.gzipData = exports.createRelease = void 0;
 const applications_1 = require("./applications");
-const configuration_1 = require("./configuration");
 const pako_1 = require("pako");
 const path = require("path");
 const fs = require("fs");
@@ -10,7 +9,7 @@ const util = require("util");
 const base64 = require("base64-js");
 async function createRelease(vendorPortalApi, appSlug, yamlDir) {
     var _a;
-    const http = await (0, configuration_1.client)(vendorPortalApi);
+    const http = await vendorPortalApi.client();
     // 1. get the app id from the app slug
     const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
     // 2. create the release
@@ -107,7 +106,7 @@ function isSupportedExt(ext) {
     return supportedExts.includes(ext);
 }
 async function promoteRelease(vendorPortalApi, appSlug, channelId, releaseSequence, version) {
-    const http = await (0, configuration_1.client)(vendorPortalApi);
+    const http = await vendorPortalApi.client();
     // 1. get the app id from the app slug
     const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
     // 2. promote the release
@@ -115,7 +114,7 @@ async function promoteRelease(vendorPortalApi, appSlug, channelId, releaseSequen
 }
 exports.promoteRelease = promoteRelease;
 async function promoteReleaseByAppId(vendorPortalApi, appId, channelId, releaseSequence, version) {
-    const http = await (0, configuration_1.client)(vendorPortalApi);
+    const http = await vendorPortalApi.client();
     const reqBody = {
         "versionLabel": version,
         "channelIds": [channelId],
@@ -155,6 +154,7 @@ async function isReleaseReadyForInstall(vendorPortalApi, appId, releaseSequence)
     }
     return false;
 }
+exports.isReleaseReadyForInstall = isReleaseReadyForInstall;
 function areReleaseChartsPushed(charts) {
     let pushedChartsCount = 0;
     for (const chart of charts) {
@@ -176,7 +176,7 @@ function areReleaseChartsPushed(charts) {
 }
 exports.areReleaseChartsPushed = areReleaseChartsPushed;
 async function getRelease(vendorPortalApi, appSlug, releaseSequence) {
-    const http = await (0, configuration_1.client)(vendorPortalApi);
+    const http = await vendorPortalApi.client();
     // 1. get the app id from the app slug
     const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
     // 2. get the release by app Id
@@ -184,7 +184,7 @@ async function getRelease(vendorPortalApi, appSlug, releaseSequence) {
 }
 exports.getRelease = getRelease;
 async function getReleaseByAppId(vendorPortalApi, appId, releaseSequence) {
-    const http = await (0, configuration_1.client)(vendorPortalApi);
+    const http = await vendorPortalApi.client();
     const uri = `${vendorPortalApi.endpoint}/app/${appId}/release/${releaseSequence}`;
     const res = await http.get(uri);
     if (res.message.statusCode != 200) {

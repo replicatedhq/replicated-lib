@@ -1,4 +1,4 @@
-import { VendorPortalApi, client } from './configuration';
+import { VendorPortalApi } from './configuration';
 
 export class Application {
     name: string;
@@ -7,7 +7,7 @@ export class Application {
 }
 
 export async function getApplicationDetails(vendorPortalApi: VendorPortalApi, appSlug: string): Promise<Application> {
-    const http = await client(vendorPortalApi);
+    const http = await vendorPortalApi.client();
   
     // 1. get the app id from the app slug
     console.log('Getting app id from app slug...');

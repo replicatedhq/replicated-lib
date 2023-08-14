@@ -5,18 +5,18 @@ export class VendorPortalApi {
     endpoint: string = 'https://api.replicated.com/vendor/v3';
     // apiToken with default value
     apiToken: string = 'default';
-}
 
-export async function client(vendorPortalApi: VendorPortalApi): Promise<httpClient.HttpClient> {
-    const http = new httpClient.HttpClient()
-    const replicatedEndpoint= vendorPortalApi.endpoint;
-    http.requestOptions = {
-      headers: {
-        "Authorization": vendorPortalApi.apiToken,
-        "Content-Type": "application/json",
-        "Accept": "application/json",
+    async client(): Promise<httpClient.HttpClient> {
+      const http = new httpClient.HttpClient()
+      const replicatedEndpoint= this.endpoint;
+      http.requestOptions = {
+        headers: {
+          "Authorization": this.apiToken,
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        }
       }
-    }
-
-    return http
+  
+      return http
+  }
 }

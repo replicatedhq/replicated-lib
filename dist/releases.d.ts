@@ -19,6 +19,7 @@ export declare function createRelease(vendorPortalApi: VendorPortalApi, appSlug:
 export declare const gzipData: (data: any) => string;
 export declare function promoteRelease(vendorPortalApi: VendorPortalApi, appSlug: string, channelId: string, releaseSequence: number, version: string): Promise<void>;
 export declare function promoteReleaseByAppId(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, releaseSequence: number, version: string): Promise<void>;
+export declare function isReleaseReadyForInstall(vendorPortalApi: VendorPortalApi, appId: string, releaseSequence: number): Promise<boolean>;
 export declare function areReleaseChartsPushed(charts: ReleaseChart[]): boolean;
 export declare function getRelease(vendorPortalApi: VendorPortalApi, appSlug: string, releaseSequence: number): Promise<Release>;
 export declare function getReleaseByAppId(vendorPortalApi: VendorPortalApi, appId: string, releaseSequence: number): Promise<Release>;

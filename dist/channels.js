@@ -2,12 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.findChannelDetailsInOutput = exports.archiveChannel = exports.getChannelByApplicationId = exports.getChannelDetails = exports.createChannel = exports.Channel = void 0;
 const applications_1 = require("./applications");
-const configuration_1 = require("./configuration");
 class Channel {
 }
 exports.Channel = Channel;
 async function createChannel(vendorPortalApi, appSlug, channelName) {
-    const http = await (0, configuration_1.client)(vendorPortalApi);
+    const http = await vendorPortalApi.client();
     // 1. get the app id from the app slug
     const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
     // 2. create the channel
@@ -26,7 +25,7 @@ async function createChannel(vendorPortalApi, appSlug, channelName) {
 }
 exports.createChannel = createChannel;
 async function getChannelDetails(vendorPortalApi, appSlug, { slug, name }) {
-    const http = await (0, configuration_1.client)(vendorPortalApi);
+    const http = await vendorPortalApi.client();
     // 1. get the app id from the app slug
     const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
     if (typeof slug === 'undefined' && typeof name === 'undefined') {
@@ -37,7 +36,7 @@ async function getChannelDetails(vendorPortalApi, appSlug, { slug, name }) {
 }
 exports.getChannelDetails = getChannelDetails;
 async function getChannelByApplicationId(vendorPortalApi, appid, { slug, name }) {
-    const http = await (0, configuration_1.client)(vendorPortalApi);
+    const http = await vendorPortalApi.client();
     console.log(`Getting channel id from channel slug ${slug} or name ${name}...`);
     const listChannelsUri = `${vendorPortalApi.endpoint}/app/${appid}/channels?excludeDetail=true`;
     const listChannelsRes = await http.get(listChannelsUri);
@@ -52,7 +51,7 @@ async function getChannelByApplicationId(vendorPortalApi, appid, { slug, name })
 exports.getChannelByApplicationId = getChannelByApplicationId;
 async function archiveChannel(vendorPortalApi, appSlug, channelSlug) {
     const channel = await getChannelDetails(vendorPortalApi, appSlug, { slug: channelSlug });
-    const http = await (0, configuration_1.client)(vendorPortalApi);
+    const http = await vendorPortalApi.client();
     // 1. get the app id from the app slug
     const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
     // 2. Archive the channel

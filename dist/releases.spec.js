@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const configuration_1 = require("./configuration");
 const releases_1 = require("./releases");
+const mockttp = require("mockttp");
 describe('ReleasesService', () => {
     beforeAll(() => globalThis.provider.setup());
     afterEach(() => globalThis.provider.verify());
@@ -98,5 +99,50 @@ describe('areReleaseChartsPushed', () => {
         ];
         const result = (0, releases_1.areReleaseChartsPushed)(charts);
         expect(result).toBe(false);
+    });
+});
+describe('isReleaseReadyForInstall', () => {
+    const mockServer = mockttp.getLocal();
+    const apiClient = new configuration_1.VendorPortalApi();
+    apiClient.apiToken = "abcd1234";
+    apiClient.endpoint = "http://localhost:8080";
+    // Start your mock server
+    beforeEach(() => {
+        mockServer.start(8080);
+    });
+    afterEach(() => mockServer.stop());
+    it("chart with status unknown", async () => {
+        const data = {
+            "release": {
+                "sequence": 1,
+                "charts": [
+                    {
+                        "name": "my-chart",
+                        "version": "1.0.0",
+                        "status": "unknown",
+                    }
+                ]
+            }
+        };
+        await mockServer.forGet("/app/1234abcd/release/1").thenReply(200, JSON.stringify(data));
+        const ready = await (0, releases_1.isReleaseReadyForInstall)(apiClient, "1234abcd", 1);
+        expect(ready).toEqual(false);
+    }, 60000);
+    it("chart with status pushed", async () => {
+        const data = {
+            "release": {
+                "sequence": 1,
+                "charts": [
+                    {
+                        "name": "my-chart",
+                        "version": "1.0.0",
+                        "status": "pushed",
+                    }
+                ]
+            }
+        };
+        await mockServer.forGet("/app/1234abcd/release/1").thenReply(200, JSON.stringify(data));
+        const ready = await (0, releases_1.isReleaseReadyForInstall)(apiClient, "1234abcd", 1);
+        expect(ready).toEqual(true);
     });
 });

@@ -1,12 +1,10 @@
 import { getApplicationDetails } from "./applications";
-import { VendorPortalApi, client } from "./configuration";
+import { VendorPortalApi } from "./configuration";
 import { gzip } from "pako";
-import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as util from 'util';
 import * as base64 from 'base64-js';
-import { is } from "date-fns/locale";
 
 export interface Release {
   sequence: string;
@@ -28,7 +26,7 @@ export interface KotsSingleSpec {
 }
 
 export async function createRelease(vendorPortalApi: VendorPortalApi, appSlug: string, yamlDir: string): Promise<Release> {
-  const http = await client(vendorPortalApi);
+  const http = await vendorPortalApi.client();
 
   // 1. get the app id from the app slug
   const app = await getApplicationDetails(vendorPortalApi, appSlug);
@@ -145,7 +143,7 @@ function isSupportedExt(ext: string): boolean {
 
 
 export async function promoteRelease(vendorPortalApi: VendorPortalApi, appSlug: string, channelId: string, releaseSequence: number, version: string) {
-  const http = await client(vendorPortalApi);
+  const http = await vendorPortalApi.client();
 
   // 1. get the app id from the app slug
   const app = await getApplicationDetails(vendorPortalApi, appSlug);
@@ -156,7 +154,7 @@ export async function promoteRelease(vendorPortalApi: VendorPortalApi, appSlug: 
 
 
 export async function promoteReleaseByAppId(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, releaseSequence: number, version: string) {
-  const http = await client(vendorPortalApi);
+  const http = await vendorPortalApi.client()
   const reqBody = {
     "versionLabel": version,
     "channelIds": [channelId],
@@ -175,7 +173,7 @@ export async function promoteReleaseByAppId(vendorPortalApi: VendorPortalApi, ap
   }
 }
 
-async function isReleaseReadyForInstall(vendorPortalApi: VendorPortalApi,  appId: string, releaseSequence: number): Promise<boolean> {
+export async function isReleaseReadyForInstall(vendorPortalApi: VendorPortalApi,  appId: string, releaseSequence: number): Promise<boolean> {
   let release: Release = await getReleaseByAppId(vendorPortalApi, appId, releaseSequence);
   if (release.charts?.length === 0) {
     throw new Error(`Release ${releaseSequence} does not contain any charts`);
@@ -218,7 +216,7 @@ export function areReleaseChartsPushed(charts: ReleaseChart[]): boolean {
 
 
 export async function getRelease(vendorPortalApi: VendorPortalApi, appSlug: string, releaseSequence: number): Promise<Release> {
-  const http = await client(vendorPortalApi);
+  const http = await vendorPortalApi.client();
 
   // 1. get the app id from the app slug
   const app = await getApplicationDetails(vendorPortalApi, appSlug);
@@ -229,7 +227,7 @@ export async function getRelease(vendorPortalApi: VendorPortalApi, appSlug: stri
 }
 
 export async function getReleaseByAppId(vendorPortalApi: VendorPortalApi, appId: string, releaseSequence: number): Promise<Release> {
-  const http = await client(vendorPortalApi);
+  const http = await vendorPortalApi.client();
 
   const uri = `${vendorPortalApi.endpoint}/app/${appId}/release/${releaseSequence}`;
   const res = await http.get(uri);

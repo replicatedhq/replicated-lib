@@ -1,4 +1,4 @@
-import { VendorPortalApi, client } from "./configuration";
+import { VendorPortalApi } from "./configuration";
 
 export class Cluster {
     name: string;
@@ -12,7 +12,7 @@ export class ClusterVersion {
 }
 
 export async function createCluster(vendorPortalApi: VendorPortalApi, clusterName: string, k8sDistribution: string, k8sVersion: string, clusterTTL: string): Promise<Cluster> {
-    const http = await client(vendorPortalApi);
+    const http = await vendorPortalApi.client();
 
     const reqBody = {
         "name": clusterName,
@@ -61,7 +61,7 @@ export async function pollForStatus(vendorPortalApi: VendorPortalApi, clusterId:
   }
 
 export async function getClusterDetails(vendorPortalApi: VendorPortalApi, clusterId: string): Promise<Cluster> {
-    const http = await client(vendorPortalApi);
+    const http = await vendorPortalApi.client();
 
     const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}`;
     const res = await http.get(uri);
@@ -75,7 +75,7 @@ export async function getClusterDetails(vendorPortalApi: VendorPortalApi, cluste
 }
 
 export async function getKubeconfig(vendorPortalApi: VendorPortalApi, clusterId: string): Promise<string> {
-    const http = await client(vendorPortalApi);
+    const http = await vendorPortalApi.client();
   
     const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/kubeconfig`;
     const res = await http.get(uri);
@@ -89,7 +89,7 @@ export async function getKubeconfig(vendorPortalApi: VendorPortalApi, clusterId:
 }
 
 export async function removeCluster(vendorPortalApi: VendorPortalApi, clusterId: string) {
-    const http = await client(vendorPortalApi);
+    const http = await vendorPortalApi.client();
 
     const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}`;
     const res = await http.del(uri);
@@ -100,7 +100,7 @@ export async function removeCluster(vendorPortalApi: VendorPortalApi, clusterId:
 }
 
 export async function getClusterVersions(vendorPortalApi: VendorPortalApi): Promise<ClusterVersion[]> {
-    const http = await client(vendorPortalApi);
+    const http = await vendorPortalApi.client();
     const uri = `${vendorPortalApi.endpoint}/cluster/versions`;
     const res = await http.get(uri);
     if (res.message.statusCode != 200) {
