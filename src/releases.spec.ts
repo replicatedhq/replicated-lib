@@ -1,5 +1,5 @@
 import { VendorPortalApi } from "./configuration";
-import { getReleaseByAppId, promoteReleaseByAppId } from "./releases";
+import { ReleaseChart, areReleaseChartsPushed, getReleaseByAppId, promoteReleaseByAppId } from "./releases";
 
 
 
@@ -71,3 +71,48 @@ describe('ReleasesService', () => {
     });
 
 });
+
+// Test for areReleaseChartsPushed
+describe('areReleaseChartsPushed', () => {
+    it('returns true if all charts are pushed', () => {
+      const charts: ReleaseChart[] = [
+        { name: 'chart1', version: '1.0.0', status: 'pushed', error: null },
+        { name: 'chart2', version: '1.0.0', status: 'pushed', error: null },
+      ];
+  
+      const result = areReleaseChartsPushed(charts);
+      expect(result).toBe(true);
+    });
+  
+    it('throws an error if any chart has error status', () => {
+      const charts: ReleaseChart[] = [
+        { name: 'chart1', version: '1.0.0', status: 'pushed', error: null },
+        { name: 'chart2', version: '1.0.0', status: 'error', error: 'Some error message' },
+      ];
+  
+      expect(() => {
+        areReleaseChartsPushed(charts);
+      }).toThrowError('chart chart2 failed to push: Some error message');
+    });
+  
+    it('throws an error for unknown status', () => {
+      const charts: ReleaseChart[] = [
+        { name: 'chart1', version: '1.0.0', status: 'pushed', error: null },
+        { name: 'chart2', version: '1.0.0', status: 'invalidStatus', error: null },
+      ];
+  
+      expect(() => {
+        areReleaseChartsPushed(charts);
+      }).toThrowError('unknown release chart status invalidStatus');
+    });
+  
+    it('returns false if not all charts are pushed', () => {
+      const charts: ReleaseChart[] = [
+        { name: 'chart1', version: '1.0.0', status: 'pushed', error: null },
+        { name: 'chart2', version: '1.0.0', status: 'unknown', error: null },
+      ];
+  
+      const result = areReleaseChartsPushed(charts);
+      expect(result).toBe(false);
+    });
+  });

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getReleaseByAppId = exports.getRelease = exports.promoteReleaseByAppId = exports.promoteRelease = exports.gzipData = exports.createRelease = void 0;
+exports.getReleaseByAppId = exports.getRelease = exports.areReleaseChartsPushed = exports.promoteReleaseByAppId = exports.promoteRelease = exports.gzipData = exports.createRelease = void 0;
 const applications_1 = require("./applications");
 const configuration_1 = require("./configuration");
 const pako_1 = require("pako");
@@ -9,6 +9,7 @@ const fs = require("fs");
 const util = require("util");
 const base64 = require("base64-js");
 async function createRelease(vendorPortalApi, appSlug, yamlDir) {
+    var _a;
     const http = await (0, configuration_1.client)(vendorPortalApi);
     // 1. get the app id from the app slug
     const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
@@ -24,6 +25,14 @@ async function createRelease(vendorPortalApi, appSlug, yamlDir) {
     }
     const createReleaseBody = JSON.parse(await createReleaseRes.readBody());
     console.log(`Created release with sequence number ${createReleaseBody.release.sequence}`);
+    // 3. If contains charts, wait for charts to be ready
+    // If there are charts, wait for them to be ready
+    if (((_a = createReleaseBody.release.charts) === null || _a === void 0 ? void 0 : _a.length) > 0) {
+        const isReleaseReady = await isReleaseReadyForInstall(vendorPortalApi, app.id, createReleaseBody.release.sequence);
+        if (!isReleaseReady) {
+            throw new Error(`Release ${createReleaseBody.release.sequence} is not ready`);
+        }
+    }
     return { sequence: createReleaseBody.release.sequence, charts: createReleaseBody.release.charts };
 }
 exports.createRelease = createRelease;
@@ -126,6 +135,46 @@ async function promoteReleaseByAppId(vendorPortalApi, appId, channelId, releaseS
     }
 }
 exports.promoteReleaseByAppId = promoteReleaseByAppId;
+async function isReleaseReadyForInstall(vendorPortalApi, appId, releaseSequence) {
+    var _a;
+    let release = await getReleaseByAppId(vendorPortalApi, appId, releaseSequence);
+    if (((_a = release.charts) === null || _a === void 0 ? void 0 : _a.length) === 0) {
+        throw new Error(`Release ${releaseSequence} does not contain any charts`);
+    }
+    const sleeptime = 5;
+    const timeout = 30 * release.charts.length;
+    // iterate for timeout/sleeptime times
+    for (let i = 0; i < timeout / sleeptime; i++) {
+        release = await getReleaseByAppId(vendorPortalApi, appId, releaseSequence);
+        const ready = areReleaseChartsPushed(release.charts);
+        if (ready) {
+            return true;
+        }
+        console.debug(`Release ${releaseSequence} is not ready, sleeping for ${sleeptime} seconds`);
+        await new Promise(f => setTimeout(f, sleeptime * 1000));
+    }
+    return false;
+}
+function areReleaseChartsPushed(charts) {
+    let pushedChartsCount = 0;
+    for (const chart of charts) {
+        switch (chart.status) {
+            case "pushed":
+                pushedChartsCount++;
+                break;
+            case "unknown":
+            case "pushing":
+                // wait for the chart to be pushed
+                continue;
+            case "error":
+                throw new Error(`chart ${chart.name} failed to push: ${chart.error}`);
+            default:
+                throw new Error(`unknown release chart status ${chart.status}`);
+        }
+    }
+    return pushedChartsCount == charts.length;
+}
+exports.areReleaseChartsPushed = areReleaseChartsPushed;
 async function getRelease(vendorPortalApi, appSlug, releaseSequence) {
     const http = await (0, configuration_1.client)(vendorPortalApi);
     // 1. get the app id from the app slug

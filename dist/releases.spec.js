@@ -63,3 +63,40 @@ describe('ReleasesService', () => {
         });
     });
 });
+// Test for areReleaseChartsPushed
+describe('areReleaseChartsPushed', () => {
+    it('returns true if all charts are pushed', () => {
+        const charts = [
+            { name: 'chart1', version: '1.0.0', status: 'pushed', error: null },
+            { name: 'chart2', version: '1.0.0', status: 'pushed', error: null },
+        ];
+        const result = (0, releases_1.areReleaseChartsPushed)(charts);
+        expect(result).toBe(true);
+    });
+    it('throws an error if any chart has error status', () => {
+        const charts = [
+            { name: 'chart1', version: '1.0.0', status: 'pushed', error: null },
+            { name: 'chart2', version: '1.0.0', status: 'error', error: 'Some error message' },
+        ];
+        expect(() => {
+            (0, releases_1.areReleaseChartsPushed)(charts);
+        }).toThrowError('chart chart2 failed to push: Some error message');
+    });
+    it('throws an error for unknown status', () => {
+        const charts = [
+            { name: 'chart1', version: '1.0.0', status: 'pushed', error: null },
+            { name: 'chart2', version: '1.0.0', status: 'invalidStatus', error: null },
+        ];
+        expect(() => {
+            (0, releases_1.areReleaseChartsPushed)(charts);
+        }).toThrowError('unknown release chart status invalidStatus');
+    });
+    it('returns false if not all charts are pushed', () => {
+        const charts = [
+            { name: 'chart1', version: '1.0.0', status: 'pushed', error: null },
+            { name: 'chart2', version: '1.0.0', status: 'unknown', error: null },
+        ];
+        const result = (0, releases_1.areReleaseChartsPushed)(charts);
+        expect(result).toBe(false);
+    });
+});

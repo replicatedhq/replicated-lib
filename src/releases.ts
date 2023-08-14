@@ -6,6 +6,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as util from 'util';
 import * as base64 from 'base64-js';
+import { is } from "date-fns/locale";
 
 export interface Release {
   sequence: string;
@@ -46,6 +47,15 @@ export async function createRelease(vendorPortalApi: VendorPortalApi, appSlug: s
   const createReleaseBody: any = JSON.parse(await createReleaseRes.readBody());
 
   console.log(`Created release with sequence number ${createReleaseBody.release.sequence}`);
+
+  // 3. If contains charts, wait for charts to be ready
+  // If there are charts, wait for them to be ready
+  if (createReleaseBody.release.charts?.length > 0) {
+    const isReleaseReady: boolean = await isReleaseReadyForInstall(vendorPortalApi, app.id, createReleaseBody.release.sequence);
+    if (!isReleaseReady) {
+      throw new Error(`Release ${createReleaseBody.release.sequence} is not ready`);
+    }
+  }
   return { sequence: createReleaseBody.release.sequence, charts: createReleaseBody.release.charts };
 
 }
@@ -165,6 +175,47 @@ export async function promoteReleaseByAppId(vendorPortalApi: VendorPortalApi, ap
   }
 }
 
+async function isReleaseReadyForInstall(vendorPortalApi: VendorPortalApi,  appId: string, releaseSequence: number): Promise<boolean> {
+  let release: Release = await getReleaseByAppId(vendorPortalApi, appId, releaseSequence);
+  if (release.charts?.length === 0) {
+    throw new Error(`Release ${releaseSequence} does not contain any charts`);
+  }
+  const sleeptime: number = 5;
+  const timeout: number = 30*release.charts.length;
+  // iterate for timeout/sleeptime times
+  for (let i = 0; i < timeout/sleeptime; i++) {
+    release = await getReleaseByAppId(vendorPortalApi, appId, releaseSequence);
+    const ready: boolean = areReleaseChartsPushed(release.charts);
+    if (ready) {
+      return true;
+    }
+    console.debug(`Release ${releaseSequence} is not ready, sleeping for ${sleeptime} seconds`);
+    await new Promise(f => setTimeout(f, sleeptime*1000));
+  }
+  return false
+}
+
+export function areReleaseChartsPushed(charts: ReleaseChart[]): boolean {
+  let pushedChartsCount : number = 0;
+  for (const chart of charts) {
+    switch (chart.status) {
+      case "pushed":
+        pushedChartsCount++;
+        break;
+      case "unknown":
+      case "pushing":
+        // wait for the chart to be pushed
+        continue;
+      case "error":
+        throw new Error(`chart ${chart.name} failed to push: ${chart.error}`);
+      default:
+        throw new Error(`unknown release chart status ${chart.status}`);
+    }
+  }
+
+  return pushedChartsCount == charts.length;
+}
+
 
 export async function getRelease(vendorPortalApi: VendorPortalApi, appSlug: string, releaseSequence: number): Promise<Release> {
   const http = await client(vendorPortalApi);
@@ -190,3 +241,5 @@ export async function getReleaseByAppId(vendorPortalApi: VendorPortalApi, appId:
 
   return { sequence: body.release.sequence, charts: body.release.charts };
 }
+
+
