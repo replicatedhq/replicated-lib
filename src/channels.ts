@@ -1,4 +1,4 @@
-import { Application, getApplicationDetails } from './applications';
+import { getApplicationDetails } from './applications';
 import { VendorPortalApi } from './configuration';
 
 export class Channel {
@@ -7,6 +7,11 @@ export class Channel {
     slug: string;
     releaseSequence?: number;
   }
+
+export const exportedForTesting = {
+  getChannelByApplicationId,
+  findChannelDetailsInOutput,
+}
 
 export async function createChannel(vendorPortalApi: VendorPortalApi, appSlug: string, channelName: string): Promise<Channel> {
     const http = await vendorPortalApi.client();
@@ -50,7 +55,7 @@ export async function getChannelDetails(vendorPortalApi: VendorPortalApi, appSlu
     return await getChannelByApplicationId(vendorPortalApi, app.id, {slug, name});
 }
 
-export async function getChannelByApplicationId(vendorPortalApi: VendorPortalApi, appid: string, {slug, name}: ChannelIdentifier): Promise<Channel> {
+async function getChannelByApplicationId(vendorPortalApi: VendorPortalApi, appid: string, {slug, name}: ChannelIdentifier): Promise<Channel> {
   const http = await vendorPortalApi.client();
   console.log(`Getting channel id from channel slug ${slug} or name ${name}...`);
   const listChannelsUri = `${vendorPortalApi.endpoint}/app/${appid}/channels?excludeDetail=true`;
@@ -85,7 +90,7 @@ export async function archiveChannel(vendorPortalApi: VendorPortalApi, appSlug: 
     
 }
 
-export async function findChannelDetailsInOutput(channels: any[], {slug, name}: ChannelIdentifier): Promise<Channel> {
+async function findChannelDetailsInOutput(channels: any[], {slug, name}: ChannelIdentifier): Promise<Channel> {
   for (const channel of channels) {
       if (slug && channel.channelSlug == slug) {
           return {name: channel.name, id: channel.id, slug: channel.channelSlug, releaseSequence: channel.releaseSequence};

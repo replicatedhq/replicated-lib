@@ -31,9 +31,8 @@ export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: 
                                      expiresIn: number, entitlementValues?: entitlementValue[]): Promise<Customer> {
   try {
     const app = await getApplicationDetails(vendorPortalApi, appSlug);
-    const channel = await getChannelDetails(vendorPortalApi, appSlug, {slug: channelSlug})
 
-    console.log('Creating customer on appId ' + app.id + ' and channelId ' + channel.id);
+    console.log('Creating customer on appId ' + app.id);
     
     const http = await vendorPortalApi.client();
 
@@ -43,8 +42,12 @@ export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: 
       name: name,
       email: email,
       type: licenseType,
-      channel_id: channel.id,
       app_id: app.id,
+    }
+    if (channelSlug) {
+      const channel = await getChannelDetails(vendorPortalApi, appSlug, {slug: channelSlug})
+      createCustomerReqBody['channel_id'] = channel.id
+
     }
     // expiresIn is in days, if it's 0 or less, ignore it - non-expiring license
     if (expiresIn > 0) {

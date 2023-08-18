@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findApplicationDetailsInOutput = exports.getApplicationDetails = exports.Application = void 0;
+exports.getApplicationDetails = exports.Application = void 0;
 class Application {
 }
 exports.Application = Application;
@@ -27,4 +27,3 @@ async function findApplicationDetailsInOutput(apps, appSlug) {
     }
     return Promise.reject(`Could not find app with slug ${appSlug}`);
 }
-exports.findApplicationDetailsInOutput = findApplicationDetailsInOutput;

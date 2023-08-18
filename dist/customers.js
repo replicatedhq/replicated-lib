@@ -14,8 +14,7 @@ exports.KubernetesDistribution = KubernetesDistribution;
 async function createCustomer(vendorPortalApi, appSlug, name, email, licenseType, channelSlug, expiresIn, entitlementValues) {
     try {
         const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
-        const channel = await (0, channels_1.getChannelDetails)(vendorPortalApi, appSlug, { slug: channelSlug });
-        console.log('Creating customer on appId ' + app.id + ' and channelId ' + channel.id);
+        console.log('Creating customer on appId ' + app.id);
         const http = await vendorPortalApi.client();
         // 1. create the customer
         const createCustomerUri = `${vendorPortalApi.endpoint}/customer`;
@@ -23,9 +22,12 @@ async function createCustomer(vendorPortalApi, appSlug, name, email, licenseType
             name: name,
             email: email,
             type: licenseType,
-            channel_id: channel.id,
             app_id: app.id,
         };
+        if (channelSlug) {
+            const channel = await (0, channels_1.getChannelDetails)(vendorPortalApi, appSlug, { slug: channelSlug });
+            createCustomerReqBody['channel_id'] = channel.id;
+        }
         // expiresIn is in days, if it's 0 or less, ignore it - non-expiring license
         if (expiresIn > 0) {
             const now = new Date();

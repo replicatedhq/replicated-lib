@@ -5,4 +5,3 @@ export declare class Application {
     slug: string;
 }
 export declare function getApplicationDetails(vendorPortalApi: VendorPortalApi, appSlug: string): Promise<Application>;
-export declare function findApplicationDetailsInOutput(apps: any[], appSlug: string): Promise<Application>;

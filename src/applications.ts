@@ -23,11 +23,11 @@ export async function getApplicationDetails(vendorPortalApi: VendorPortalApi, ap
 
 }
 
-export async function findApplicationDetailsInOutput(apps: any[], appSlug: string): Promise<Application> {
+async function findApplicationDetailsInOutput(apps: any[], appSlug: string): Promise<Application> {
     for (const app of apps) {
         if (app.slug === appSlug) {
             return {name: app.name, id: app.id, slug: app.slug};
         }
     }
     return Promise.reject(`Could not find app with slug ${appSlug}`);
-  }
+}

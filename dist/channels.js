@@ -1,10 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findChannelDetailsInOutput = exports.archiveChannel = exports.getChannelByApplicationId = exports.getChannelDetails = exports.createChannel = exports.Channel = void 0;
+exports.archiveChannel = exports.getChannelDetails = exports.createChannel = exports.exportedForTesting = exports.Channel = void 0;
 const applications_1 = require("./applications");
 class Channel {
 }
 exports.Channel = Channel;
+exports.exportedForTesting = {
+    getChannelByApplicationId,
+    findChannelDetailsInOutput,
+};
 async function createChannel(vendorPortalApi, appSlug, channelName) {
     const http = await vendorPortalApi.client();
     // 1. get the app id from the app slug
@@ -48,7 +52,6 @@ async function getChannelByApplicationId(vendorPortalApi, appid, { slug, name })
     console.log(`Found channel for channel slug ${channel.slug}`);
     return channel;
 }
-exports.getChannelByApplicationId = getChannelByApplicationId;
 async function archiveChannel(vendorPortalApi, appSlug, channelSlug) {
     const channel = await getChannelDetails(vendorPortalApi, appSlug, { slug: channelSlug });
     const http = await vendorPortalApi.client();
@@ -74,4 +77,3 @@ async function findChannelDetailsInOutput(channels, { slug, name }) {
     }
     return Promise.reject({ "channel": null, "reason": `Could not find channel with slug ${slug} or name ${name}` });
 }
-exports.findChannelDetailsInOutput = findChannelDetailsInOutput;

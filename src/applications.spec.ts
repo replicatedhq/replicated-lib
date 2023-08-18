@@ -1,5 +1,5 @@
 import { getApplicationDetails } from './applications';
-import { Interaction, InteractionObject, Pact } from '@pact-foundation/pact';
+import { InteractionObject } from '@pact-foundation/pact';
 import { VendorPortalApi } from './configuration';
 
 export const expectedApplications = {'apps':[

@@ -1,6 +1,9 @@
 import { Interaction } from '@pact-foundation/pact';
-import { findChannelDetailsInOutput, getChannelByApplicationId } from './channels';
+import { exportedForTesting } from './channels';
 import { VendorPortalApi } from './configuration';
+
+const getChannelByApplicationId = exportedForTesting.getChannelByApplicationId;
+const findChannelDetailsInOutput = exportedForTesting.findChannelDetailsInOutput;
 
 describe('findChannelDetailsInOutput', () => {
   it('should find the channel id when it exists', async () => {

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getReleaseByAppId = exports.getRelease = exports.areReleaseChartsPushed = exports.isReleaseReadyForInstall = exports.promoteReleaseByAppId = exports.promoteRelease = exports.gzipData = exports.createRelease = void 0;
+exports.promoteRelease = exports.exportedForTesting = exports.gzipData = exports.createReleaseFromChart = exports.createRelease = void 0;
 const applications_1 = require("./applications");
 const pako_1 = require("pako");
 const path = require("path");
@@ -35,6 +35,34 @@ async function createRelease(vendorPortalApi, appSlug, yamlDir) {
     return { sequence: createReleaseBody.release.sequence, charts: createReleaseBody.release.charts };
 }
 exports.createRelease = createRelease;
+async function createReleaseFromChart(vendorPortalApi, appSlug, chart) {
+    var _a;
+    const http = await vendorPortalApi.client();
+    // 1. get the app id from the app slug
+    const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
+    // 2. create the release
+    const createReleasePayload = await readChart(chart);
+    const reqBody = {
+        "spec_gzip": (0, exports.gzipData)(createReleasePayload),
+    };
+    const createReleaseUri = `${vendorPortalApi.endpoint}/app/${app.id}/release`;
+    const createReleaseRes = await http.post(createReleaseUri, JSON.stringify(reqBody));
+    if (createReleaseRes.message.statusCode != 201) {
+        throw new Error(`Failed to create release: Server responded with ${createReleaseRes.message.statusCode}`);
+    }
+    const createReleaseBody = JSON.parse(await createReleaseRes.readBody());
+    console.log(`Created release with sequence number ${createReleaseBody.release.sequence}`);
+    // 3. If contains charts, wait for charts to be ready
+    // If there are charts, wait for them to be ready
+    if (((_a = createReleaseBody.release.charts) === null || _a === void 0 ? void 0 : _a.length) > 0) {
+        const isReleaseReady = await isReleaseReadyForInstall(vendorPortalApi, app.id, createReleaseBody.release.sequence);
+        if (!isReleaseReady) {
+            throw new Error(`Release ${createReleaseBody.release.sequence} is not ready`);
+        }
+    }
+    return { sequence: createReleaseBody.release.sequence, charts: createReleaseBody.release.charts };
+}
+exports.createReleaseFromChart = createReleaseFromChart;
 const gzipData = (data) => {
     return Buffer.from((0, pako_1.gzip)(JSON.stringify(data))).toString("base64");
 };
@@ -101,6 +129,24 @@ async function readYAMLDir(yamlDir, prefix = "") {
     }
     return allKotsReleaseSpecs;
 }
+exports.exportedForTesting = {
+    areReleaseChartsPushed,
+    getReleaseByAppId,
+    isReleaseReadyForInstall,
+    promoteReleaseByAppId,
+    readChart,
+};
+async function readChart(chart) {
+    const allKotsReleaseSpecs = [];
+    if ((await stat(chart)).isDirectory()) {
+        throw new Error(`Chart ${chart} is a directory, not a file`);
+    }
+    const spec = await encodeKotsFile("", chart);
+    if (spec) {
+        allKotsReleaseSpecs.push(spec);
+    }
+    return allKotsReleaseSpecs;
+}
 function isSupportedExt(ext) {
     const supportedExts = [".tgz", ".gz", ".yaml", ".yml", ".css", ".woff", ".woff2", ".ttf", ".otf", ".eot", ".svg",];
     return supportedExts.includes(ext);
@@ -133,7 +179,6 @@ async function promoteReleaseByAppId(vendorPortalApi, appId, channelId, releaseS
         throw new Error(`Failed to promote release: Server responded with ${res.message.statusCode}: ${body}`);
     }
 }
-exports.promoteReleaseByAppId = promoteReleaseByAppId;
 async function isReleaseReadyForInstall(vendorPortalApi, appId, releaseSequence) {
     var _a;
     let release = await getReleaseByAppId(vendorPortalApi, appId, releaseSequence);
@@ -154,7 +199,6 @@ async function isReleaseReadyForInstall(vendorPortalApi, appId, releaseSequence)
     }
     return false;
 }
-exports.isReleaseReadyForInstall = isReleaseReadyForInstall;
 function areReleaseChartsPushed(charts) {
     let pushedChartsCount = 0;
     for (const chart of charts) {
@@ -174,15 +218,6 @@ function areReleaseChartsPushed(charts) {
     }
     return pushedChartsCount == charts.length;
 }
-exports.areReleaseChartsPushed = areReleaseChartsPushed;
-async function getRelease(vendorPortalApi, appSlug, releaseSequence) {
-    const http = await vendorPortalApi.client();
-    // 1. get the app id from the app slug
-    const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
-    // 2. get the release by app Id
-    return getReleaseByAppId(vendorPortalApi, app.id, releaseSequence);
-}
-exports.getRelease = getRelease;
 async function getReleaseByAppId(vendorPortalApi, appId, releaseSequence) {
     const http = await vendorPortalApi.client();
     const uri = `${vendorPortalApi.endpoint}/app/${appId}/release/${releaseSequence}`;
@@ -193,4 +228,3 @@ async function getReleaseByAppId(vendorPortalApi, appId, releaseSequence) {
     const body = JSON.parse(await res.readBody());
     return { sequence: body.release.sequence, charts: body.release.charts };
 }
-exports.getReleaseByAppId = getReleaseByAppId;
