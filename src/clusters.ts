@@ -60,7 +60,7 @@ export async function pollForStatus(vendorPortalApi: VendorPortalApi, clusterId:
     throw new Error(`Cluster did not reach state ${expectedStatus} within ${timeout} seconds`);
   }
 
-export async function getClusterDetails(vendorPortalApi: VendorPortalApi, clusterId: string): Promise<Cluster> {
+async function getClusterDetails(vendorPortalApi: VendorPortalApi, clusterId: string): Promise<Cluster> {
     const http = await vendorPortalApi.client();
 
     const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}`;

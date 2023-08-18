@@ -1,17 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.promoteRelease = exports.createCustomer = exports.archiveCustomer = exports.removeCluster = exports.getKubeconfig = exports.getClusterDetails = exports.pollForStatus = exports.createCluster = exports.archiveChannel = exports.getChannelDetails = void 0;
+exports.createCustomer = exports.archiveCustomer = exports.removeCluster = exports.getKubeconfig = exports.pollForStatus = exports.createCluster = exports.archiveChannel = exports.getChannelDetails = void 0;
 var channels_1 = require("./channels");
 Object.defineProperty(exports, "getChannelDetails", { enumerable: true, get: function () { return channels_1.getChannelDetails; } });
 Object.defineProperty(exports, "archiveChannel", { enumerable: true, get: function () { return channels_1.archiveChannel; } });
 var clusters_1 = require("./clusters");
 Object.defineProperty(exports, "createCluster", { enumerable: true, get: function () { return clusters_1.createCluster; } });
 Object.defineProperty(exports, "pollForStatus", { enumerable: true, get: function () { return clusters_1.pollForStatus; } });
-Object.defineProperty(exports, "getClusterDetails", { enumerable: true, get: function () { return clusters_1.getClusterDetails; } });
 Object.defineProperty(exports, "getKubeconfig", { enumerable: true, get: function () { return clusters_1.getKubeconfig; } });
 Object.defineProperty(exports, "removeCluster", { enumerable: true, get: function () { return clusters_1.removeCluster; } });
 var customers_1 = require("./customers");
 Object.defineProperty(exports, "archiveCustomer", { enumerable: true, get: function () { return customers_1.archiveCustomer; } });
 Object.defineProperty(exports, "createCustomer", { enumerable: true, get: function () { return customers_1.createCustomer; } });
-var releases_1 = require("./releases");
-Object.defineProperty(exports, "promoteRelease", { enumerable: true, get: function () { return releases_1.promoteRelease; } });

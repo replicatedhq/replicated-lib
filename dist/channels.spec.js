@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const pact_1 = require("@pact-foundation/pact");
 const channels_1 = require("./channels");
 const configuration_1 = require("./configuration");
+const getChannelByApplicationId = channels_1.exportedForTesting.getChannelByApplicationId;
+const findChannelDetailsInOutput = channels_1.exportedForTesting.findChannelDetailsInOutput;
 describe('findChannelDetailsInOutput', () => {
     it('should find the channel id when it exists', async () => {
         const channels = [
@@ -26,7 +28,7 @@ describe('findChannelDetailsInOutput', () => {
             }
         ];
         const channelSlug = 'ci-reliability-matrix';
-        const channel = await (0, channels_1.findChannelDetailsInOutput)(channels, { slug: channelSlug });
+        const channel = await findChannelDetailsInOutput(channels, { slug: channelSlug });
         expect(channel.id).toBe('channelid2');
     });
 });
@@ -61,7 +63,7 @@ describe('ChannelsService', () => {
         const apiClient = new configuration_1.VendorPortalApi();
         apiClient.apiToken = "abcd1234";
         apiClient.endpoint = globalThis.provider.mockService.baseUrl;
-        return (0, channels_1.getChannelByApplicationId)(apiClient, "1234abcd", { slug: "stable" }).then(channel => {
+        return getChannelByApplicationId(apiClient, "1234abcd", { slug: "stable" }).then(channel => {
             expect(channel.id).toEqual(expectedChannels.channels[0].id);
             expect(channel.name).toEqual(expectedChannels.channels[0].name);
             expect(channel.slug).toEqual(expectedChannels.channels[0].channelSlug);
