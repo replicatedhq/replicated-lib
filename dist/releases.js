@@ -141,7 +141,7 @@ async function readChart(chart) {
     if ((await stat(chart)).isDirectory()) {
         throw new Error(`Chart ${chart} is a directory, not a file`);
     }
-    const spec = await encodeKotsFile("", chart);
+    const spec = await encodeKotsFile(path.dirname(chart), path.basename(chart));
     if (spec) {
         allKotsReleaseSpecs.push(spec);
     }
