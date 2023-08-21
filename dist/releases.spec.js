@@ -174,6 +174,8 @@ describe('readChart', () => {
     it("chart is valid", async () => {
         const kSingleSpec = await readChart(tempFilePath);
         expect(kSingleSpec.length).toEqual(1);
+        expect(kSingleSpec[0].name).toEqual("helmchart.tgz");
+        expect(kSingleSpec[0].path).toEqual("helmchart.tgz");
     });
 });
 describe('createReleaseFromChart', () => {
