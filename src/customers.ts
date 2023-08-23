@@ -28,7 +28,7 @@ export class KubernetesDistribution {
 }
 
 export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: string, name: string, email: string, licenseType: string, channelSlug: string, 
-                                     expiresIn: number, entitlementValues?: entitlementValue[]): Promise<Customer> {
+                                     expiresIn: number, entitlementValues?: entitlementValue[], isKotsInstallEnabled?: boolean): Promise<Customer> {
   try {
     const app = await getApplicationDetails(vendorPortalApi, appSlug);
 
@@ -44,10 +44,12 @@ export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: 
       type: licenseType,
       app_id: app.id,
     }
+    if (isKotsInstallEnabled !== undefined) {
+      createCustomerReqBody['is_kots_install_enabled'] = isKotsInstallEnabled
+    }
     if (channelSlug) {
       const channel = await getChannelDetails(vendorPortalApi, appSlug, {slug: channelSlug})
       createCustomerReqBody['channel_id'] = channel.id
-
     }
     // expiresIn is in days, if it's 0 or less, ignore it - non-expiring license
     if (expiresIn > 0) {
