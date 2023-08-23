@@ -6,6 +6,8 @@ import * as fs from 'fs';
 import * as util from 'util';
 import * as base64 from 'base64-js';
 
+import { zonedTimeToUtc } from 'date-fns-tz';
+
 export interface Release {
   sequence: string;
   charts?: ReleaseChart[];
@@ -23,6 +25,24 @@ export interface KotsSingleSpec {
   path: string;
   content: string;
   children: KotsSingleSpec[];
+}
+
+export interface CompatibilityResult {
+  distribution: string;
+  version: string;
+  successAt?: Date;
+  successNotes?: string;
+  failureAt?: Date;
+  failureNotes?: string;
+}
+
+export const exportedForTesting = {
+  areReleaseChartsPushed,
+  getReleaseByAppId,
+  isReleaseReadyForInstall,
+  promoteReleaseByAppId,
+  readChart,
+  reportCompatibilityResultByAppId
 }
 
 export async function createRelease(vendorPortalApi: VendorPortalApi, appSlug: string, yamlDir: string): Promise<Release> {
@@ -166,14 +186,6 @@ async function readYAMLDir(yamlDir: string, prefix: string = ""): Promise<KotsSi
   return allKotsReleaseSpecs;
 }
 
-export const exportedForTesting = {
-  areReleaseChartsPushed,
-  getReleaseByAppId,
-  isReleaseReadyForInstall,
-  promoteReleaseByAppId,
-  readChart,
-}
-
 
 async function readChart(chart: string): Promise<KotsSingleSpec[]> {
   const allKotsReleaseSpecs: KotsSingleSpec[] = [];
@@ -197,8 +209,6 @@ function isSupportedExt(ext: string): boolean {
 
 
 export async function promoteRelease(vendorPortalApi: VendorPortalApi, appSlug: string, channelId: string, releaseSequence: number, version: string) {
-  const http = await vendorPortalApi.client();
-
   // 1. get the app id from the app slug
   const app = await getApplicationDetails(vendorPortalApi, appSlug);
 
@@ -283,3 +293,40 @@ async function getReleaseByAppId(vendorPortalApi: VendorPortalApi, appId: string
 }
 
 
+export async function reportCompatibilityResult(vendorPortalApi: VendorPortalApi, appSlug: string, releaseSequence: number, compatibilityResult: CompatibilityResult) {
+  // 1. get the app id from the app slug
+  const app = await getApplicationDetails(vendorPortalApi, appSlug);
+
+  // 2. promote the release
+  await reportCompatibilityResultByAppId(vendorPortalApi, app.id, releaseSequence, compatibilityResult);
+}
+
+async function reportCompatibilityResultByAppId(vendorPortalApi: VendorPortalApi, appId: string, releaseSequence: number, compatibilityResult: CompatibilityResult) {
+  const http = await vendorPortalApi.client()
+  const reqBody = {
+    "distribution": compatibilityResult.distribution,
+    "version": compatibilityResult.version,
+  }
+  if (compatibilityResult.successAt) {
+    const successAt = zonedTimeToUtc(compatibilityResult.successAt, 'UTC');
+    reqBody["successAt"] = successAt.toISOString();
+    reqBody["successNotes"] = compatibilityResult.successNotes
+  }
+  if (compatibilityResult.failureAt) {
+    const failureAt = zonedTimeToUtc(compatibilityResult.failureAt, 'UTC');
+    reqBody["failureAt"] = failureAt.toISOString();
+    reqBody["failureNotes"] = compatibilityResult.failureNotes
+  }
+  const uri = `${vendorPortalApi.endpoint}/app/${appId}/release/${releaseSequence}/compatibility`;
+  const res = await http.post(uri, JSON.stringify(reqBody));
+  if (res.message.statusCode != 201) {
+    // If res has a body, read it and add it to the error message
+    let body = "";
+    try {
+      body = await res.readBody();
+    } catch (err) {
+      // ignore
+    }
+    throw new Error(`Failed to report compatibility results: Server responded with ${res.message.statusCode}: ${body}`);
+  }
+}

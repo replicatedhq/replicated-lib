@@ -9,6 +9,7 @@ const areReleaseChartsPushed = releases_1.exportedForTesting.areReleaseChartsPus
 const getReleaseByAppId = releases_1.exportedForTesting.getReleaseByAppId;
 const isReleaseReadyForInstall = releases_1.exportedForTesting.isReleaseReadyForInstall;
 const promoteReleaseByAppId = releases_1.exportedForTesting.promoteReleaseByAppId;
+const reportCompatibilityResultByAppId = releases_1.exportedForTesting.reportCompatibilityResultByAppId;
 const readChart = releases_1.exportedForTesting.readChart;
 describe('ReleasesService', () => {
     beforeAll(() => globalThis.provider.setup());
@@ -31,6 +32,34 @@ describe('ReleasesService', () => {
         apiClient.apiToken = "abcd1234";
         apiClient.endpoint = globalThis.provider.mockService.baseUrl;
         return promoteReleaseByAppId(apiClient, "1234abcd", "channelid", 1, "v1.0.0").then(() => {
+            expect(true).toEqual(true);
+        }).catch((err) => {
+            fail(err);
+        });
+    });
+    test('report compatibility results', () => {
+        globalThis.provider.addInteraction({
+            state: 'release promoted',
+            uponReceiving: 'a request for reporting compatibility result',
+            withRequest: {
+                method: 'POST',
+                path: '/app/1234abcd/release/1/compatibility',
+            },
+            willRespondWith: {
+                status: 201,
+                headers: { 'Content-Type': 'application/json' },
+            }
+        });
+        const apiClient = new configuration_1.VendorPortalApi();
+        apiClient.apiToken = "abcd1234";
+        apiClient.endpoint = globalThis.provider.mockService.baseUrl;
+        const c11yResult = {
+            distribution: "eks",
+            version: "1.27",
+            successAt: new Date(),
+            successNotes: "working"
+        };
+        return reportCompatibilityResultByAppId(apiClient, "1234abcd", 1, c11yResult).then(() => {
             expect(true).toEqual(true);
         }).catch((err) => {
             fail(err);
