@@ -18,7 +18,7 @@ export declare class KubernetesDistribution {
     numberOfInstances: number;
     isAirgap: boolean;
 }
-export declare function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: string, name: string, email: string, licenseType: string, channelSlug: string, expiresIn: number, entitlementValues?: entitlementValue[]): Promise<Customer>;
+export declare function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: string, name: string, email: string, licenseType: string, channelSlug: string, expiresIn: number, entitlementValues?: entitlementValue[], isKotsInstallEnabled?: boolean): Promise<Customer>;
 export declare function archiveCustomer(vendorPortalApi: VendorPortalApi, customerId: string): Promise<void>;
 export declare function getUsedKubernetesDistributions(vendorPortalApi: VendorPortalApi, appSlug: string): Promise<KubernetesDistribution[]>;
 export {};
