@@ -52,7 +52,12 @@ export async function pollForStatus(vendorPortalApi: VendorPortalApi, clusterId:
       if (clusterDetails.status === expectedStatus) {
         return clusterDetails;
       }
-  
+
+      // Once state is "error", it will never change. So we can shortcut polling.
+      if (clusterDetails.status === "error") {
+        throw new Error(`Cluster has entered error state.`);
+      }
+
       console.debug(`Cluster status is ${clusterDetails.status}, sleeping for ${sleeptime} seconds`);
       await new Promise(f => setTimeout(f, sleeptime*1000));
     }
