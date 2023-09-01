@@ -149,6 +149,20 @@
         },
         "status": 200
       }
+    },
+    {
+      "description": "a request for reporting compatibility result",
+      "providerState": "release promoted",
+      "request": {
+        "method": "POST",
+        "path": "/app/1234abcd/release/1/compatibility"
+      },
+      "response": {
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 201
+      }
     }
   ],
   "metadata": {

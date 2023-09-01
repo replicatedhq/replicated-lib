@@ -1,5 +1,5 @@
 import { VendorPortalApi } from "./configuration";
-import { ReleaseChart, exportedForTesting, KotsSingleSpec, createReleaseFromChart, Release } from "./releases";
+import { ReleaseChart, exportedForTesting, KotsSingleSpec, createReleaseFromChart, Release, CompatibilityResult } from "./releases";
 import * as mockttp from 'mockttp';
 import * as fs from 'fs-extra'
 import * as path from 'path';
@@ -8,6 +8,7 @@ const areReleaseChartsPushed = exportedForTesting.areReleaseChartsPushed;
 const getReleaseByAppId = exportedForTesting.getReleaseByAppId;
 const isReleaseReadyForInstall = exportedForTesting.isReleaseReadyForInstall;
 const promoteReleaseByAppId = exportedForTesting.promoteReleaseByAppId;
+const reportCompatibilityResultByAppId = exportedForTesting.reportCompatibilityResultByAppId
 const readChart = exportedForTesting.readChart;
 
 
@@ -41,6 +42,39 @@ describe('ReleasesService', () => {
             fail(err);
         });
     });
+
+    test('report compatibility results', () => {
+      globalThis.provider.addInteraction({
+          state: 'release promoted',
+          uponReceiving: 'a request for reporting compatibility result',
+          withRequest: {
+              method: 'POST',
+              path: '/app/1234abcd/release/1/compatibility',
+          },
+          willRespondWith: {
+              status: 201,
+              headers: { 'Content-Type': 'application/json' },
+          }
+      });
+
+      const apiClient = new VendorPortalApi();
+      apiClient.apiToken = "abcd1234";
+      apiClient.endpoint = globalThis.provider.mockService.baseUrl;
+
+      const c11yResult : CompatibilityResult = {
+        distribution : "eks",
+        version: "1.27",
+        successAt: new Date(),
+        successNotes: "working"
+      }
+
+
+      return reportCompatibilityResultByAppId(apiClient, "1234abcd", 1, c11yResult).then(() => {
+          expect(true).toEqual(true);
+      }).catch((err) => {
+          fail(err);
+      });
+  });
 
     test('get release', () => {
         globalThis.provider.addInteraction({

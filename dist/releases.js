@@ -1,12 +1,21 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.promoteRelease = exports.exportedForTesting = exports.gzipData = exports.createReleaseFromChart = exports.createRelease = void 0;
+exports.reportCompatibilityResult = exports.promoteRelease = exports.gzipData = exports.createReleaseFromChart = exports.createRelease = exports.exportedForTesting = void 0;
 const applications_1 = require("./applications");
 const pako_1 = require("pako");
 const path = require("path");
 const fs = require("fs");
 const util = require("util");
 const base64 = require("base64-js");
+const date_fns_tz_1 = require("date-fns-tz");
+exports.exportedForTesting = {
+    areReleaseChartsPushed,
+    getReleaseByAppId,
+    isReleaseReadyForInstall,
+    promoteReleaseByAppId,
+    readChart,
+    reportCompatibilityResultByAppId
+};
 async function createRelease(vendorPortalApi, appSlug, yamlDir) {
     var _a;
     const http = await vendorPortalApi.client();
@@ -129,13 +138,6 @@ async function readYAMLDir(yamlDir, prefix = "") {
     }
     return allKotsReleaseSpecs;
 }
-exports.exportedForTesting = {
-    areReleaseChartsPushed,
-    getReleaseByAppId,
-    isReleaseReadyForInstall,
-    promoteReleaseByAppId,
-    readChart,
-};
 async function readChart(chart) {
     const allKotsReleaseSpecs = [];
     if ((await stat(chart)).isDirectory()) {
@@ -152,7 +154,6 @@ function isSupportedExt(ext) {
     return supportedExts.includes(ext);
 }
 async function promoteRelease(vendorPortalApi, appSlug, channelId, releaseSequence, version) {
-    const http = await vendorPortalApi.client();
     // 1. get the app id from the app slug
     const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
     // 2. promote the release
@@ -227,4 +228,41 @@ async function getReleaseByAppId(vendorPortalApi, appId, releaseSequence) {
     }
     const body = JSON.parse(await res.readBody());
     return { sequence: body.release.sequence, charts: body.release.charts };
+}
+async function reportCompatibilityResult(vendorPortalApi, appSlug, releaseSequence, compatibilityResult) {
+    // 1. get the app id from the app slug
+    const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
+    // 2. promote the release
+    await reportCompatibilityResultByAppId(vendorPortalApi, app.id, releaseSequence, compatibilityResult);
+}
+exports.reportCompatibilityResult = reportCompatibilityResult;
+async function reportCompatibilityResultByAppId(vendorPortalApi, appId, releaseSequence, compatibilityResult) {
+    const http = await vendorPortalApi.client();
+    const reqBody = {
+        "distribution": compatibilityResult.distribution,
+        "version": compatibilityResult.version,
+    };
+    if (compatibilityResult.successAt) {
+        const successAt = (0, date_fns_tz_1.zonedTimeToUtc)(compatibilityResult.successAt, 'UTC');
+        reqBody["successAt"] = successAt.toISOString();
+        reqBody["successNotes"] = compatibilityResult.successNotes;
+    }
+    if (compatibilityResult.failureAt) {
+        const failureAt = (0, date_fns_tz_1.zonedTimeToUtc)(compatibilityResult.failureAt, 'UTC');
+        reqBody["failureAt"] = failureAt.toISOString();
+        reqBody["failureNotes"] = compatibilityResult.failureNotes;
+    }
+    const uri = `${vendorPortalApi.endpoint}/app/${appId}/release/${releaseSequence}/compatibility`;
+    const res = await http.post(uri, JSON.stringify(reqBody));
+    if (res.message.statusCode != 201) {
+        // If res has a body, read it and add it to the error message
+        let body = "";
+        try {
+            body = await res.readBody();
+        }
+        catch (err) {
+            // ignore
+        }
+        throw new Error(`Failed to report compatibility results: Server responded with ${res.message.statusCode}: ${body}`);
+    }
 }

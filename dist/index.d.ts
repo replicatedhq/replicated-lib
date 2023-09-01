@@ -1,5 +1,6 @@
+export { VendorPortalApi } from './configuration';
 export { getApplicationDetails } from './applications';
-export { createChannel, getChannelDetails, archiveChannel } from './channels';
-export { createCluster, pollForStatus, getKubeconfig, removeCluster, getClusterVersions } from './clusters';
-export { archiveCustomer, createCustomer, getUsedKubernetesDistributions } from './customers';
-export { createRelease, createReleaseFromChart, promoteRelease } from './releases';
+export { Channel, createChannel, getChannelDetails, archiveChannel } from './channels';
+export { ClusterVersion, createCluster, pollForStatus, getKubeconfig, removeCluster, getClusterVersions } from './clusters';
+export { KubernetesDistribution, archiveCustomer, createCustomer, getUsedKubernetesDistributions } from './customers';
+export { Release, CompatibilityResult, createRelease, createReleaseFromChart, promoteRelease, reportCompatibilityResult } from './releases';
