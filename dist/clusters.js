@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getClusterVersions = exports.removeCluster = exports.getKubeconfig = exports.pollForStatus = exports.createCluster = exports.ClusterVersion = exports.Cluster = void 0;
+exports.getClusterVersions = exports.upgradeCluster = exports.removeCluster = exports.getKubeconfig = exports.pollForStatus = exports.createCluster = exports.ClusterVersion = exports.Cluster = void 0;
 class Cluster {
 }
 exports.Cluster = Cluster;
@@ -84,6 +84,19 @@ async function removeCluster(vendorPortalApi, clusterId) {
     }
 }
 exports.removeCluster = removeCluster;
+async function upgradeCluster(vendorPortalApi, clusterId, k8sVersion) {
+    const http = await vendorPortalApi.client();
+    const reqBody = {
+        "kubernetes_version": k8sVersion,
+    };
+    const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/upgrade`;
+    const res = await http.post(uri, JSON.stringify(reqBody));
+    if (res.message.statusCode != 200) {
+        throw new Error(`Failed to upgrade cluster: Server responded with ${res.message.statusCode}`);
+    }
+    return getClusterDetails(vendorPortalApi, clusterId);
+}
+exports.upgradeCluster = upgradeCluster;
 async function getClusterVersions(vendorPortalApi) {
     const http = await vendorPortalApi.client();
     const uri = `${vendorPortalApi.endpoint}/cluster/versions`;
