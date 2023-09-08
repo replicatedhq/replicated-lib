@@ -1,5 +1,6 @@
 import { VendorPortalApi } from "./configuration";
-import { createCluster } from "./clusters";
+import { Cluster, createCluster, upgradeCluster } from "./clusters";
+import * as mockttp from 'mockttp';
 
 describe('ClusterService', () => {
 
@@ -42,3 +43,30 @@ describe('ClusterService', () => {
         });
     });
 });
+
+describe('upgradeCluster', () => {
+    const mockServer = mockttp.getLocal()
+    const apiClient = new VendorPortalApi();
+    apiClient.apiToken = "abcd1234";
+    apiClient.endpoint = "http://localhost:8080";
+  
+  
+    beforeEach(async () => {
+      mockServer.start(8080);
+    });
+  
+    afterEach(async () => {
+      mockServer.stop();
+    });
+  
+    it("upgrade a kurl cluster", async () => {
+      const expectedUpgradeResponse = {};
+      await mockServer.forPost("/cluster/1234abcd/upgrade").thenReply(200, JSON.stringify(expectedUpgradeResponse));
+      await mockServer.forGet("/cluster/1234abcd").thenReply(200, JSON.stringify({cluster: {id: "1234abcd", status: "upgrading"}}));
+      
+    
+      const cluster: Cluster = await upgradeCluster(apiClient, "1234abcd", "latest");
+      expect(cluster.id).toEqual("1234abcd");
+      expect(cluster.status).toEqual("upgrading")
+    });
+  });

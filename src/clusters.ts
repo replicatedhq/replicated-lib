@@ -104,6 +104,23 @@ export async function removeCluster(vendorPortalApi: VendorPortalApi, clusterId:
 
 }
 
+export async function upgradeCluster(vendorPortalApi: VendorPortalApi, clusterId: string, k8sVersion: string): Promise<Cluster> {
+  const http = await vendorPortalApi.client();
+
+  const reqBody = {
+    "kubernetes_version": k8sVersion,
+  }
+
+  const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/upgrade`;
+  const res = await http.post(uri, JSON.stringify(reqBody));
+  if (res.message.statusCode != 200) {
+    throw new Error(`Failed to upgrade cluster: Server responded with ${res.message.statusCode}`);
+  }
+
+  return getClusterDetails(vendorPortalApi, clusterId);
+
+}
+
 export async function getClusterVersions(vendorPortalApi: VendorPortalApi): Promise<ClusterVersion[]> {
     const http = await vendorPortalApi.client();
     const uri = `${vendorPortalApi.endpoint}/cluster/versions`;
