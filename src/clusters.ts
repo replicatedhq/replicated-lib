@@ -19,8 +19,8 @@ export async function createCluster(vendorPortalApi: VendorPortalApi, clusterNam
         "kubernetes_distribution": k8sDistribution,
         "kubernetes_version": k8sVersion,
         "ttl": clusterTTL,
-        "disk_gib": diskGib || 50,
-        "node_count": nodeCount || 1,
+        "disk_gib": diskGib,
+        "node_count": nodeCount,
         "instance_type": instanceType
     }
 
