@@ -70,11 +70,9 @@
       "providerState": "cluster created",
       "request": {
         "body": {
-          "disk_gib": 50,
           "kubernetes_distribution": "kind",
           "kubernetes_version": "v1.25.1",
           "name": "cluster1",
-          "node_count": 1,
           "ttl": "10m"
         },
         "headers": {
