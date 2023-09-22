@@ -16,10 +16,8 @@ async function createCluster(vendorPortalApi, clusterName, k8sDistribution, k8sV
         "ttl": clusterTTL,
         "disk_gib": diskGib || 50,
         "node_count": nodeCount || 1,
+        "instance_type": instanceType
     };
-    if (instanceType !== undefined) {
-        reqBody["instance_type"] = instanceType;
-    }
     const uri = `${vendorPortalApi.endpoint}/cluster`;
     const res = await http.post(uri, JSON.stringify(reqBody));
     if (res.message.statusCode != 201) {
