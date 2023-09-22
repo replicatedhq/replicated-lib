@@ -15,6 +15,7 @@ describe('ClusterService', () => {
             kubernetes_version: "v1.25.1",
             ttl: "10m",
             disk_gib: 50,
+            node_count: 1,
         };
         globalThis.provider.addInteraction({
             state: 'cluster created',

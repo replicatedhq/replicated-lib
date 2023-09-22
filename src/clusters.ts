@@ -11,7 +11,7 @@ export class ClusterVersion {
   version: string;
 }
 
-export async function createCluster(vendorPortalApi: VendorPortalApi, clusterName: string, k8sDistribution: string, k8sVersion: string, clusterTTL: string): Promise<Cluster> {
+export async function createCluster(vendorPortalApi: VendorPortalApi, clusterName: string, k8sDistribution: string, k8sVersion: string, clusterTTL: string, diskGib?: number, nodeCount?: number, instanceType?: string): Promise<Cluster> {
     const http = await vendorPortalApi.client();
 
     const reqBody = {
@@ -19,8 +19,11 @@ export async function createCluster(vendorPortalApi: VendorPortalApi, clusterNam
         "kubernetes_distribution": k8sDistribution,
         "kubernetes_version": k8sVersion,
         "ttl": clusterTTL,
-        "disk_gib": 50,
+        "disk_gib": diskGib || 50,
+        "node_count": nodeCount || 1,
+        "instance_type": instanceType
     }
+
     const uri = `${vendorPortalApi.endpoint}/cluster`;
     const res = await http.post(uri, JSON.stringify(reqBody));
     if (res.message.statusCode != 201) {

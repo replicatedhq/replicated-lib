@@ -7,14 +7,16 @@ exports.Cluster = Cluster;
 class ClusterVersion {
 }
 exports.ClusterVersion = ClusterVersion;
-async function createCluster(vendorPortalApi, clusterName, k8sDistribution, k8sVersion, clusterTTL) {
+async function createCluster(vendorPortalApi, clusterName, k8sDistribution, k8sVersion, clusterTTL, diskGib, nodeCount, instanceType) {
     const http = await vendorPortalApi.client();
     const reqBody = {
         "name": clusterName,
         "kubernetes_distribution": k8sDistribution,
         "kubernetes_version": k8sVersion,
         "ttl": clusterTTL,
-        "disk_gib": 50,
+        "disk_gib": diskGib || 50,
+        "node_count": nodeCount || 1,
+        "instance_type": instanceType
     };
     const uri = `${vendorPortalApi.endpoint}/cluster`;
     const res = await http.post(uri, JSON.stringify(reqBody));
