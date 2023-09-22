@@ -21,10 +21,7 @@ export async function createCluster(vendorPortalApi: VendorPortalApi, clusterNam
         "ttl": clusterTTL,
         "disk_gib": diskGib || 50,
         "node_count": nodeCount || 1,
-    }
-
-    if (instanceType !== undefined) {
-      reqBody["instance_type"] = instanceType;
+        "instance_type": instanceType
     }
 
     const uri = `${vendorPortalApi.endpoint}/cluster`;
