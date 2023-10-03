@@ -276,7 +276,7 @@ function areReleaseChartsPushed(charts: ReleaseChart[]): boolean {
     }
   }
 
-  return pushedChartsCount == charts.length;
+  return pushedChartsCount == chartsCount;
 }
 
 async function getReleaseByAppId(vendorPortalApi: VendorPortalApi, appId: string, releaseSequence: number): Promise<Release> {
