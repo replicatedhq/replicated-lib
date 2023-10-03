@@ -137,15 +137,14 @@ describe('areReleaseChartsPushed', () => {
       }).toThrowError('chart chart2 failed to push: Some error message');
     });
   
-    it('throws an error for unknown status', () => {
+    it('ignore charts with status different from known ones', () => {
       const charts: ReleaseChart[] = [
         { name: 'chart1', version: '1.0.0', status: 'pushed', error: null },
         { name: 'chart2', version: '1.0.0', status: 'invalidStatus', error: null },
       ];
   
-      expect(() => {
-        areReleaseChartsPushed(charts);
-      }).toThrowError('unknown release chart status invalidStatus');
+      const result = areReleaseChartsPushed(charts);
+      expect(result).toBe(true);
     });
   
     it('returns false if not all charts are pushed', () => {

@@ -124,9 +124,8 @@ describe('areReleaseChartsPushed', () => {
             { name: 'chart1', version: '1.0.0', status: 'pushed', error: null },
             { name: 'chart2', version: '1.0.0', status: 'invalidStatus', error: null },
         ];
-        expect(() => {
-            areReleaseChartsPushed(charts);
-        }).toThrowError('unknown release chart status invalidStatus');
+        const result = areReleaseChartsPushed(charts);
+        expect(result).toBe(true);
     });
     it('returns false if not all charts are pushed', () => {
         const charts = [
