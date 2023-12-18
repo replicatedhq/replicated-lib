@@ -73,6 +73,12 @@
           "kubernetes_distribution": "kind",
           "kubernetes_version": "v1.25.1",
           "name": "cluster1",
+          "tags": [
+            {
+              "key": "foo",
+              "value": "bar"
+            }
+          ],
           "ttl": "10m"
         },
         "headers": {

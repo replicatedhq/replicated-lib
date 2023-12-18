@@ -11,7 +11,14 @@ export class ClusterVersion {
   version: string;
 }
 
-export async function createCluster(vendorPortalApi: VendorPortalApi, clusterName: string, k8sDistribution: string, k8sVersion: string, clusterTTL: string, diskGib?: number, nodeCount?: number, instanceType?: string): Promise<Cluster> {
+interface tag {
+  key: string;
+  value: string;
+}
+
+
+export async function createCluster(vendorPortalApi: VendorPortalApi, clusterName: string, k8sDistribution: string, k8sVersion: string, 
+                                    clusterTTL: string, diskGib?: number, nodeCount?: number, instanceType?: string, tags?: tag[]): Promise<Cluster> {
     const http = await vendorPortalApi.client();
 
     const reqBody = {
@@ -22,6 +29,10 @@ export async function createCluster(vendorPortalApi: VendorPortalApi, clusterNam
         "disk_gib": diskGib,
         "node_count": nodeCount,
         "instance_type": instanceType
+    }
+
+    if (tags) {
+      reqBody['tags'] = tags;
     }
 
     const uri = `${vendorPortalApi.endpoint}/cluster`;
