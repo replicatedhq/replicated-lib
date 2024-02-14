@@ -12,7 +12,13 @@ interface tag {
     key: string;
     value: string;
 }
-export declare function createCluster(vendorPortalApi: VendorPortalApi, clusterName: string, k8sDistribution: string, k8sVersion: string, clusterTTL: string, diskGib?: number, nodeCount?: number, instanceType?: string, tags?: tag[]): Promise<Cluster>;
+interface nodeGroup {
+    name: string;
+    node_count: number;
+    instance_type: string;
+    disk_gib: number;
+}
+export declare function createCluster(vendorPortalApi: VendorPortalApi, clusterName: string, k8sDistribution: string, k8sVersion: string, clusterTTL: string, diskGib?: number, nodeCount?: number, instanceType?: string, nodeGroups?: nodeGroup[], tags?: tag[]): Promise<Cluster>;
 export declare function pollForStatus(vendorPortalApi: VendorPortalApi, clusterId: string, expectedStatus: string, timeout?: number): Promise<Cluster>;
 export declare function getKubeconfig(vendorPortalApi: VendorPortalApi, clusterId: string): Promise<string>;
 export declare function removeCluster(vendorPortalApi: VendorPortalApi, clusterId: string): Promise<void>;

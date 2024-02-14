@@ -16,9 +16,16 @@ interface tag {
   value: string;
 }
 
+interface nodeGroup {
+  name: string;
+  node_count: number;
+  instance_type: string;
+  disk_gib: number;
+}
+
 
 export async function createCluster(vendorPortalApi: VendorPortalApi, clusterName: string, k8sDistribution: string, k8sVersion: string, 
-                                    clusterTTL: string, diskGib?: number, nodeCount?: number, instanceType?: string, tags?: tag[]): Promise<Cluster> {
+                                    clusterTTL: string, diskGib?: number, nodeCount?: number, instanceType?: string, nodeGroups?:nodeGroup[], tags?: tag[]): Promise<Cluster> {
     const http = await vendorPortalApi.client();
 
     const reqBody = {
@@ -29,6 +36,10 @@ export async function createCluster(vendorPortalApi: VendorPortalApi, clusterNam
         "disk_gib": diskGib,
         "node_count": nodeCount,
         "instance_type": instanceType
+    }
+
+    if (nodeGroups) {
+      reqBody['node_groups'] = nodeGroups;
     }
 
     if (tags) {
