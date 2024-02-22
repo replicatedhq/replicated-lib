@@ -80,7 +80,8 @@ export async function pollForStatus(vendorPortalApi: VendorPortalApi, clusterId:
   
     await new Promise(f => setTimeout(f, sleeptimeMs)); // sleep for 5 seconds before polling as the cluster takes a few seconds to start provisioning
     // iterate for timeout/sleeptime times
-    for (let i = 0; i < timeout*1000/sleeptimeMs; i++) {
+    const iterations = timeout * 1000 / sleeptimeMs;
+    for (let i = 0; i < iterations; i++) {
       try {
         const clusterDetails = await getClusterDetails(vendorPortalApi, clusterId);
         if (clusterDetails.status === expectedStatus) {
