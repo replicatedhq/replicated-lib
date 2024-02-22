@@ -47,11 +47,10 @@ async function createCluster(vendorPortalApi, clusterName, k8sDistribution, k8sV
     return { name: body.cluster.name, id: body.cluster.id, status: body.cluster.status };
 }
 exports.createCluster = createCluster;
-async function pollForStatus(vendorPortalApi, clusterId, expectedStatus, timeout = 120) {
+async function pollForStatus(vendorPortalApi, clusterId, expectedStatus, timeout = 120, sleeptime = 5) {
     // get clusters from the api, look for the status of the id to be ${status}
     // if it's not ${status}, sleep for 5 seconds and try again
     // if it is ${status}, return the cluster with that status
-    const sleeptime = 5;
     await new Promise(f => setTimeout(f, sleeptime * 1000)); // sleep for 5 seconds before polling as the cluster takes a few seconds to start provisioning
     // iterate for timeout/sleeptime times
     for (let i = 0; i < timeout / sleeptime; i++) {

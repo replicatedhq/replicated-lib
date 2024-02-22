@@ -73,12 +73,11 @@ export async function createCluster(vendorPortalApi: VendorPortalApi, clusterNam
     
 }
 
-export async function pollForStatus(vendorPortalApi: VendorPortalApi, clusterId: string, expectedStatus: string, timeout: number = 120): Promise<Cluster> {
+export async function pollForStatus(vendorPortalApi: VendorPortalApi, clusterId: string, expectedStatus: string, timeout: number = 120, sleeptime: number = 5): Promise<Cluster> {
     // get clusters from the api, look for the status of the id to be ${status}
     // if it's not ${status}, sleep for 5 seconds and try again
     // if it is ${status}, return the cluster with that status
   
-    const sleeptime: number = 5;
     await new Promise(f => setTimeout(f, sleeptime*1000)); // sleep for 5 seconds before polling as the cluster takes a few seconds to start provisioning
     // iterate for timeout/sleeptime times
     for (let i = 0; i < timeout/sleeptime; i++) {
