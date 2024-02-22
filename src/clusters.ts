@@ -94,11 +94,16 @@ export async function pollForStatus(vendorPortalApi: VendorPortalApi, clusterId:
 
         console.debug(`Cluster status is ${clusterDetails.status}, sleeping for ${sleeptime} seconds`);
       } catch (err) {
-        if (!(err instanceof StatusError) || err.statusCode < 500) {
-          throw err;
+        if (err instanceof StatusError) {
+          if (err.statusCode >= 500) {
+            // 5xx errors are likely transient, so we should retry
+            console.debug(`Got HTTP error with status ${err.statusCode}, sleeping for ${sleeptime} seconds`);
+          } else {
+            console.debug(`Got HTTP error with status ${err.statusCode}, exiting`);
+            throw err;
+          }
         } else {
-          // 5xx errors are likely transient, so we should retry
-          console.debug(`Got HTTP error with status ${err.statusCode}, sleeping for ${sleeptime} seconds`);
+          throw err;
         }
       }
 

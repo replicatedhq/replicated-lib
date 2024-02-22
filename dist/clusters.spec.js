@@ -131,9 +131,9 @@ describe('upgradeCluster', () => {
     const mockServer = mockttp.getLocal();
     const apiClient = new configuration_1.VendorPortalApi();
     apiClient.apiToken = "abcd1234";
-    apiClient.endpoint = "http://localhost:8080";
+    apiClient.endpoint = "http://localhost:30880";
     beforeEach(async () => {
-        mockServer.start(8080);
+        mockServer.start(30880);
     });
     afterEach(async () => {
         mockServer.stop();
@@ -151,9 +151,9 @@ describe('pollForCluster', () => {
     const mockServer = mockttp.getLocal();
     const apiClient = new configuration_1.VendorPortalApi();
     apiClient.apiToken = "abcd1234";
-    apiClient.endpoint = "http://localhost:8080";
+    apiClient.endpoint = "http://localhost:30880";
     beforeEach(async () => {
-        mockServer.start(8080);
+        mockServer.start(30880);
     });
     afterEach(async () => {
         mockServer.stop();
