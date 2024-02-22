@@ -214,8 +214,8 @@ describe('pollForCluster', () => {
         }));
         await mockServer.forGet(`/cluster/${responseCluster.id}`).thenReply(404);
 
-        expect(() => {
-            pollForStatus(apiClient, "1234abcd", "running", 120, 1);
+        expect(async () => {
+            await pollForStatus(apiClient, "1234abcd", "running", 120, 1);
         }).toThrow(StatusError);
     });
 });

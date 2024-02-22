@@ -183,8 +183,8 @@ describe('pollForCluster', () => {
             cluster: Object.assign(Object.assign({}, responseCluster), { status: "provisioning" }),
         }));
         await mockServer.forGet(`/cluster/${responseCluster.id}`).thenReply(404);
-        expect(() => {
-            (0, clusters_1.pollForStatus)(apiClient, "1234abcd", "running", 120, 1);
+        expect(async () => {
+            await (0, clusters_1.pollForStatus)(apiClient, "1234abcd", "running", 120, 1);
         }).toThrow(clusters_1.StatusError);
     });
 });
