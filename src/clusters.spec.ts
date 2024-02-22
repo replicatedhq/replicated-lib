@@ -199,7 +199,7 @@ describe('pollForCluster', () => {
             cluster: {...responseCluster, ...{ status: "running" }},
         }));
 
-        const cluster: Cluster = await pollForStatus(apiClient, "1234abcd", "running", 120, 1);
+        const cluster: Cluster = await pollForStatus(apiClient, "1234abcd", "running", 1, 10);
         expect(cluster).toEqual(expectedCluster);
     });
 
@@ -214,6 +214,6 @@ describe('pollForCluster', () => {
         }));
         await mockServer.forGet(`/cluster/${responseCluster.id}`).thenReply(404);
 
-        await expect(pollForStatus(apiClient, "1234abcd", "running", 120, 1)).rejects.toThrow(StatusError);
+        await expect(pollForStatus(apiClient, "1234abcd", "running", 1, 10)).rejects.toThrow(StatusError);
     });
 });

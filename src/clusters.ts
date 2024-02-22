@@ -73,14 +73,14 @@ export async function createCluster(vendorPortalApi: VendorPortalApi, clusterNam
     
 }
 
-export async function pollForStatus(vendorPortalApi: VendorPortalApi, clusterId: string, expectedStatus: string, timeout: number = 120, sleeptime: number = 5): Promise<Cluster> {
+export async function pollForStatus(vendorPortalApi: VendorPortalApi, clusterId: string, expectedStatus: string, timeout: number = 120, sleeptimeMs: number = 5000): Promise<Cluster> {
     // get clusters from the api, look for the status of the id to be ${status}
     // if it's not ${status}, sleep for 5 seconds and try again
     // if it is ${status}, return the cluster with that status
   
-    await new Promise(f => setTimeout(f, sleeptime*1000)); // sleep for 5 seconds before polling as the cluster takes a few seconds to start provisioning
+    await new Promise(f => setTimeout(f, sleeptimeMs)); // sleep for 5 seconds before polling as the cluster takes a few seconds to start provisioning
     // iterate for timeout/sleeptime times
-    for (let i = 0; i < timeout/sleeptime; i++) {
+    for (let i = 0; i < timeout*1000/sleeptimeMs; i++) {
       try {
         const clusterDetails = await getClusterDetails(vendorPortalApi, clusterId);
         if (clusterDetails.status === expectedStatus) {
@@ -92,12 +92,12 @@ export async function pollForStatus(vendorPortalApi: VendorPortalApi, clusterId:
           throw new Error(`Cluster has entered error state.`);
         }
 
-        console.debug(`Cluster status is ${clusterDetails.status}, sleeping for ${sleeptime} seconds`);
+        console.debug(`Cluster status is ${clusterDetails.status}, sleeping for ${sleeptimeMs/1000} seconds`);
       } catch (err) {
         if (err instanceof StatusError) {
           if (err.statusCode >= 500) {
             // 5xx errors are likely transient, so we should retry
-            console.debug(`Got HTTP error with status ${err.statusCode}, sleeping for ${sleeptime} seconds`);
+            console.debug(`Got HTTP error with status ${err.statusCode}, sleeping for ${sleeptimeMs/1000} seconds`);
           } else {
             console.debug(`Got HTTP error with status ${err.statusCode}, exiting`);
             throw err;
@@ -107,7 +107,7 @@ export async function pollForStatus(vendorPortalApi: VendorPortalApi, clusterId:
         }
       }
 
-      await new Promise(f => setTimeout(f, sleeptime*1000));
+      await new Promise(f => setTimeout(f, sleeptimeMs));
     }
 
     throw new Error(`Cluster did not reach state ${expectedStatus} within ${timeout} seconds`);

@@ -171,7 +171,7 @@ describe('pollForCluster', () => {
         await mockServer.forGet(`/cluster/1234abcd`).thenReply(200, JSON.stringify({
             cluster: Object.assign(Object.assign({}, responseCluster), { status: "running" }),
         }));
-        const cluster = await (0, clusters_1.pollForStatus)(apiClient, "1234abcd", "running", 120, 1);
+        const cluster = await (0, clusters_1.pollForStatus)(apiClient, "1234abcd", "running", 1, 10);
         expect(cluster).toEqual(expectedCluster);
     });
     test('should still fail on 404', async () => {
@@ -183,6 +183,6 @@ describe('pollForCluster', () => {
             cluster: Object.assign(Object.assign({}, responseCluster), { status: "provisioning" }),
         }));
         await mockServer.forGet(`/cluster/${responseCluster.id}`).thenReply(404);
-        await expect((0, clusters_1.pollForStatus)(apiClient, "1234abcd", "running", 120, 1)).rejects.toThrow(clusters_1.StatusError);
+        await expect((0, clusters_1.pollForStatus)(apiClient, "1234abcd", "running", 1, 10)).rejects.toThrow(clusters_1.StatusError);
     });
 });
