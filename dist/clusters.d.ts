@@ -8,6 +8,10 @@ export declare class ClusterVersion {
     name: string;
     version: string;
 }
+export declare class StatusError extends Error {
+    statusCode: number;
+    constructor(message: string, statusCode: number);
+}
 interface tag {
     key: string;
     value: string;
