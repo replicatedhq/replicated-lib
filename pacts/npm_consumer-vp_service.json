@@ -70,13 +70,15 @@
       "providerState": "cluster created",
       "request": {
         "body": {
-          "kubernetes_distribution": "kind",
-          "kubernetes_version": "v1.25.1",
+          "kubernetes_distribution": "eks",
+          "kubernetes_version": "v1.29",
           "name": "cluster1",
-          "tags": [
+          "node_groups": [
             {
-              "key": "foo",
-              "value": "bar"
+              "disk_gib": 100,
+              "instance_type": "r1.medium",
+              "name": "foo",
+              "node_count": 3
             }
           ],
           "ttl": "10m"

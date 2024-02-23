@@ -1,5 +1,5 @@
 import { VendorPortalApi } from "./configuration";
-import { Cluster, createCluster, upgradeCluster } from "./clusters";
+import { Cluster, StatusError, createCluster, upgradeCluster, pollForStatus } from "./clusters";
 import * as mockttp from 'mockttp';
 
 describe('ClusterService', () => {
@@ -144,28 +144,76 @@ describe('ClusterService with nodegroups', () => {
 });
 
 describe('upgradeCluster', () => {
-    const mockServer = mockttp.getLocal()
+    const mockServer = mockttp.getLocal();
     const apiClient = new VendorPortalApi();
     apiClient.apiToken = "abcd1234";
-    apiClient.endpoint = "http://localhost:8080";
-  
-  
+
+
     beforeEach(async () => {
-      mockServer.start(8080);
+        await mockServer.start();
+        apiClient.endpoint = `http://localhost:${mockServer.port}`;
     });
-  
+
     afterEach(async () => {
-      mockServer.stop();
+        mockServer.stop();
     });
-  
+
     it("upgrade a kurl cluster", async () => {
-      const expectedUpgradeResponse = {};
-      await mockServer.forPost("/cluster/1234abcd/upgrade").thenReply(200, JSON.stringify(expectedUpgradeResponse));
-      await mockServer.forGet("/cluster/1234abcd").thenReply(200, JSON.stringify({cluster: {id: "1234abcd", status: "upgrading"}}));
-      
-    
-      const cluster: Cluster = await upgradeCluster(apiClient, "1234abcd", "latest");
-      expect(cluster.id).toEqual("1234abcd");
-      expect(cluster.status).toEqual("upgrading")
+        const expectedUpgradeResponse = {};
+        await mockServer.forPost("/cluster/1234abcd/upgrade").thenReply(200, JSON.stringify(expectedUpgradeResponse));
+        await mockServer.forGet("/cluster/1234abcd").thenReply(200, JSON.stringify({ cluster: { id: "1234abcd", status: "upgrading" } }));
+
+
+        const cluster: Cluster = await upgradeCluster(apiClient, "1234abcd", "latest");
+        expect(cluster.id).toEqual("1234abcd");
+        expect(cluster.status).toEqual("upgrading")
     });
-  });
+});
+
+describe('pollForCluster', () => {
+    const mockServer = mockttp.getLocal();
+    const apiClient = new VendorPortalApi();
+    apiClient.apiToken = "abcd1234";
+
+    beforeEach(async () => {
+        await mockServer.start();
+        apiClient.endpoint = `http://localhost:${mockServer.port}`;
+    });
+
+    afterEach(async () => {
+        mockServer.stop();
+    });
+
+    test('should eventually return success with expected status', async () => {
+        const expectedCluster = { id: "1234abcd", name: "cluster1", status: "running" };
+        const responseCluster = { id: "1234abcd", name: "cluster1" };
+
+        await mockServer.forGet(`/cluster/${responseCluster.id}`).once().thenReply(200, JSON.stringify({
+            cluster: {...responseCluster, ...{ status: "preparing" }},
+        }));
+        await mockServer.forGet(`/cluster/${responseCluster.id}`).once().thenReply(200, JSON.stringify({
+            cluster: {...responseCluster, ...{ status: "provisioning" }},
+        }));
+        await mockServer.forGet(`/cluster/${responseCluster.id}`).once().thenReply(503);
+        await mockServer.forGet(`/cluster/1234abcd`).thenReply(200, JSON.stringify({
+            cluster: {...responseCluster, ...{ status: "running" }},
+        }));
+
+        const cluster: Cluster = await pollForStatus(apiClient, "1234abcd", "running", 1, 10);
+        expect(cluster).toEqual(expectedCluster);
+    });
+
+    test('should still fail on 404', async () => {
+        const responseCluster = { id: "1234abcd", name: "cluster1" };
+
+        await mockServer.forGet(`/cluster/${responseCluster.id}`).once().thenReply(200, JSON.stringify({
+            cluster: {...responseCluster, ...{ status: "preparing" }},
+        }));
+        await mockServer.forGet(`/cluster/${responseCluster.id}`).once().thenReply(200, JSON.stringify({
+            cluster: {...responseCluster, ...{ status: "provisioning" }},
+        }));
+        await mockServer.forGet(`/cluster/${responseCluster.id}`).thenReply(404);
+
+        await expect(pollForStatus(apiClient, "1234abcd", "running", 1, 10)).rejects.toThrow(StatusError);
+    });
+});
