@@ -70,6 +70,36 @@
       "providerState": "cluster created",
       "request": {
         "body": {
+          "kubernetes_distribution": "kind",
+          "kubernetes_version": "v1.25.1",
+          "name": "cluster1",
+          "ttl": "10m"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/cluster"
+      },
+      "response": {
+        "body": {
+          "cluster": {
+            "id": "1234abcd",
+            "name": "cluster1",
+            "status": "provisioning"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 201
+      }
+    },
+    {
+      "description": "a request for creating a cluster with nodegroups",
+      "providerState": "cluster created",
+      "request": {
+        "body": {
           "kubernetes_distribution": "eks",
           "kubernetes_version": "v1.29",
           "name": "cluster1",
@@ -79,6 +109,42 @@
               "instance_type": "r1.medium",
               "name": "foo",
               "node_count": 3
+            }
+          ],
+          "ttl": "10m"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/cluster"
+      },
+      "response": {
+        "body": {
+          "cluster": {
+            "id": "1234abcd",
+            "name": "cluster1",
+            "status": "provisioning"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 201
+      }
+    },
+    {
+      "description": "a request for creating a cluster with tags",
+      "providerState": "cluster created",
+      "request": {
+        "body": {
+          "kubernetes_distribution": "kind",
+          "kubernetes_version": "v1.25.1",
+          "name": "cluster1",
+          "tags": [
+            {
+              "key": "foo",
+              "value": "bar"
             }
           ],
           "ttl": "10m"

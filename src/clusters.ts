@@ -28,13 +28,16 @@ interface tag {
 interface nodeGroup {
   name: string;
   node_count: number;
+  min_node_count?: number;
+  max_node_count?: number;
   instance_type: string;
   disk_gib: number;
 }
 
 
 export async function createCluster(vendorPortalApi: VendorPortalApi, clusterName: string, k8sDistribution: string, k8sVersion: string, 
-                                    clusterTTL: string, diskGib?: number, nodeCount?: number, instanceType?: string, nodeGroups?:nodeGroup[], tags?: tag[]): Promise<Cluster> {
+                                    clusterTTL: string, diskGib?: number, nodeCount?: number, minNodeCount?: number, maxNodeCount?: number,
+                                    instanceType?: string, nodeGroups?:nodeGroup[], tags?: tag[]): Promise<Cluster> {
     const http = await vendorPortalApi.client();
 
     const reqBody = {
@@ -42,9 +45,21 @@ export async function createCluster(vendorPortalApi: VendorPortalApi, clusterNam
         "kubernetes_distribution": k8sDistribution,
         "kubernetes_version": k8sVersion,
         "ttl": clusterTTL,
-        "disk_gib": diskGib,
-        "node_count": nodeCount,
-        "instance_type": instanceType
+    }
+    if (diskGib) {
+      reqBody['disk_gib'] = diskGib;
+    }
+    if (instanceType) {
+      reqBody['instance_type'] = instanceType;
+    }
+    if (nodeCount) {
+      reqBody['node_count'] = nodeCount;
+    }
+    if (minNodeCount) {
+      reqBody['min_node_count'] = minNodeCount;
+    }
+    if (maxNodeCount) {
+      reqBody['max_node_count'] = maxNodeCount;
     }
 
     if (nodeGroups) {
@@ -55,6 +70,7 @@ export async function createCluster(vendorPortalApi: VendorPortalApi, clusterNam
       reqBody['tags'] = tags;
     }
 
+    console.log(reqBody);
     const uri = `${vendorPortalApi.endpoint}/cluster`;
     const res = await http.post(uri, JSON.stringify(reqBody));
     if (res.message.statusCode != 201) {

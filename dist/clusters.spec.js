@@ -59,7 +59,7 @@ describe('ClusterService with tags', () => {
         };
         globalThis.provider.addInteraction({
             state: 'cluster created',
-            uponReceiving: 'a request for creating a cluster',
+            uponReceiving: 'a request for creating a cluster with tags',
             withRequest: {
                 method: 'POST',
                 path: '/cluster',
@@ -75,7 +75,8 @@ describe('ClusterService with tags', () => {
         apiClient.apiToken = "abcd1234";
         apiClient.endpoint = globalThis.provider.mockService.baseUrl;
         const tags = [{ key: "foo", value: "bar" }];
-        return (0, clusters_1.createCluster)(apiClient, "cluster1", "kind", "v1.25.1", "10m", undefined, undefined, undefined, undefined, tags).then(cluster => {
+        return (0, clusters_1.createCluster)(apiClient, "cluster1", "kind", "v1.25.1", "10m", undefined, undefined, undefined, undefined, undefined, undefined, tags)
+            .then(cluster => {
             expect(cluster.name).toEqual(expectedCluster.cluster.name);
             expect(cluster.id).toEqual(expectedCluster.cluster.id);
             expect(cluster.status).toEqual(expectedCluster.cluster.status);
@@ -104,7 +105,7 @@ describe('ClusterService with nodegroups', () => {
         };
         globalThis.provider.addInteraction({
             state: 'cluster created',
-            uponReceiving: 'a request for creating a cluster',
+            uponReceiving: 'a request for creating a cluster with nodegroups',
             withRequest: {
                 method: 'POST',
                 path: '/cluster',
@@ -120,7 +121,8 @@ describe('ClusterService with nodegroups', () => {
         apiClient.apiToken = "abcd1234";
         apiClient.endpoint = globalThis.provider.mockService.baseUrl;
         const nodegroups = [{ name: "foo", node_count: 3, instance_type: "r1.medium", disk_gib: 100 }];
-        return (0, clusters_1.createCluster)(apiClient, "cluster1", "eks", "v1.29", "10m", undefined, undefined, undefined, nodegroups).then(cluster => {
+        return (0, clusters_1.createCluster)(apiClient, "cluster1", "eks", "v1.29", "10m", undefined, undefined, undefined, undefined, undefined, nodegroups)
+            .then(cluster => {
             expect(cluster.name).toEqual(expectedCluster.cluster.name);
             expect(cluster.id).toEqual(expectedCluster.cluster.id);
             expect(cluster.status).toEqual(expectedCluster.cluster.status);
