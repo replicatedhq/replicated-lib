@@ -70,7 +70,6 @@ export async function createCluster(vendorPortalApi: VendorPortalApi, clusterNam
       reqBody['tags'] = tags;
     }
 
-    console.log(reqBody);
     const uri = `${vendorPortalApi.endpoint}/cluster`;
     const res = await http.post(uri, JSON.stringify(reqBody));
     if (res.message.statusCode != 201) {

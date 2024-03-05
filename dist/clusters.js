@@ -43,7 +43,6 @@ async function createCluster(vendorPortalApi, clusterName, k8sDistribution, k8sV
     if (tags) {
         reqBody['tags'] = tags;
     }
-    console.log(reqBody);
     const uri = `${vendorPortalApi.endpoint}/cluster`;
     const res = await http.post(uri, JSON.stringify(reqBody));
     if (res.message.statusCode != 201) {
