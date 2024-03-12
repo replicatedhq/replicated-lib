@@ -100,17 +100,10 @@
       "providerState": "cluster created",
       "request": {
         "body": {
-          "kubernetes_distribution": "eks",
-          "kubernetes_version": "v1.29",
+          "kubernetes_distribution": "embedded-cluster",
+          "kubernetes_version": "",
+          "license_id": "license1",
           "name": "cluster1",
-          "node_groups": [
-            {
-              "disk_gib": 100,
-              "instance_type": "r1.medium",
-              "name": "foo",
-              "node_count": 3
-            }
-          ],
           "ttl": "10m"
         },
         "headers": {

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getClusterVersions = exports.upgradeCluster = exports.removeCluster = exports.getKubeconfig = exports.pollForStatus = exports.createCluster = exports.StatusError = exports.ClusterVersion = exports.Cluster = void 0;
+exports.getClusterVersions = exports.upgradeCluster = exports.removeCluster = exports.getKubeconfig = exports.pollForStatus = exports.createClusterWithLicense = exports.createCluster = exports.StatusError = exports.ClusterVersion = exports.Cluster = void 0;
 class Cluster {
 }
 exports.Cluster = Cluster;
@@ -15,6 +15,10 @@ class StatusError extends Error {
 }
 exports.StatusError = StatusError;
 async function createCluster(vendorPortalApi, clusterName, k8sDistribution, k8sVersion, clusterTTL, diskGib, nodeCount, minNodeCount, maxNodeCount, instanceType, nodeGroups, tags) {
+    return await createClusterWithLicense(vendorPortalApi, clusterName, k8sDistribution, k8sVersion, "", clusterTTL, diskGib, nodeCount, minNodeCount, maxNodeCount, instanceType, nodeGroups, tags);
+}
+exports.createCluster = createCluster;
+async function createClusterWithLicense(vendorPortalApi, clusterName, k8sDistribution, k8sVersion, licenseId, clusterTTL, diskGib, nodeCount, minNodeCount, maxNodeCount, instanceType, nodeGroups, tags) {
     const http = await vendorPortalApi.client();
     const reqBody = {
         "name": clusterName,
@@ -22,6 +26,9 @@ async function createCluster(vendorPortalApi, clusterName, k8sDistribution, k8sV
         "kubernetes_version": k8sVersion,
         "ttl": clusterTTL,
     };
+    if (licenseId) {
+        reqBody['license_id'] = licenseId;
+    }
     if (diskGib) {
         reqBody['disk_gib'] = diskGib;
     }
@@ -58,7 +65,7 @@ async function createCluster(vendorPortalApi, clusterName, k8sDistribution, k8sV
     const body = JSON.parse(await res.readBody());
     return { name: body.cluster.name, id: body.cluster.id, status: body.cluster.status };
 }
-exports.createCluster = createCluster;
+exports.createClusterWithLicense = createClusterWithLicense;
 async function pollForStatus(vendorPortalApi, clusterId, expectedStatus, timeout = 120, sleeptimeMs = 5000) {
     // get clusters from the api, look for the status of the id to be ${status}
     // if it's not ${status}, sleep for 5 seconds and try again

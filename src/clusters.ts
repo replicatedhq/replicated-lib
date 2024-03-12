@@ -53,8 +53,10 @@ export async function createClusterWithLicense(vendorPortalApi: VendorPortalApi,
         "name": clusterName,
         "kubernetes_distribution": k8sDistribution,
         "kubernetes_version": k8sVersion,
-        "license_id": licenseId,
         "ttl": clusterTTL,
+    }
+    if (licenseId) {
+      reqBody['license_id'] = licenseId;
     }
     if (diskGib) {
       reqBody['disk_gib'] = diskGib;
