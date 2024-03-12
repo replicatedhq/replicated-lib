@@ -138,9 +138,9 @@ describe('ClusterService with license_id', () => {
         const reqBody = {
             name: "cluster1",
             kubernetes_distribution: "embedded-cluster",
-            "kubernetes_version": "",
+            kubernetes_version: "",
             ttl: "10m",
-            "license_id": "license1",
+            license_id: "license1",
         };
         globalThis.provider.addInteraction({
             state: 'cluster created',
