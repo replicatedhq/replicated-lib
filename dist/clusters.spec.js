@@ -144,7 +144,7 @@ describe('ClusterService with license_id', () => {
         };
         globalThis.provider.addInteraction({
             state: 'cluster created',
-            uponReceiving: 'a request for creating a cluster with nodegroups',
+            uponReceiving: 'a request for creating a cluster with license_id',
             withRequest: {
                 method: 'POST',
                 path: '/cluster',
