@@ -34,8 +34,17 @@ interface nodeGroup {
   disk_gib: number;
 }
 
-
 export async function createCluster(vendorPortalApi: VendorPortalApi, clusterName: string, k8sDistribution: string, k8sVersion: string, 
+                                    clusterTTL: string, diskGib?: number, nodeCount?: number, minNodeCount?: number, maxNodeCount?: number,
+                                    instanceType?: string, nodeGroups?:nodeGroup[], tags?: tag[]): Promise<Cluster> {
+    return await createClusterWithLicense(
+        vendorPortalApi, clusterName, k8sDistribution, k8sVersion, "",
+        clusterTTL, diskGib, nodeCount, minNodeCount, maxNodeCount,
+        instanceType, nodeGroups, tags,
+    );
+}
+
+export async function createClusterWithLicense(vendorPortalApi: VendorPortalApi, clusterName: string, k8sDistribution: string, k8sVersion: string, licenseId: string,
                                     clusterTTL: string, diskGib?: number, nodeCount?: number, minNodeCount?: number, maxNodeCount?: number,
                                     instanceType?: string, nodeGroups?:nodeGroup[], tags?: tag[]): Promise<Cluster> {
     const http = await vendorPortalApi.client();
@@ -45,6 +54,9 @@ export async function createCluster(vendorPortalApi: VendorPortalApi, clusterNam
         "kubernetes_distribution": k8sDistribution,
         "kubernetes_version": k8sVersion,
         "ttl": clusterTTL,
+    }
+    if (licenseId) {
+      reqBody['license_id'] = licenseId;
     }
     if (diskGib) {
       reqBody['disk_gib'] = diskGib;

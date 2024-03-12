@@ -1,5 +1,5 @@
 import { VendorPortalApi } from "./configuration";
-import { Cluster, StatusError, createCluster, upgradeCluster, pollForStatus } from "./clusters";
+import { Cluster, StatusError, createCluster, upgradeCluster, pollForStatus, createClusterWithLicense } from "./clusters";
 import * as mockttp from 'mockttp';
 
 describe('ClusterService', () => {
@@ -139,6 +139,50 @@ describe('ClusterService with nodegroups', () => {
 
         return createCluster(apiClient, "cluster1", "eks", "v1.29", "10m",
                             undefined, undefined, undefined, undefined, undefined, nodegroups)
+                            .then(cluster => {
+            expect(cluster.name).toEqual(expectedCluster.cluster.name);
+            expect(cluster.id).toEqual(expectedCluster.cluster.id);
+            expect(cluster.status).toEqual(expectedCluster.cluster.status);
+        });
+    });
+});
+
+describe('ClusterService with license_id', () => {
+
+    beforeAll(() => globalThis.provider.setup());
+    afterEach(() => globalThis.provider.verify());
+    afterAll(() => globalThis.provider.finalize());
+
+
+    test('should return cluster with license_id', () => {
+        const expectedCluster = { cluster: { name: "cluster1", id: "1234abcd", status: "provisioning" } }
+        const reqBody = {
+            name: "cluster1",
+            kubernetes_distribution: "embedded-cluster",
+            kubernetes_version: "",
+            ttl: "10m",
+            license_id: "license1",
+        }
+        globalThis.provider.addInteraction({
+            state: 'cluster created',
+            uponReceiving: 'a request for creating a cluster with license_id',
+            withRequest: {
+                method: 'POST',
+                path: '/cluster',
+                body: reqBody,
+            },
+            willRespondWith: {
+                status: 201,
+                headers: { 'Content-Type': 'application/json' },
+                body: expectedCluster
+            }
+        });
+
+        const apiClient = new VendorPortalApi();
+        apiClient.apiToken = "abcd1234";
+        apiClient.endpoint = globalThis.provider.mockService.baseUrl;
+
+        return createClusterWithLicense(apiClient, "cluster1", "embedded-cluster", "", "license1", "10m")
                             .then(cluster => {
             expect(cluster.name).toEqual(expectedCluster.cluster.name);
             expect(cluster.id).toEqual(expectedCluster.cluster.id);

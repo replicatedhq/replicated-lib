@@ -96,6 +96,37 @@
       }
     },
     {
+      "description": "a request for creating a cluster with license_id",
+      "providerState": "cluster created",
+      "request": {
+        "body": {
+          "kubernetes_distribution": "embedded-cluster",
+          "kubernetes_version": "",
+          "license_id": "license1",
+          "name": "cluster1",
+          "ttl": "10m"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/cluster"
+      },
+      "response": {
+        "body": {
+          "cluster": {
+            "id": "1234abcd",
+            "name": "cluster1",
+            "status": "provisioning"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 201
+      }
+    },
+    {
       "description": "a request for creating a cluster with nodegroups",
       "providerState": "cluster created",
       "request": {
