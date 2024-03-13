@@ -1,6 +1,6 @@
 {
     "name": "replicated-lib",
-    "version": "0.0.1-beta.10",
+    "version": "@replicatedhq/0.0.1-beta.11",
     "description": "Can interact with the vendor portal api!",
     "scripts": {
         "build": "rm -rf dist && tsc --build",
@@ -11,6 +11,9 @@
     "files": [
         "/dist"
     ],
+    "publishConfig": {
+        "access": "public"
+    },
     "dependencies": {
         "@actions/core": "^1.10.0",
         "@types/node": "^20.9.2",
