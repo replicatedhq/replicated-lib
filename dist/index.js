@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.reportCompatibilityResult = exports.promoteRelease = exports.createReleaseFromChart = exports.createRelease = exports.getUsedKubernetesDistributions = exports.createCustomer = exports.archiveCustomer = exports.KubernetesDistribution = exports.getClusterVersions = exports.upgradeCluster = exports.removeCluster = exports.getKubeconfig = exports.pollForStatus = exports.createCluster = exports.ClusterVersion = exports.archiveChannel = exports.getChannelDetails = exports.createChannel = exports.Channel = exports.getApplicationDetails = exports.VendorPortalApi = void 0;
+exports.reportCompatibilityResult = exports.promoteRelease = exports.createReleaseFromChart = exports.createRelease = exports.getUsedKubernetesDistributions = exports.createCustomer = exports.archiveCustomer = exports.KubernetesDistribution = exports.getClusterVersions = exports.upgradeCluster = exports.removeCluster = exports.getKubeconfig = exports.pollForStatus = exports.createClusterWithLicense = exports.createCluster = exports.ClusterVersion = exports.archiveChannel = exports.getChannelDetails = exports.createChannel = exports.Channel = exports.getApplicationDetails = exports.VendorPortalApi = void 0;
 var configuration_1 = require("./configuration");
 Object.defineProperty(exports, "VendorPortalApi", { enumerable: true, get: function () { return configuration_1.VendorPortalApi; } });
 var applications_1 = require("./applications");
@@ -13,6 +13,7 @@ Object.defineProperty(exports, "archiveChannel", { enumerable: true, get: functi
 var clusters_1 = require("./clusters");
 Object.defineProperty(exports, "ClusterVersion", { enumerable: true, get: function () { return clusters_1.ClusterVersion; } });
 Object.defineProperty(exports, "createCluster", { enumerable: true, get: function () { return clusters_1.createCluster; } });
+Object.defineProperty(exports, "createClusterWithLicense", { enumerable: true, get: function () { return clusters_1.createClusterWithLicense; } });
 Object.defineProperty(exports, "pollForStatus", { enumerable: true, get: function () { return clusters_1.pollForStatus; } });
 Object.defineProperty(exports, "getKubeconfig", { enumerable: true, get: function () { return clusters_1.getKubeconfig; } });
 Object.defineProperty(exports, "removeCluster", { enumerable: true, get: function () { return clusters_1.removeCluster; } });
