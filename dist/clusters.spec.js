@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const configuration_1 = require("./configuration");
+const _1 = require(".");
 const clusters_1 = require("./clusters");
 const mockttp = require("mockttp");
 describe('ClusterService', () => {
@@ -32,7 +33,7 @@ describe('ClusterService', () => {
         const apiClient = new configuration_1.VendorPortalApi();
         apiClient.apiToken = "abcd1234";
         apiClient.endpoint = globalThis.provider.mockService.baseUrl;
-        return (0, clusters_1.createCluster)(apiClient, "cluster1", "kind", "v1.25.1", "10m").then(cluster => {
+        return (0, _1.createCluster)(apiClient, "cluster1", "kind", "v1.25.1", "10m").then(cluster => {
             expect(cluster.name).toEqual(expectedCluster.cluster.name);
             expect(cluster.id).toEqual(expectedCluster.cluster.id);
             expect(cluster.status).toEqual(expectedCluster.cluster.status);
@@ -75,7 +76,7 @@ describe('ClusterService with tags', () => {
         apiClient.apiToken = "abcd1234";
         apiClient.endpoint = globalThis.provider.mockService.baseUrl;
         const tags = [{ key: "foo", value: "bar" }];
-        return (0, clusters_1.createCluster)(apiClient, "cluster1", "kind", "v1.25.1", "10m", undefined, undefined, undefined, undefined, undefined, undefined, tags)
+        return (0, _1.createCluster)(apiClient, "cluster1", "kind", "v1.25.1", "10m", undefined, undefined, undefined, undefined, undefined, undefined, tags)
             .then(cluster => {
             expect(cluster.name).toEqual(expectedCluster.cluster.name);
             expect(cluster.id).toEqual(expectedCluster.cluster.id);
@@ -121,7 +122,7 @@ describe('ClusterService with nodegroups', () => {
         apiClient.apiToken = "abcd1234";
         apiClient.endpoint = globalThis.provider.mockService.baseUrl;
         const nodegroups = [{ name: "foo", node_count: 3, instance_type: "r1.medium", disk_gib: 100 }];
-        return (0, clusters_1.createCluster)(apiClient, "cluster1", "eks", "v1.29", "10m", undefined, undefined, undefined, undefined, undefined, nodegroups)
+        return (0, _1.createCluster)(apiClient, "cluster1", "eks", "v1.29", "10m", undefined, undefined, undefined, undefined, undefined, nodegroups)
             .then(cluster => {
             expect(cluster.name).toEqual(expectedCluster.cluster.name);
             expect(cluster.id).toEqual(expectedCluster.cluster.id);
@@ -159,7 +160,7 @@ describe('ClusterService with license_id', () => {
         const apiClient = new configuration_1.VendorPortalApi();
         apiClient.apiToken = "abcd1234";
         apiClient.endpoint = globalThis.provider.mockService.baseUrl;
-        return (0, clusters_1.createClusterWithLicense)(apiClient, "cluster1", "embedded-cluster", "", "license1", "10m")
+        return (0, _1.createClusterWithLicense)(apiClient, "cluster1", "embedded-cluster", "", "license1", "10m")
             .then(cluster => {
             expect(cluster.name).toEqual(expectedCluster.cluster.name);
             expect(cluster.id).toEqual(expectedCluster.cluster.id);
@@ -182,7 +183,7 @@ describe('upgradeCluster', () => {
         const expectedUpgradeResponse = {};
         await mockServer.forPost("/cluster/1234abcd/upgrade").thenReply(200, JSON.stringify(expectedUpgradeResponse));
         await mockServer.forGet("/cluster/1234abcd").thenReply(200, JSON.stringify({ cluster: { id: "1234abcd", status: "upgrading" } }));
-        const cluster = await (0, clusters_1.upgradeCluster)(apiClient, "1234abcd", "latest");
+        const cluster = await (0, _1.upgradeCluster)(apiClient, "1234abcd", "latest");
         expect(cluster.id).toEqual("1234abcd");
         expect(cluster.status).toEqual("upgrading");
     });
@@ -211,7 +212,7 @@ describe('pollForCluster', () => {
         await mockServer.forGet(`/cluster/1234abcd`).thenReply(200, JSON.stringify({
             cluster: Object.assign(Object.assign({}, responseCluster), { status: "running" }),
         }));
-        const cluster = await (0, clusters_1.pollForStatus)(apiClient, "1234abcd", "running", 1, 10);
+        const cluster = await (0, _1.pollForStatus)(apiClient, "1234abcd", "running", 1, 10);
         expect(cluster).toEqual(expectedCluster);
     });
     test('should still fail on 404', async () => {
@@ -223,6 +224,6 @@ describe('pollForCluster', () => {
             cluster: Object.assign(Object.assign({}, responseCluster), { status: "provisioning" }),
         }));
         await mockServer.forGet(`/cluster/${responseCluster.id}`).thenReply(404);
-        await expect((0, clusters_1.pollForStatus)(apiClient, "1234abcd", "running", 1, 10)).rejects.toThrow(clusters_1.StatusError);
+        await expect((0, _1.pollForStatus)(apiClient, "1234abcd", "running", 1, 10)).rejects.toThrow(clusters_1.StatusError);
     });
 });

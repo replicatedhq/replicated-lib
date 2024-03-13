@@ -1,5 +1,6 @@
 import { VendorPortalApi } from "./configuration";
-import { Cluster, StatusError, createCluster, upgradeCluster, pollForStatus, createClusterWithLicense } from "./clusters";
+import { createCluster, createClusterWithLicense, upgradeCluster, pollForStatus } from ".";
+import { Cluster, StatusError } from "./clusters";
 import * as mockttp from 'mockttp';
 
 describe('ClusterService', () => {
