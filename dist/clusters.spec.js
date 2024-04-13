@@ -125,3 +125,72 @@ describe('pollForCluster', () => {
         await expect((0, _1.pollForStatus)(apiClient, "1234abcd", "running", 1, 10)).rejects.toThrow(clusters_1.StatusError);
     });
 });
+describe('Cluster Add-ons', () => {
+    const mockServer = mockttp.getLocal();
+    const apiClient = new configuration_1.VendorPortalApi();
+    apiClient.apiToken = "abcd1234";
+    beforeAll(async () => {
+        await mockServer.start();
+        apiClient.endpoint = `http://localhost:${mockServer.port}`;
+    });
+    afterAll(async () => {
+        await mockServer.stop();
+    });
+    test('should return object store add-on', async () => {
+        const clusterId = "1234abcd";
+        const expectedAddon = { id: "abcd1234", status: "applied", object_store: {
+                bucket_name: "test-abcd1234-cmx", bucket_prefix: "test",
+                service_account_name: "cmx", service_account_name_read_only: "cmx-ro",
+                service_account_namespace: "cmx"
+            } };
+        await mockServer.forPost(`/cluster/${clusterId}/addon/objectstore`).thenReply(201, JSON.stringify(expectedAddon));
+        const addon = await (0, clusters_1.createAddonObjectStore)(apiClient, clusterId, "test");
+        expect(addon.id).toEqual(expectedAddon.id);
+        expect(addon.status).toEqual(expectedAddon.status);
+        expect(addon.object_store).toEqual(expectedAddon.object_store);
+    });
+    test('should return postgres add-on', async () => {
+        const clusterId = "1234abcd";
+        const expectedAddon = { id: "abcd1234", status: "applied", postgres: {
+                uri: "postgres://postgres:1234@test:5432", version: "16.2", instance_type: "db.t3.micro", disk_gib: 200
+            } };
+        await mockServer.forPost(`/cluster/${clusterId}/addon/postgres`).thenReply(201, JSON.stringify(expectedAddon));
+        const addon = await (0, clusters_1.createAddonPostgres)(apiClient, clusterId);
+        expect(addon.id).toEqual(expectedAddon.id);
+        expect(addon.status).toEqual(expectedAddon.status);
+        expect(addon.postgres).toEqual(expectedAddon.postgres);
+    });
+    test('should eventually return success with expected status', async () => {
+        const clusterId = "1234abcd";
+        const expectedAddon = { id: "1234abcd", status: "ready" };
+        const responseAddonsPending = [{ id: "1234abcd", status: "pending" }];
+        const responseAddonsApplied = [{ id: "1234abcd", status: "applied" }];
+        const responseAddonsReady = [{ id: "1234abcd", status: "ready" }];
+        await mockServer.forGet(`/cluster/${clusterId}/addons`).once().thenReply(200, JSON.stringify({
+            addons: responseAddonsPending
+        }));
+        await mockServer.forGet(`/cluster/${clusterId}/addons`).once().thenReply(200, JSON.stringify({
+            addons: responseAddonsApplied
+        }));
+        await mockServer.forGet(`/cluster/${clusterId}/addons`).once().thenReply(503);
+        await mockServer.forGet(`/cluster/${clusterId}/addons`).thenReply(200, JSON.stringify({
+            addons: responseAddonsReady
+        }));
+        const addon = await (0, clusters_1.pollForAddonStatus)(apiClient, "1234abcd", "1234abcd", "ready", 1, 10);
+        expect(addon).toEqual(expectedAddon);
+    });
+    test('should still fail on 404', async () => {
+        const clusterId = "1234abcd";
+        const expectedAddon = { id: "1234abcd", status: "ready" };
+        const responseAddonsPending = [{ id: "1234abcd", status: "pending" }];
+        const responseAddonsApplied = [{ id: "1234abcd", status: "applied" }];
+        await mockServer.forGet(`/cluster/${clusterId}/addons`).once().thenReply(200, JSON.stringify({
+            addons: responseAddonsPending
+        }));
+        await mockServer.forGet(`/cluster/${clusterId}/addons`).once().thenReply(200, JSON.stringify({
+            addons: responseAddonsApplied
+        }));
+        await mockServer.forGet(`/cluster/${clusterId}/addons`).thenReply(404);
+        await expect((0, clusters_1.pollForAddonStatus)(apiClient, "1234abcd", "1234abcd", "ready", 1, 10)).rejects.toThrow(clusters_1.StatusError);
+    });
+});
