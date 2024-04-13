@@ -11,6 +11,28 @@ export class ClusterVersion {
   version: string;
 }
 
+export class Addon {
+  id: string;
+  status: string;
+  object_store?: ObjectStore;
+  postgres?: Postgres
+}
+
+export class ObjectStore {
+  bucket_name: string
+  bucket_prefix: string
+  service_account_name: string
+  service_account_name_read_only: string
+  service_account_namespace: string
+}
+
+export class Postgres {
+  version: string
+  instance_type: string
+  disk_gib: number
+  uri: string
+}
+
 export class StatusError extends Error {
   statusCode: number;
 
@@ -219,4 +241,141 @@ export async function getClusterVersions(vendorPortalApi: VendorPortalApi): Prom
     }
 
     return clusterVersions;
+}
+
+export async function createAddonObjectStore(vendorPortalApi: VendorPortalApi, clusterId: string, bucketName: string): Promise<Addon> {
+  const http = await vendorPortalApi.client();
+
+  const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/addon/objectstore`;
+
+  const reqBody = {
+    "bucket": bucketName,
+  }
+  const res = await http.post(uri, JSON.stringify(reqBody));
+  if (res.message.statusCode != 201) {
+    let body = "";
+    try {
+      body = await res.readBody();
+    } catch (err) {
+      // ignore
+    }
+    throw new Error(`Failed to queue addon create: Server responded with ${res.message.statusCode}: ${body}`);
+  }
+
+  const body: any = JSON.parse(await res.readBody());
+
+  var addon: Addon = {id: body.id, status: body.status}
+  if (body.object_store) {
+    addon.object_store = {bucket_name: body.object_store.bucket_name, bucket_prefix: body.object_store.bucket_prefix,
+      service_account_name: body.object_store.service_account_name, service_account_name_read_only: body.object_store.service_account_name_read_only,
+      service_account_namespace: body.object_store.service_account_namespace};
+  }
+
+  return addon;
+}
+
+export async function createAddonPostgres(vendorPortalApi: VendorPortalApi, clusterId: string, version?: string, instanceType?: string, diskGib?: number): Promise<Addon> {
+  const http = await vendorPortalApi.client();
+
+  const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/addon/postgres`;
+
+  const reqBody = {}
+  if (version) {
+    reqBody['version'] = version;
+  }
+  if (instanceType) {
+    reqBody['instance_type'] = instanceType;
+  }
+  if (diskGib) {
+    reqBody['disk_gib'] = diskGib;
+  }
+  const res = await http.post(uri, JSON.stringify(reqBody));
+  if (res.message.statusCode != 201) {
+    let body = "";
+    try {
+      body = await res.readBody();
+    } catch (err) {
+      // ignore
+    }
+    throw new Error(`Failed to queue addon create: Server responded with ${res.message.statusCode}: ${body}`);
+  }
+
+  const body: any = JSON.parse(await res.readBody());
+
+  var addon: Addon = {id: body.id, status: body.status}
+  if (body.postgres) {
+    addon.postgres = {uri: body.postgres.uri, version: body.postgres.version, instance_type: body.postgres.instance_type, disk_gib: body.postgres.disk_gib};
+  }
+
+  return addon;
+}
+
+export async function pollForAddonStatus(vendorPortalApi: VendorPortalApi, clusterId: string, addonId: string, expectedStatus: string, timeout: number = 120, sleeptimeMs: number = 5000): Promise<Addon> {
+  // get addons from the api, look for the status of the id to be ${status}
+  // if it's not ${status}, sleep for 5 seconds and try again
+  // if it is ${status}, return the addon with that status
+
+  await new Promise(f => setTimeout(f, sleeptimeMs)); // sleep for sleeptimeMs seconds before polling as the addon takes a few seconds to start provisioning
+  // iterate for timeout/sleeptime times
+  const iterations = timeout * 1000 / sleeptimeMs;
+  for (let i = 0; i < iterations; i++) {
+    try {
+      const addonDetails = await getAddonDetails(vendorPortalApi, clusterId, addonId);
+      if (addonDetails.status === expectedStatus) {
+        return addonDetails;
+      }
+
+      // Once state is "error", it will never change. So we can shortcut polling.
+      if (addonDetails.status === "error") {
+        throw new Error(`Addon has entered error state.`);
+      }
+
+      console.debug(`Cluster status is ${addonDetails.status}, sleeping for ${sleeptimeMs/1000} seconds`);
+    } catch (err) {
+      if (err instanceof StatusError) {
+        if (err.statusCode >= 500) {
+          // 5xx errors are likely transient, so we should retry
+          console.debug(`Got HTTP error with status ${err.statusCode}, sleeping for ${sleeptimeMs/1000} seconds`);
+        } else {
+          console.debug(`Got HTTP error with status ${err.statusCode}, exiting`);
+          throw err;
+        }
+      } else {
+        throw err;
+      }
+    }
+
+    await new Promise(f => setTimeout(f, sleeptimeMs));
+  }
+
+  throw new Error(`Addon did not reach state ${expectedStatus} within ${timeout} seconds`);
+}
+
+async function getAddonDetails(vendorPortalApi: VendorPortalApi, clusterId: string, addonId: string): Promise<Addon> {
+  const http = await vendorPortalApi.client();
+
+  const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/addons`;
+  const res = await http.get(uri);
+  if (res.message.statusCode != 200) {
+    throw new StatusError(`Failed to get addon: Server responded with ${res.message.statusCode}`, res.message.statusCode);
+  }
+
+  const body: any = JSON.parse(await res.readBody());
+  for (const addon of body.addons) {
+    if (addon.id === addonId) {
+      var addonObj: Addon = {id: addon.id, status: addon.status}
+      if (addon.object_store) {
+        addonObj.object_store = {bucket_name: addon.object_store.bucket_name, bucket_prefix: addon.object_store.bucket_prefix,
+          service_account_name: addon.object_store.service_account_name, service_account_name_read_only: addon.object_store.service_account_name_read_only,
+          service_account_namespace: addon.object_store.service_account_namespace};
+      }
+      if (addon.postgres) {
+        addonObj.postgres = {uri: addon.postgres.uri, version: addon.postgres.version, instance_type: addon.postgres.instance_type,
+          disk_gib: addon.postgres.disk_gib};
+      }
+      return addonObj;
+    }
+  }
+
+  throw new Error(`Addon with id ${addonId} not found`);
 }

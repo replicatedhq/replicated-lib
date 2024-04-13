@@ -40,146 +40,44 @@ describe('ClusterService', () => {
         });
     });
 });
-describe('ClusterService with tags', () => {
-    beforeAll(() => globalThis.provider.setup());
-    afterEach(() => globalThis.provider.verify());
-    afterAll(() => globalThis.provider.finalize());
-    test('should return cluster with tags', () => {
-        const expectedCluster = { cluster: { name: "cluster1", id: "1234abcd", status: "provisioning" } };
-        const reqBody = {
-            name: "cluster1",
-            kubernetes_distribution: "kind",
-            kubernetes_version: "v1.25.1",
-            ttl: "10m",
-            tags: [
-                {
-                    key: "foo",
-                    value: "bar"
-                }
-            ]
-        };
-        globalThis.provider.addInteraction({
-            state: 'cluster created',
-            uponReceiving: 'a request for creating a cluster with tags',
-            withRequest: {
-                method: 'POST',
-                path: '/cluster',
-                body: reqBody,
-            },
-            willRespondWith: {
-                status: 201,
-                headers: { 'Content-Type': 'application/json' },
-                body: expectedCluster
-            }
-        });
-        const apiClient = new configuration_1.VendorPortalApi();
-        apiClient.apiToken = "abcd1234";
-        apiClient.endpoint = globalThis.provider.mockService.baseUrl;
-        const tags = [{ key: "foo", value: "bar" }];
-        return (0, _1.createCluster)(apiClient, "cluster1", "kind", "v1.25.1", "10m", undefined, undefined, undefined, undefined, undefined, undefined, tags)
-            .then(cluster => {
-            expect(cluster.name).toEqual(expectedCluster.cluster.name);
-            expect(cluster.id).toEqual(expectedCluster.cluster.id);
-            expect(cluster.status).toEqual(expectedCluster.cluster.status);
-        });
-    });
-});
-describe('ClusterService with nodegroups', () => {
-    beforeAll(() => globalThis.provider.setup());
-    afterEach(() => globalThis.provider.verify());
-    afterAll(() => globalThis.provider.finalize());
-    test('should return cluster with nodegroups', () => {
-        const expectedCluster = { cluster: { name: "cluster1", id: "1234abcd", status: "provisioning" } };
-        const reqBody = {
-            name: "cluster1",
-            kubernetes_distribution: "eks",
-            kubernetes_version: "v1.29",
-            ttl: "10m",
-            node_groups: [
-                {
-                    name: "foo",
-                    node_count: 3,
-                    instance_type: "r1.medium",
-                    disk_gib: 100
-                }
-            ]
-        };
-        globalThis.provider.addInteraction({
-            state: 'cluster created',
-            uponReceiving: 'a request for creating a cluster with nodegroups',
-            withRequest: {
-                method: 'POST',
-                path: '/cluster',
-                body: reqBody,
-            },
-            willRespondWith: {
-                status: 201,
-                headers: { 'Content-Type': 'application/json' },
-                body: expectedCluster
-            }
-        });
-        const apiClient = new configuration_1.VendorPortalApi();
-        apiClient.apiToken = "abcd1234";
-        apiClient.endpoint = globalThis.provider.mockService.baseUrl;
-        const nodegroups = [{ name: "foo", node_count: 3, instance_type: "r1.medium", disk_gib: 100 }];
-        return (0, _1.createCluster)(apiClient, "cluster1", "eks", "v1.29", "10m", undefined, undefined, undefined, undefined, undefined, nodegroups)
-            .then(cluster => {
-            expect(cluster.name).toEqual(expectedCluster.cluster.name);
-            expect(cluster.id).toEqual(expectedCluster.cluster.id);
-            expect(cluster.status).toEqual(expectedCluster.cluster.status);
-        });
-    });
-});
-describe('ClusterService with license_id', () => {
-    beforeAll(() => globalThis.provider.setup());
-    afterEach(() => globalThis.provider.verify());
-    afterAll(() => globalThis.provider.finalize());
-    test('should return cluster with license_id', () => {
-        const expectedCluster = { cluster: { name: "cluster1", id: "1234abcd", status: "provisioning" } };
-        const reqBody = {
-            name: "cluster1",
-            kubernetes_distribution: "embedded-cluster",
-            kubernetes_version: "",
-            ttl: "10m",
-            license_id: "license1",
-        };
-        globalThis.provider.addInteraction({
-            state: 'cluster created',
-            uponReceiving: 'a request for creating a cluster with license_id',
-            withRequest: {
-                method: 'POST',
-                path: '/cluster',
-                body: reqBody,
-            },
-            willRespondWith: {
-                status: 201,
-                headers: { 'Content-Type': 'application/json' },
-                body: expectedCluster
-            }
-        });
-        const apiClient = new configuration_1.VendorPortalApi();
-        apiClient.apiToken = "abcd1234";
-        apiClient.endpoint = globalThis.provider.mockService.baseUrl;
-        return (0, _1.createClusterWithLicense)(apiClient, "cluster1", "embedded-cluster", "", "license1", "10m")
-            .then(cluster => {
-            expect(cluster.name).toEqual(expectedCluster.cluster.name);
-            expect(cluster.id).toEqual(expectedCluster.cluster.id);
-            expect(cluster.status).toEqual(expectedCluster.cluster.status);
-        });
-    });
-});
-describe('upgradeCluster', () => {
+describe('ClusterService use cases', () => {
     const mockServer = mockttp.getLocal();
     const apiClient = new configuration_1.VendorPortalApi();
     apiClient.apiToken = "abcd1234";
-    beforeEach(async () => {
+    beforeAll(async () => {
         await mockServer.start();
         apiClient.endpoint = `http://localhost:${mockServer.port}`;
     });
-    afterEach(async () => {
-        mockServer.stop();
+    afterAll(async () => {
+        await mockServer.stop();
     });
-    it("upgrade a kurl cluster", async () => {
+    test('should return cluster with tags', async () => {
+        const expectedCluster = { cluster: { name: "cluster1", id: "1234abcd", status: "provisioning" } };
+        await mockServer.forPost("/cluster").thenReply(201, JSON.stringify(expectedCluster));
+        const tags = [{ key: "foo", value: "bar" }];
+        const cluster = await (0, _1.createCluster)(apiClient, "cluster1", "kind", "v1.25.1", "10m", undefined, undefined, undefined, undefined, undefined, undefined, tags);
+        expect(cluster.name).toEqual(expectedCluster.cluster.name);
+        expect(cluster.id).toEqual(expectedCluster.cluster.id);
+        expect(cluster.status).toEqual(expectedCluster.cluster.status);
+    });
+    test('should return cluster with nodegroups', async () => {
+        const expectedCluster = { cluster: { name: "cluster1", id: "1234abcd", status: "provisioning" } };
+        await mockServer.forPost("/cluster").thenReply(201, JSON.stringify(expectedCluster));
+        const nodegroups = [{ name: "foo", node_count: 3, instance_type: "r1.medium", disk_gib: 100 }];
+        const cluster = await (0, _1.createCluster)(apiClient, "cluster1", "eks", "v1.29", "10m", undefined, undefined, undefined, undefined, undefined, nodegroups);
+        expect(cluster.name).toEqual(expectedCluster.cluster.name);
+        expect(cluster.id).toEqual(expectedCluster.cluster.id);
+        expect(cluster.status).toEqual(expectedCluster.cluster.status);
+    });
+    test('should return cluster with license_id', async () => {
+        const expectedCluster = { cluster: { name: "cluster1", id: "1234abcd", status: "provisioning" } };
+        await mockServer.forPost("/cluster").thenReply(201, JSON.stringify(expectedCluster));
+        const cluster = await (0, _1.createClusterWithLicense)(apiClient, "cluster1", "embedded-cluster", "", "license1", "10m");
+        expect(cluster.name).toEqual(expectedCluster.cluster.name);
+        expect(cluster.id).toEqual(expectedCluster.cluster.id);
+        expect(cluster.status).toEqual(expectedCluster.cluster.status);
+    });
+    test("upgrade a kurl cluster", async () => {
         const expectedUpgradeResponse = {};
         await mockServer.forPost("/cluster/1234abcd/upgrade").thenReply(200, JSON.stringify(expectedUpgradeResponse));
         await mockServer.forGet("/cluster/1234abcd").thenReply(200, JSON.stringify({ cluster: { id: "1234abcd", status: "upgrading" } }));
@@ -197,7 +95,7 @@ describe('pollForCluster', () => {
         apiClient.endpoint = `http://localhost:${mockServer.port}`;
     });
     afterEach(async () => {
-        mockServer.stop();
+        await mockServer.stop();
     });
     test('should eventually return success with expected status', async () => {
         const expectedCluster = { id: "1234abcd", name: "cluster1", status: "running" };
