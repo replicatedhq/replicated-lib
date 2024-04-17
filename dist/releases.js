@@ -79,18 +79,18 @@ async function createReleaseFromChart(vendorPortalApi, appSlug, chart) {
 }
 exports.createReleaseFromChart = createReleaseFromChart;
 const gzipData = (data) => {
-    return Buffer.from((0, pako_1.gzip)(JSON.stringify(data))).toString('base64');
+    return Buffer.from((0, pako_1.gzip)(JSON.stringify(data))).toString("base64");
 };
 exports.gzipData = gzipData;
 const stat = util.promisify(fs.stat);
-async function encodeKotsFile(fullDir, file, prefix = '') {
+async function encodeKotsFile(fullDir, file, prefix = "") {
     const readFile = util.promisify(fs.readFile);
     const fullPath = path.join(fullDir, file);
     const stats = await stat(fullPath);
     if (stats.isDirectory()) {
         return null;
     }
-    if (path.basename(file).startsWith('.')) {
+    if (path.basename(file).startsWith(".")) {
         return null;
     }
     const ext = path.extname(file);
@@ -100,14 +100,14 @@ async function encodeKotsFile(fullDir, file, prefix = '') {
     const bytes = await readFile(fullPath);
     let content;
     switch (ext) {
-        case '.tgz':
-        case '.gz':
-        case '.woff':
-        case '.woff2':
-        case '.ttf':
-        case '.otf':
-        case '.eot':
-        case '.svg':
+        case ".tgz":
+        case ".gz":
+        case ".woff":
+        case ".woff2":
+        case ".ttf":
+        case ".otf":
+        case ".eot":
+        case ".svg":
             content = base64.fromByteArray(bytes);
             break;
         default:
@@ -115,7 +115,7 @@ async function encodeKotsFile(fullDir, file, prefix = '') {
     }
     const name = path.basename(file);
     const relPath = path.relative(fullDir, fullPath);
-    const singlefile = relPath.split(path.sep).join('/');
+    const singlefile = relPath.split(path.sep).join("/");
     return {
         name: name,
         path: path.join(prefix, singlefile),
@@ -123,7 +123,7 @@ async function encodeKotsFile(fullDir, file, prefix = '') {
         children: []
     };
 }
-async function readYAMLDir(yamlDir, prefix = '') {
+async function readYAMLDir(yamlDir, prefix = "") {
     const allKotsReleaseSpecs = [];
     const readdir = util.promisify(fs.readdir);
     const files = await readdir(yamlDir);
@@ -135,7 +135,7 @@ async function readYAMLDir(yamlDir, prefix = '') {
                 allKotsReleaseSpecs.push({
                     name: file,
                     path: path.join(prefix, file),
-                    content: '',
+                    content: "",
                     children: subdir
                 });
             }
@@ -161,19 +161,7 @@ async function readChart(chart) {
     return allKotsReleaseSpecs;
 }
 function isSupportedExt(ext) {
-    const supportedExts = [
-        '.tgz',
-        '.gz',
-        '.yaml',
-        '.yml',
-        '.css',
-        '.woff',
-        '.woff2',
-        '.ttf',
-        '.otf',
-        '.eot',
-        '.svg'
-    ];
+    const supportedExts = [".tgz", ".gz", ".yaml", ".yml", ".css", ".woff", ".woff2", ".ttf", ".otf", ".eot", ".svg"];
     return supportedExts.includes(ext);
 }
 async function promoteRelease(vendorPortalApi, appSlug, channelId, releaseSequence, version) {
@@ -193,7 +181,7 @@ async function promoteReleaseByAppId(vendorPortalApi, appId, channelId, releaseS
     const res = await http.post(uri, JSON.stringify(reqBody));
     if (res.message.statusCode != 200) {
         // If res has a body, read it and add it to the error message
-        let body = '';
+        let body = "";
         try {
             body = await res.readBody();
         }
@@ -219,7 +207,7 @@ async function isReleaseReadyForInstall(vendorPortalApi, appId, releaseSequence)
             return true;
         }
         console.debug(`Release ${releaseSequence} is not ready, sleeping for ${sleeptime} seconds`);
-        await new Promise((f) => setTimeout(f, sleeptime * 1000));
+        await new Promise(f => setTimeout(f, sleeptime * 1000));
     }
     return false;
 }
@@ -228,16 +216,16 @@ function areReleaseChartsPushed(charts) {
     let chartsCount = 0;
     for (const chart of charts) {
         switch (chart.status) {
-            case 'pushed':
+            case "pushed":
                 pushedChartsCount++;
                 chartsCount++;
                 break;
-            case 'unknown':
-            case 'pushing':
+            case "unknown":
+            case "pushing":
                 // wait for the chart to be pushed
                 chartsCount++;
                 continue;
-            case 'error':
+            case "error":
                 throw new Error(`chart ${chart.name} failed to push: ${chart.error}`);
         }
     }
@@ -267,20 +255,20 @@ async function reportCompatibilityResultByAppId(vendorPortalApi, appId, releaseS
         version: compatibilityResult.version
     };
     if (compatibilityResult.successAt) {
-        const successAt = (0, date_fns_tz_1.zonedTimeToUtc)(compatibilityResult.successAt, 'UTC');
-        reqBody['successAt'] = successAt.toISOString();
-        reqBody['successNotes'] = compatibilityResult.successNotes;
+        const successAt = (0, date_fns_tz_1.zonedTimeToUtc)(compatibilityResult.successAt, "UTC");
+        reqBody["successAt"] = successAt.toISOString();
+        reqBody["successNotes"] = compatibilityResult.successNotes;
     }
     if (compatibilityResult.failureAt) {
-        const failureAt = (0, date_fns_tz_1.zonedTimeToUtc)(compatibilityResult.failureAt, 'UTC');
-        reqBody['failureAt'] = failureAt.toISOString();
-        reqBody['failureNotes'] = compatibilityResult.failureNotes;
+        const failureAt = (0, date_fns_tz_1.zonedTimeToUtc)(compatibilityResult.failureAt, "UTC");
+        reqBody["failureAt"] = failureAt.toISOString();
+        reqBody["failureNotes"] = compatibilityResult.failureNotes;
     }
     const uri = `${vendorPortalApi.endpoint}/app/${appId}/release/${releaseSequence}/compatibility`;
     const res = await http.post(uri, JSON.stringify(reqBody));
     if (res.message.statusCode != 201) {
         // If res has a body, read it and add it to the error message
-        let body = '';
+        let body = "";
         try {
             body = await res.readBody();
         }

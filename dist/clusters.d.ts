@@ -1,4 +1,4 @@
-import { VendorPortalApi } from './configuration';
+import { VendorPortalApi } from "./configuration";
 export declare class Cluster {
     name: string;
     id: string;

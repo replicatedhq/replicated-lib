@@ -14,7 +14,7 @@ exports.KubernetesDistribution = KubernetesDistribution;
 async function createCustomer(vendorPortalApi, appSlug, name, email, licenseType, channelSlug, expiresIn, entitlementValues, isKotsInstallEnabled) {
     try {
         const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
-        console.log('Creating customer on appId ' + app.id);
+        console.log("Creating customer on appId " + app.id);
         const http = await vendorPortalApi.client();
         // 1. create the customer
         const createCustomerUri = `${vendorPortalApi.endpoint}/customer`;
@@ -25,26 +25,26 @@ async function createCustomer(vendorPortalApi, appSlug, name, email, licenseType
             app_id: app.id
         };
         if (isKotsInstallEnabled !== undefined) {
-            createCustomerReqBody['is_kots_install_enabled'] = isKotsInstallEnabled;
+            createCustomerReqBody["is_kots_install_enabled"] = isKotsInstallEnabled;
         }
         if (channelSlug) {
             const channel = await (0, channels_1.getChannelDetails)(vendorPortalApi, appSlug, {
                 slug: channelSlug
             });
-            createCustomerReqBody['channel_id'] = channel.id;
+            createCustomerReqBody["channel_id"] = channel.id;
         }
         // expiresIn is in days, if it's 0 or less, ignore it - non-expiring license
         if (expiresIn > 0) {
             const now = new Date();
-            const expiresAt = (0, date_fns_tz_1.zonedTimeToUtc)((0, date_fns_1.add)(now, { days: expiresIn }), 'UTC');
-            createCustomerReqBody['expires_at'] = expiresAt.toISOString();
+            const expiresAt = (0, date_fns_tz_1.zonedTimeToUtc)((0, date_fns_1.add)(now, { days: expiresIn }), "UTC");
+            createCustomerReqBody["expires_at"] = expiresAt.toISOString();
         }
         if (entitlementValues) {
-            createCustomerReqBody['entitlementValues'] = entitlementValues;
+            createCustomerReqBody["entitlementValues"] = entitlementValues;
         }
         const createCustomerRes = await http.post(createCustomerUri, JSON.stringify(createCustomerReqBody));
         if (createCustomerRes.message.statusCode != 201) {
-            let body = '';
+            let body = "";
             try {
                 body = await createCustomerRes.readBody();
             }
@@ -58,11 +58,10 @@ async function createCustomer(vendorPortalApi, appSlug, name, email, licenseType
         const downloadLicenseUri = `${vendorPortalApi.endpoint}/app/${app.id}/customer/${createCustomerBody.customer.id}/license-download`;
         const downloadLicenseRes = await http.get(downloadLicenseUri);
         // If response is 403, ignore as we could be using a trial license (on builders plan)
-        if (downloadLicenseRes.message.statusCode != 200 &&
-            downloadLicenseRes.message.statusCode != 403) {
+        if (downloadLicenseRes.message.statusCode != 200 && downloadLicenseRes.message.statusCode != 403) {
             throw new Error(`Failed to download created license: Server responded with ${downloadLicenseRes.message.statusCode}`);
         }
-        let downloadLicenseBody = '';
+        let downloadLicenseBody = "";
         if (downloadLicenseRes.message.statusCode == 200) {
             downloadLicenseBody = await downloadLicenseRes.readBody();
         }

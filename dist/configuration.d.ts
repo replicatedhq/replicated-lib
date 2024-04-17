@@ -1,4 +1,4 @@
-import * as httpClient from '@actions/http-client';
+import * as httpClient from "@actions/http-client";
 export declare class VendorPortalApi {
     endpoint: string;
     apiToken: string;

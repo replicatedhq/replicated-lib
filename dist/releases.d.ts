@@ -1,4 +1,4 @@
-import { VendorPortalApi } from './configuration';
+import { VendorPortalApi } from "./configuration";
 export interface Release {
     sequence: string;
     charts?: ReleaseChart[];

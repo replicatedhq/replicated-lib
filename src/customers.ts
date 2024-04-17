@@ -1,9 +1,9 @@
-import { VendorPortalApi } from './configuration';
-import { getChannelDetails } from './channels';
-import { getApplicationDetails } from './applications';
+import { VendorPortalApi } from "./configuration";
+import { getChannelDetails } from "./channels";
+import { getApplicationDetails } from "./applications";
 
-import { add } from 'date-fns';
-import { zonedTimeToUtc } from 'date-fns-tz';
+import { add } from "date-fns";
+import { zonedTimeToUtc } from "date-fns-tz";
 
 export class Customer {
   name: string;
@@ -27,21 +27,11 @@ export class KubernetesDistribution {
   isAirgap: boolean;
 }
 
-export async function createCustomer(
-  vendorPortalApi: VendorPortalApi,
-  appSlug: string,
-  name: string,
-  email: string,
-  licenseType: string,
-  channelSlug: string,
-  expiresIn: number,
-  entitlementValues?: entitlementValue[],
-  isKotsInstallEnabled?: boolean
-): Promise<Customer> {
+export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: string, name: string, email: string, licenseType: string, channelSlug: string, expiresIn: number, entitlementValues?: entitlementValue[], isKotsInstallEnabled?: boolean): Promise<Customer> {
   try {
     const app = await getApplicationDetails(vendorPortalApi, appSlug);
 
-    console.log('Creating customer on appId ' + app.id);
+    console.log("Creating customer on appId " + app.id);
 
     const http = await vendorPortalApi.client();
 
@@ -54,56 +44,44 @@ export async function createCustomer(
       app_id: app.id
     };
     if (isKotsInstallEnabled !== undefined) {
-      createCustomerReqBody['is_kots_install_enabled'] = isKotsInstallEnabled;
+      createCustomerReqBody["is_kots_install_enabled"] = isKotsInstallEnabled;
     }
     if (channelSlug) {
       const channel = await getChannelDetails(vendorPortalApi, appSlug, {
         slug: channelSlug
       });
-      createCustomerReqBody['channel_id'] = channel.id;
+      createCustomerReqBody["channel_id"] = channel.id;
     }
     // expiresIn is in days, if it's 0 or less, ignore it - non-expiring license
     if (expiresIn > 0) {
       const now = new Date();
-      const expiresAt = zonedTimeToUtc(add(now, { days: expiresIn }), 'UTC');
-      createCustomerReqBody['expires_at'] = expiresAt.toISOString();
+      const expiresAt = zonedTimeToUtc(add(now, { days: expiresIn }), "UTC");
+      createCustomerReqBody["expires_at"] = expiresAt.toISOString();
     }
     if (entitlementValues) {
-      createCustomerReqBody['entitlementValues'] = entitlementValues;
+      createCustomerReqBody["entitlementValues"] = entitlementValues;
     }
 
-    const createCustomerRes = await http.post(
-      createCustomerUri,
-      JSON.stringify(createCustomerReqBody)
-    );
+    const createCustomerRes = await http.post(createCustomerUri, JSON.stringify(createCustomerReqBody));
     if (createCustomerRes.message.statusCode != 201) {
-      let body = '';
+      let body = "";
       try {
         body = await createCustomerRes.readBody();
       } catch (err) {
         // ignore
       }
-      throw new Error(
-        `Failed to create customer: Server responded with ${createCustomerRes.message.statusCode}: ${body}`
-      );
+      throw new Error(`Failed to create customer: Server responded with ${createCustomerRes.message.statusCode}: ${body}`);
     }
-    const createCustomerBody: any = JSON.parse(
-      await createCustomerRes.readBody()
-    );
+    const createCustomerBody: any = JSON.parse(await createCustomerRes.readBody());
 
     // 2. download the license
     const downloadLicenseUri = `${vendorPortalApi.endpoint}/app/${app.id}/customer/${createCustomerBody.customer.id}/license-download`;
     const downloadLicenseRes = await http.get(downloadLicenseUri);
     // If response is 403, ignore as we could be using a trial license (on builders plan)
-    if (
-      downloadLicenseRes.message.statusCode != 200 &&
-      downloadLicenseRes.message.statusCode != 403
-    ) {
-      throw new Error(
-        `Failed to download created license: Server responded with ${downloadLicenseRes.message.statusCode}`
-      );
+    if (downloadLicenseRes.message.statusCode != 200 && downloadLicenseRes.message.statusCode != 403) {
+      throw new Error(`Failed to download created license: Server responded with ${downloadLicenseRes.message.statusCode}`);
     }
-    let downloadLicenseBody: string = '';
+    let downloadLicenseBody: string = "";
     if (downloadLicenseRes.message.statusCode == 200) {
       downloadLicenseBody = await downloadLicenseRes.readBody();
     }
@@ -120,10 +98,7 @@ export async function createCustomer(
   }
 }
 
-export async function archiveCustomer(
-  vendorPortalApi: VendorPortalApi,
-  customerId: string
-) {
+export async function archiveCustomer(vendorPortalApi: VendorPortalApi, customerId: string) {
   const http = await vendorPortalApi.client();
 
   // 2. Archive a customer
@@ -131,16 +106,11 @@ export async function archiveCustomer(
   const archiveCustomerUri = `${vendorPortalApi.endpoint}/customer/${customerId}/archive`;
   const archiveCustomerRes = await http.post(archiveCustomerUri, undefined);
   if (archiveCustomerRes.message.statusCode != 204) {
-    throw new Error(
-      `Failed to archive customer: Server responded with ${archiveCustomerRes.message.statusCode}`
-    );
+    throw new Error(`Failed to archive customer: Server responded with ${archiveCustomerRes.message.statusCode}`);
   }
 }
 
-export async function getUsedKubernetesDistributions(
-  vendorPortalApi: VendorPortalApi,
-  appSlug: string
-): Promise<KubernetesDistribution[]> {
+export async function getUsedKubernetesDistributions(vendorPortalApi: VendorPortalApi, appSlug: string): Promise<KubernetesDistribution[]> {
   const http = await vendorPortalApi.client();
 
   // 1. get the app
@@ -150,13 +120,9 @@ export async function getUsedKubernetesDistributions(
   const getClusterUsageUri = `${vendorPortalApi.endpoint}/app/${app.id}/cluster-usage`;
   const getClusterUsageRes = await http.get(getClusterUsageUri);
   if (getClusterUsageRes.message.statusCode != 200) {
-    throw new Error(
-      `Failed to get Cluster Usage: Server responded with ${getClusterUsageRes.message.statusCode}`
-    );
+    throw new Error(`Failed to get Cluster Usage: Server responded with ${getClusterUsageRes.message.statusCode}`);
   }
-  const getClusterUsageBody: any = JSON.parse(
-    await getClusterUsageRes.readBody()
-  );
+  const getClusterUsageBody: any = JSON.parse(await getClusterUsageRes.readBody());
 
   // 2. Convert body into KubernetesDistribution
   let kubernetesDistributions: KubernetesDistribution[] = [];

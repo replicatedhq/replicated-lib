@@ -36,7 +36,7 @@ async function getChannelDetails(vendorPortalApi, appSlug, { slug, name }) {
     const http = await vendorPortalApi.client();
     // 1. get the app id from the app slug
     const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
-    if (typeof slug === 'undefined' && typeof name === 'undefined') {
+    if (typeof slug === "undefined" && typeof name === "undefined") {
         throw new Error(`Must provide either a channel slug or channel name`);
     }
     // 2. get the channel id from the channel slug
