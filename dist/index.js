@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.reportCompatibilityResult = exports.promoteRelease = exports.createReleaseFromChart = exports.createRelease = exports.getUsedKubernetesDistributions = exports.createCustomer = exports.archiveCustomer = exports.KubernetesDistribution = exports.pollForAddonStatus = exports.createAddonPostgres = exports.createAddonObjectStore = exports.getClusterVersions = exports.upgradeCluster = exports.removeCluster = exports.getKubeconfig = exports.pollForStatus = exports.createClusterWithLicense = exports.createCluster = exports.ClusterVersion = exports.archiveChannel = exports.getChannelDetails = exports.createChannel = exports.Channel = exports.getApplicationDetails = exports.VendorPortalApi = void 0;
+exports.reportCompatibilityResult = exports.promoteRelease = exports.createReleaseFromChart = exports.createRelease = exports.getUsedKubernetesDistributions = exports.createCustomer = exports.archiveCustomer = exports.KubernetesDistribution = exports.pollForPortStatus = exports.exposeClusterPort = exports.pollForAddonStatus = exports.createAddonPostgres = exports.createAddonObjectStore = exports.getClusterVersions = exports.upgradeCluster = exports.removeCluster = exports.getKubeconfig = exports.pollForStatus = exports.createClusterWithLicense = exports.createCluster = exports.ClusterVersion = exports.archiveChannel = exports.getChannelDetails = exports.createChannel = exports.Channel = exports.getApplicationDetails = exports.VendorPortalApi = void 0;
 var configuration_1 = require("./configuration");
 Object.defineProperty(exports, "VendorPortalApi", { enumerable: true, get: function () { return configuration_1.VendorPortalApi; } });
 var applications_1 = require("./applications");
@@ -22,6 +22,8 @@ Object.defineProperty(exports, "getClusterVersions", { enumerable: true, get: fu
 Object.defineProperty(exports, "createAddonObjectStore", { enumerable: true, get: function () { return clusters_1.createAddonObjectStore; } });
 Object.defineProperty(exports, "createAddonPostgres", { enumerable: true, get: function () { return clusters_1.createAddonPostgres; } });
 Object.defineProperty(exports, "pollForAddonStatus", { enumerable: true, get: function () { return clusters_1.pollForAddonStatus; } });
+Object.defineProperty(exports, "exposeClusterPort", { enumerable: true, get: function () { return clusters_1.exposeClusterPort; } });
+Object.defineProperty(exports, "pollForPortStatus", { enumerable: true, get: function () { return clusters_1.pollForPortStatus; } });
 var customers_1 = require("./customers");
 Object.defineProperty(exports, "KubernetesDistribution", { enumerable: true, get: function () { return customers_1.KubernetesDistribution; } });
 Object.defineProperty(exports, "archiveCustomer", { enumerable: true, get: function () { return customers_1.archiveCustomer; } });

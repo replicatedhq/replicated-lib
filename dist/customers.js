@@ -22,13 +22,15 @@ async function createCustomer(vendorPortalApi, appSlug, name, email, licenseType
             name: name,
             email: email,
             type: licenseType,
-            app_id: app.id,
+            app_id: app.id
         };
         if (isKotsInstallEnabled !== undefined) {
             createCustomerReqBody['is_kots_install_enabled'] = isKotsInstallEnabled;
         }
         if (channelSlug) {
-            const channel = await (0, channels_1.getChannelDetails)(vendorPortalApi, appSlug, { slug: channelSlug });
+            const channel = await (0, channels_1.getChannelDetails)(vendorPortalApi, appSlug, {
+                slug: channelSlug
+            });
             createCustomerReqBody['channel_id'] = channel.id;
         }
         // expiresIn is in days, if it's 0 or less, ignore it - non-expiring license
@@ -42,7 +44,7 @@ async function createCustomer(vendorPortalApi, appSlug, name, email, licenseType
         }
         const createCustomerRes = await http.post(createCustomerUri, JSON.stringify(createCustomerReqBody));
         if (createCustomerRes.message.statusCode != 201) {
-            let body = "";
+            let body = '';
             try {
                 body = await createCustomerRes.readBody();
             }
@@ -56,14 +58,20 @@ async function createCustomer(vendorPortalApi, appSlug, name, email, licenseType
         const downloadLicenseUri = `${vendorPortalApi.endpoint}/app/${app.id}/customer/${createCustomerBody.customer.id}/license-download`;
         const downloadLicenseRes = await http.get(downloadLicenseUri);
         // If response is 403, ignore as we could be using a trial license (on builders plan)
-        if (downloadLicenseRes.message.statusCode != 200 && downloadLicenseRes.message.statusCode != 403) {
+        if (downloadLicenseRes.message.statusCode != 200 &&
+            downloadLicenseRes.message.statusCode != 403) {
             throw new Error(`Failed to download created license: Server responded with ${downloadLicenseRes.message.statusCode}`);
         }
-        let downloadLicenseBody = "";
+        let downloadLicenseBody = '';
         if (downloadLicenseRes.message.statusCode == 200) {
             downloadLicenseBody = await downloadLicenseRes.readBody();
         }
-        return { name: name, customerId: createCustomerBody.customer.id, licenseId: createCustomerBody.customer.installationId, license: downloadLicenseBody };
+        return {
+            name: name,
+            customerId: createCustomerBody.customer.id,
+            licenseId: createCustomerBody.customer.installationId,
+            license: downloadLicenseBody
+        };
     }
     catch (error) {
         console.error(error.message);

@@ -1,4 +1,4 @@
-import { VendorPortalApi } from "./configuration";
+import { VendorPortalApi } from './configuration';
 export declare class Cluster {
     name: string;
     id: string;
@@ -27,6 +27,16 @@ export declare class Postgres {
     disk_gib: number;
     uri: string;
 }
+export declare class ClusterPort {
+    upstream_port: number;
+    exposed_ports: ClusterExposedPort[];
+    hostname: string;
+    state: string;
+}
+export declare class ClusterExposedPort {
+    protocol: string;
+    exposed_port: number;
+}
 export declare class StatusError extends Error {
     statusCode: number;
     constructor(message: string, statusCode: number);
@@ -53,4 +63,6 @@ export declare function getClusterVersions(vendorPortalApi: VendorPortalApi): Pr
 export declare function createAddonObjectStore(vendorPortalApi: VendorPortalApi, clusterId: string, bucketName: string): Promise<Addon>;
 export declare function createAddonPostgres(vendorPortalApi: VendorPortalApi, clusterId: string, version?: string, instanceType?: string, diskGib?: number): Promise<Addon>;
 export declare function pollForAddonStatus(vendorPortalApi: VendorPortalApi, clusterId: string, addonId: string, expectedStatus: string, timeout?: number, sleeptimeMs?: number): Promise<Addon>;
+export declare function exposeClusterPort(vendorPortalApi: VendorPortalApi, clusterId: string, port: number, protocols: string[]): Promise<ClusterPort>;
+export declare function pollForPortStatus(vendorPortalApi: VendorPortalApi, clusterId: string, host: string, expectedStatus: string, timeout?: number, sleeptimeMs?: number): Promise<ClusterPort>;
 export {};
