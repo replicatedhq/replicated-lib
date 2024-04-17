@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.pollForPortStatus = exports.exposeClusterPort = exports.pollForAddonStatus = exports.createAddonPostgres = exports.createAddonObjectStore = exports.getClusterVersions = exports.upgradeCluster = exports.removeCluster = exports.getKubeconfig = exports.pollForStatus = exports.createClusterWithLicense = exports.createCluster = exports.StatusError = exports.ClusterExposedPort = exports.ClusterPort = exports.Postgres = exports.ObjectStore = exports.Addon = exports.ClusterVersion = exports.Cluster = void 0;
+exports.exposeClusterPort = exports.pollForAddonStatus = exports.createAddonPostgres = exports.createAddonObjectStore = exports.getClusterVersions = exports.upgradeCluster = exports.removeCluster = exports.getKubeconfig = exports.pollForStatus = exports.createClusterWithLicense = exports.createCluster = exports.StatusError = exports.ClusterExposedPort = exports.ClusterPort = exports.Postgres = exports.ObjectStore = exports.Addon = exports.ClusterVersion = exports.Cluster = void 0;
 class Cluster {
 }
 exports.Cluster = Cluster;
@@ -194,7 +194,7 @@ async function getClusterVersions(vendorPortalApi) {
 exports.getClusterVersions = getClusterVersions;
 async function createAddonObjectStore(vendorPortalApi, clusterId, bucketName) {
     const http = await vendorPortalApi.client();
-    const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/addon/objectstore`;
+    const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/addons/objectstore`;
     const reqBody = {
         bucket: bucketName
     };
@@ -207,17 +207,17 @@ async function createAddonObjectStore(vendorPortalApi, clusterId, bucketName) {
         catch (err) {
             // ignore
         }
-        throw new Error(`Failed to queue addon create: Server responded with ${res.message.statusCode}: ${body}`);
+        throw new Error(`Failed to queue add-on create: Server responded with ${res.message.statusCode}: ${body}`);
     }
     const body = JSON.parse(await res.readBody());
-    var addon = { id: body.id, status: body.status };
-    if (body.object_store) {
+    var addon = { id: body.addon.id, status: body.addon.status };
+    if (body.addon.object_store) {
         addon.object_store = {
-            bucket_name: body.object_store.bucket_name,
-            bucket_prefix: body.object_store.bucket_prefix,
-            service_account_name: body.object_store.service_account_name,
-            service_account_name_read_only: body.object_store.service_account_name_read_only,
-            service_account_namespace: body.object_store.service_account_namespace
+            bucket_name: body.addon.object_store.bucket_name,
+            bucket_prefix: body.addon.object_store.bucket_prefix,
+            service_account_name: body.addon.object_store.service_account_name,
+            service_account_name_read_only: body.addon.object_store.service_account_name_read_only,
+            service_account_namespace: body.addon.object_store.service_account_namespace
         };
     }
     return addon;
@@ -225,7 +225,7 @@ async function createAddonObjectStore(vendorPortalApi, clusterId, bucketName) {
 exports.createAddonObjectStore = createAddonObjectStore;
 async function createAddonPostgres(vendorPortalApi, clusterId, version, instanceType, diskGib) {
     const http = await vendorPortalApi.client();
-    const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/addon/postgres`;
+    const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/addons/postgres`;
     const reqBody = {};
     if (version) {
         reqBody['version'] = version;
@@ -245,26 +245,26 @@ async function createAddonPostgres(vendorPortalApi, clusterId, version, instance
         catch (err) {
             // ignore
         }
-        throw new Error(`Failed to queue addon create: Server responded with ${res.message.statusCode}: ${body}`);
+        throw new Error(`Failed to queue add-on create: Server responded with ${res.message.statusCode}: ${body}`);
     }
     const body = JSON.parse(await res.readBody());
-    var addon = { id: body.id, status: body.status };
-    if (body.postgres) {
+    var addon = { id: body.addon.id, status: body.addon.status };
+    if (body.addon.postgres) {
         addon.postgres = {
-            uri: body.postgres.uri,
-            version: body.postgres.version,
-            instance_type: body.postgres.instance_type,
-            disk_gib: body.postgres.disk_gib
+            uri: body.addon.postgres.uri,
+            version: body.addon.postgres.version,
+            instance_type: body.addon.postgres.instance_type,
+            disk_gib: body.addon.postgres.disk_gib
         };
     }
     return addon;
 }
 exports.createAddonPostgres = createAddonPostgres;
 async function pollForAddonStatus(vendorPortalApi, clusterId, addonId, expectedStatus, timeout = 120, sleeptimeMs = 5000) {
-    // get addons from the api, look for the status of the id to be ${status}
+    // get add-ons from the api, look for the status of the id to be ${status}
     // if it's not ${status}, sleep for 5 seconds and try again
-    // if it is ${status}, return the addon with that status
-    await new Promise((f) => setTimeout(f, sleeptimeMs)); // sleep for sleeptimeMs seconds before polling as the addon takes a few seconds to start provisioning
+    // if it is ${status}, return the add-on with that status
+    await new Promise((f) => setTimeout(f, sleeptimeMs)); // sleep for sleeptimeMs seconds before polling as the add-on takes a few seconds to start provisioning
     // iterate for timeout/sleeptime times
     const iterations = (timeout * 1000) / sleeptimeMs;
     for (let i = 0; i < iterations; i++) {
@@ -275,9 +275,9 @@ async function pollForAddonStatus(vendorPortalApi, clusterId, addonId, expectedS
             }
             // Once state is "error", it will never change. So we can shortcut polling.
             if (addonDetails.status === 'error') {
-                throw new Error(`Addon has entered error state.`);
+                throw new Error(`Add-on has entered error state.`);
             }
-            console.debug(`Cluster status is ${addonDetails.status}, sleeping for ${sleeptimeMs / 1000} seconds`);
+            console.debug(`Cluster Add-on status is ${addonDetails.status}, sleeping for ${sleeptimeMs / 1000} seconds`);
         }
         catch (err) {
             if (err instanceof StatusError) {
@@ -296,7 +296,7 @@ async function pollForAddonStatus(vendorPortalApi, clusterId, addonId, expectedS
         }
         await new Promise((f) => setTimeout(f, sleeptimeMs));
     }
-    throw new Error(`Addon did not reach state ${expectedStatus} within ${timeout} seconds`);
+    throw new Error(`Add-on did not reach state ${expectedStatus} within ${timeout} seconds`);
 }
 exports.pollForAddonStatus = pollForAddonStatus;
 async function getAddonDetails(vendorPortalApi, clusterId, addonId) {
@@ -304,7 +304,7 @@ async function getAddonDetails(vendorPortalApi, clusterId, addonId) {
     const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/addons`;
     const res = await http.get(uri);
     if (res.message.statusCode != 200) {
-        throw new StatusError(`Failed to get addon: Server responded with ${res.message.statusCode}`, res.message.statusCode);
+        throw new StatusError(`Failed to get add-on: Server responded with ${res.message.statusCode}`, res.message.statusCode);
     }
     const body = JSON.parse(await res.readBody());
     for (const addon of body.addons) {
@@ -330,13 +330,14 @@ async function getAddonDetails(vendorPortalApi, clusterId, addonId) {
             return addonObj;
         }
     }
-    throw new Error(`Addon with id ${addonId} not found`);
+    throw new Error(`Add-on with id ${addonId} not found`);
 }
 async function exposeClusterPort(vendorPortalApi, clusterId, port, protocols) {
     const http = await vendorPortalApi.client();
-    const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/expose`;
+    const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/port`;
     const reqBody = {
-        port: port
+        port: port,
+        protocols: protocols
     };
     const res = await http.post(uri, JSON.stringify(reqBody));
     if (res.message.statusCode != 201) {
@@ -350,74 +351,19 @@ async function exposeClusterPort(vendorPortalApi, clusterId, port, protocols) {
         throw new Error(`Failed to expose cluster port: Server responded with ${res.message.statusCode}: ${body}`);
     }
     const body = JSON.parse(await res.readBody());
-    return body;
+    var exposedPorts = [];
+    for (const exposed_port of body.port.exposed_ports) {
+        const exposedPort = {
+            protocol: exposed_port.protocol,
+            exposed_port: exposed_port.exposed_port
+        };
+        exposedPorts.push(exposedPort);
+    }
+    var portObj = {
+        upstream_port: body.port.upstream_port,
+        hostname: body.port.hostname,
+        exposed_ports: exposedPorts
+    };
+    return portObj;
 }
 exports.exposeClusterPort = exposeClusterPort;
-async function pollForPortStatus(vendorPortalApi, clusterId, host, expectedStatus, timeout = 120, sleeptimeMs = 5000) {
-    // get exposed ports from the api, look for the status of the host to be ${status}
-    // if it's not ${status}, sleep for 5 seconds and try again
-    // if it is ${status}, return the ClusterPort with that status
-    await new Promise((f) => setTimeout(f, sleeptimeMs)); // sleep for sleeptimeMs seconds before polling as the ClusterPort takes a few seconds to start provisioning
-    // iterate for timeout/sleeptime times
-    const iterations = (timeout * 1000) / sleeptimeMs;
-    for (let i = 0; i < iterations; i++) {
-        try {
-            const clusterPortDetails = await getPortDetails(vendorPortalApi, clusterId, host);
-            if (clusterPortDetails.state === expectedStatus) {
-                return clusterPortDetails;
-            }
-            // Once state is "error", it will never change. So we can shortcut polling.
-            if (clusterPortDetails.state === 'error') {
-                throw new Error(`Cluster port has entered error state.`);
-            }
-            console.debug(`Cluster status is ${clusterPortDetails.state}, sleeping for ${sleeptimeMs / 1000} seconds`);
-        }
-        catch (err) {
-            if (err instanceof StatusError) {
-                if (err.statusCode >= 500) {
-                    // 5xx errors are likely transient, so we should retry
-                    console.debug(`Got HTTP error with status ${err.statusCode}, sleeping for ${sleeptimeMs / 1000} seconds`);
-                }
-                else {
-                    console.debug(`Got HTTP error with status ${err.statusCode}, exiting`);
-                    throw err;
-                }
-            }
-            else {
-                throw err;
-            }
-        }
-        await new Promise((f) => setTimeout(f, sleeptimeMs));
-    }
-    throw new Error(`Cluster port did not reach state ${expectedStatus} within ${timeout} seconds`);
-}
-exports.pollForPortStatus = pollForPortStatus;
-async function getPortDetails(vendorPortalApi, clusterId, host) {
-    const http = await vendorPortalApi.client();
-    const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/ports`;
-    const res = await http.get(uri);
-    if (res.message.statusCode != 200) {
-        throw new StatusError(`Failed to get ports: Server responded with ${res.message.statusCode}`, res.message.statusCode);
-    }
-    const body = JSON.parse(await res.readBody());
-    for (const port of body.ports) {
-        if (port.hostname === host) {
-            var exposedPorts = [];
-            for (const exposed_port of port.exposed_ports) {
-                const exposedPort = {
-                    protocol: exposed_port.protocol,
-                    exposed_port: exposed_port.exposed_port
-                };
-                exposedPorts.push(exposedPort);
-            }
-            var portObj = {
-                upstream_port: port.upstream_port,
-                hostname: port.hostname,
-                state: port.state,
-                exposed_ports: exposedPorts
-            };
-            return portObj;
-        }
-    }
-    throw new Error(`Port with hostname ${host} not found`);
-}

@@ -18,8 +18,7 @@ export {
   createAddonObjectStore,
   createAddonPostgres,
   pollForAddonStatus,
-  exposeClusterPort,
-  pollForPortStatus
+  exposeClusterPort
 } from './clusters';
 export {
   KubernetesDistribution,

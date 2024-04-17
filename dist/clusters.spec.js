@@ -178,43 +178,47 @@ describe('Cluster Add-ons', () => {
     test('should return object store add-on', async () => {
         const clusterId = '1234abcd';
         const expectedAddon = {
-            id: 'abcd1234',
-            status: 'applied',
-            object_store: {
-                bucket_name: 'test-abcd1234-cmx',
-                bucket_prefix: 'test',
-                service_account_name: 'cmx',
-                service_account_name_read_only: 'cmx-ro',
-                service_account_namespace: 'cmx'
+            addon: {
+                id: 'abcd1234',
+                status: 'applied',
+                object_store: {
+                    bucket_name: 'test-abcd1234-cmx',
+                    bucket_prefix: 'test',
+                    service_account_name: 'cmx',
+                    service_account_name_read_only: 'cmx-ro',
+                    service_account_namespace: 'cmx'
+                }
             }
         };
         await mockServer
-            .forPost(`/cluster/${clusterId}/addon/objectstore`)
+            .forPost(`/cluster/${clusterId}/addons/objectstore`)
             .thenReply(201, JSON.stringify(expectedAddon));
         const addon = await (0, clusters_1.createAddonObjectStore)(apiClient, clusterId, 'test');
-        expect(addon.id).toEqual(expectedAddon.id);
-        expect(addon.status).toEqual(expectedAddon.status);
-        expect(addon.object_store).toEqual(expectedAddon.object_store);
+        expect(addon.id).toEqual(expectedAddon.addon.id);
+        expect(addon.status).toEqual(expectedAddon.addon.status);
+        expect(addon.object_store).toEqual(expectedAddon.addon.object_store);
     });
     test('should return postgres add-on', async () => {
         const clusterId = '1234abcd';
         const expectedAddon = {
-            id: 'abcd1234',
-            status: 'applied',
-            postgres: {
-                uri: 'postgres://postgres:1234@test:5432',
-                version: '16.2',
-                instance_type: 'db.t3.micro',
-                disk_gib: 200
+            addon: {
+                id: 'abcd1234',
+                status: 'applied',
+                postgres: {
+                    uri: 'postgres://postgres:1234@test:5432',
+                    version: '16.2',
+                    instance_type: 'db.t3.micro',
+                    disk_gib: 200
+                }
             }
         };
         await mockServer
-            .forPost(`/cluster/${clusterId}/addon/postgres`)
+            .forPost(`/cluster/${clusterId}/addons/postgres`)
             .thenReply(201, JSON.stringify(expectedAddon));
         const addon = await (0, clusters_1.createAddonPostgres)(apiClient, clusterId);
-        expect(addon.id).toEqual(expectedAddon.id);
-        expect(addon.status).toEqual(expectedAddon.status);
-        expect(addon.postgres).toEqual(expectedAddon.postgres);
+        expect(addon.id).toEqual(expectedAddon.addon.id);
+        expect(addon.status).toEqual(expectedAddon.addon.status);
+        expect(addon.postgres).toEqual(expectedAddon.addon.postgres);
     });
     test('should eventually return success with expected status', async () => {
         const clusterId = '1234abcd';
@@ -246,7 +250,6 @@ describe('Cluster Add-ons', () => {
     });
     test('should still fail on 404', async () => {
         const clusterId = '1234abcd';
-        const expectedAddon = { id: '1234abcd', status: 'ready' };
         const responseAddonsPending = [{ id: '1234abcd', status: 'pending' }];
         const responseAddonsApplied = [{ id: '1234abcd', status: 'applied' }];
         await mockServer
@@ -279,62 +282,16 @@ describe('Cluster Exposed Ports', () => {
     test('should return exposed port', async () => {
         const clusterId = '1234abcd';
         const expectedExposedPort = {
-            upstream_port: 80,
-            state: 'pending',
-            hostname: 'http://mystifying-kepler.ingress.replicatedcluster.com/',
-            exposed_ports: [{ exposed_port: 80, protocol: 'http' }]
+            port: {
+                upstream_port: 80,
+                hostname: 'http://mystifying-kepler.ingress.replicatedcluster.com/',
+                exposed_ports: [{ exposed_port: 80, protocol: 'http' }]
+            }
         };
         await mockServer
-            .forPost(`/cluster/${clusterId}/expose`)
+            .forPost(`/cluster/${clusterId}/port`)
             .thenReply(201, JSON.stringify(expectedExposedPort));
         const clusterPort = await (0, clusters_1.exposeClusterPort)(apiClient, clusterId, 80, ['http']);
-        expect(clusterPort).toEqual(expectedExposedPort);
-    });
-    test('should eventually return success with expected status', async () => {
-        const clusterId = '1234abcd';
-        const expectedExposedPort = {
-            upstream_port: 80,
-            state: 'ready',
-            hostname: 'http://mystifying-kepler.ingress.replicatedcluster.com/',
-            exposed_ports: [{ exposed_port: 80, protocol: 'http' }]
-        };
-        const responsePortsPending = [
-            {
-                upstream_port: 80,
-                state: 'pending',
-                hostname: 'http://mystifying-kepler.ingress.replicatedcluster.com/',
-                exposed_ports: [{ exposed_port: 80, protocol: 'http' }]
-            }
-        ];
-        const responsePortsApplied = [
-            {
-                upstream_port: 80,
-                state: 'applied',
-                hostname: 'http://mystifying-kepler.ingress.replicatedcluster.com/',
-                exposed_ports: [{ exposed_port: 80, protocol: 'http' }]
-            }
-        ];
-        const responsePortsReady = [expectedExposedPort];
-        await mockServer
-            .forGet(`/cluster/${clusterId}/ports`)
-            .once()
-            .thenReply(200, JSON.stringify({
-            ports: responsePortsPending
-        }));
-        await mockServer
-            .forGet(`/cluster/${clusterId}/ports`)
-            .once()
-            .thenReply(200, JSON.stringify({
-            ports: responsePortsApplied
-        }));
-        await mockServer
-            .forGet(`/cluster/${clusterId}/ports`)
-            .once()
-            .thenReply(503);
-        await mockServer.forGet(`/cluster/${clusterId}/ports`).thenReply(200, JSON.stringify({
-            ports: responsePortsReady
-        }));
-        const clusterPort = await (0, clusters_1.pollForPortStatus)(apiClient, '1234abcd', 'http://mystifying-kepler.ingress.replicatedcluster.com/', 'ready', 1, 10);
-        expect(clusterPort).toEqual(expectedExposedPort);
+        expect(clusterPort).toEqual(expectedExposedPort.port);
     });
 });

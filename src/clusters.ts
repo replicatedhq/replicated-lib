@@ -37,7 +37,6 @@ export class ClusterPort {
   upstream_port: number;
   exposed_ports: ClusterExposedPort[];
   hostname: string;
-  state: string;
 }
 
 export class ClusterExposedPort {
@@ -349,7 +348,7 @@ export async function createAddonObjectStore(
 ): Promise<Addon> {
   const http = await vendorPortalApi.client();
 
-  const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/addon/objectstore`;
+  const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/addons/objectstore`;
 
   const reqBody = {
     bucket: bucketName
@@ -363,21 +362,22 @@ export async function createAddonObjectStore(
       // ignore
     }
     throw new Error(
-      `Failed to queue addon create: Server responded with ${res.message.statusCode}: ${body}`
+      `Failed to queue add-on create: Server responded with ${res.message.statusCode}: ${body}`
     );
   }
 
   const body: any = JSON.parse(await res.readBody());
 
-  var addon: Addon = { id: body.id, status: body.status };
-  if (body.object_store) {
+  var addon: Addon = { id: body.addon.id, status: body.addon.status };
+  if (body.addon.object_store) {
     addon.object_store = {
-      bucket_name: body.object_store.bucket_name,
-      bucket_prefix: body.object_store.bucket_prefix,
-      service_account_name: body.object_store.service_account_name,
+      bucket_name: body.addon.object_store.bucket_name,
+      bucket_prefix: body.addon.object_store.bucket_prefix,
+      service_account_name: body.addon.object_store.service_account_name,
       service_account_name_read_only:
-        body.object_store.service_account_name_read_only,
-      service_account_namespace: body.object_store.service_account_namespace
+        body.addon.object_store.service_account_name_read_only,
+      service_account_namespace:
+        body.addon.object_store.service_account_namespace
     };
   }
 
@@ -393,7 +393,7 @@ export async function createAddonPostgres(
 ): Promise<Addon> {
   const http = await vendorPortalApi.client();
 
-  const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/addon/postgres`;
+  const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/addons/postgres`;
 
   const reqBody = {};
   if (version) {
@@ -414,19 +414,19 @@ export async function createAddonPostgres(
       // ignore
     }
     throw new Error(
-      `Failed to queue addon create: Server responded with ${res.message.statusCode}: ${body}`
+      `Failed to queue add-on create: Server responded with ${res.message.statusCode}: ${body}`
     );
   }
 
   const body: any = JSON.parse(await res.readBody());
 
-  var addon: Addon = { id: body.id, status: body.status };
-  if (body.postgres) {
+  var addon: Addon = { id: body.addon.id, status: body.addon.status };
+  if (body.addon.postgres) {
     addon.postgres = {
-      uri: body.postgres.uri,
-      version: body.postgres.version,
-      instance_type: body.postgres.instance_type,
-      disk_gib: body.postgres.disk_gib
+      uri: body.addon.postgres.uri,
+      version: body.addon.postgres.version,
+      instance_type: body.addon.postgres.instance_type,
+      disk_gib: body.addon.postgres.disk_gib
     };
   }
 
@@ -441,11 +441,11 @@ export async function pollForAddonStatus(
   timeout: number = 120,
   sleeptimeMs: number = 5000
 ): Promise<Addon> {
-  // get addons from the api, look for the status of the id to be ${status}
+  // get add-ons from the api, look for the status of the id to be ${status}
   // if it's not ${status}, sleep for 5 seconds and try again
-  // if it is ${status}, return the addon with that status
+  // if it is ${status}, return the add-on with that status
 
-  await new Promise((f) => setTimeout(f, sleeptimeMs)); // sleep for sleeptimeMs seconds before polling as the addon takes a few seconds to start provisioning
+  await new Promise((f) => setTimeout(f, sleeptimeMs)); // sleep for sleeptimeMs seconds before polling as the add-on takes a few seconds to start provisioning
   // iterate for timeout/sleeptime times
   const iterations = (timeout * 1000) / sleeptimeMs;
   for (let i = 0; i < iterations; i++) {
@@ -461,11 +461,11 @@ export async function pollForAddonStatus(
 
       // Once state is "error", it will never change. So we can shortcut polling.
       if (addonDetails.status === 'error') {
-        throw new Error(`Addon has entered error state.`);
+        throw new Error(`Add-on has entered error state.`);
       }
 
       console.debug(
-        `Cluster status is ${addonDetails.status}, sleeping for ${sleeptimeMs / 1000} seconds`
+        `Cluster Add-on status is ${addonDetails.status}, sleeping for ${sleeptimeMs / 1000} seconds`
       );
     } catch (err) {
       if (err instanceof StatusError) {
@@ -489,7 +489,7 @@ export async function pollForAddonStatus(
   }
 
   throw new Error(
-    `Addon did not reach state ${expectedStatus} within ${timeout} seconds`
+    `Add-on did not reach state ${expectedStatus} within ${timeout} seconds`
   );
 }
 
@@ -504,7 +504,7 @@ async function getAddonDetails(
   const res = await http.get(uri);
   if (res.message.statusCode != 200) {
     throw new StatusError(
-      `Failed to get addon: Server responded with ${res.message.statusCode}`,
+      `Failed to get add-on: Server responded with ${res.message.statusCode}`,
       res.message.statusCode
     );
   }
@@ -536,7 +536,7 @@ async function getAddonDetails(
     }
   }
 
-  throw new Error(`Addon with id ${addonId} not found`);
+  throw new Error(`Add-on with id ${addonId} not found`);
 }
 
 export async function exposeClusterPort(
@@ -547,9 +547,10 @@ export async function exposeClusterPort(
 ): Promise<ClusterPort> {
   const http = await vendorPortalApi.client();
 
-  const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/expose`;
+  const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/port`;
   const reqBody = {
-    port: port
+    port: port,
+    protocols: protocols
   };
   const res = await http.post(uri, JSON.stringify(reqBody));
   if (res.message.statusCode != 201) {
@@ -565,105 +566,19 @@ export async function exposeClusterPort(
   }
 
   const body: any = JSON.parse(await res.readBody());
-  return body;
-}
 
-export async function pollForPortStatus(
-  vendorPortalApi: VendorPortalApi,
-  clusterId: string,
-  host: string,
-  expectedStatus: string,
-  timeout: number = 120,
-  sleeptimeMs: number = 5000
-): Promise<ClusterPort> {
-  // get exposed ports from the api, look for the status of the host to be ${status}
-  // if it's not ${status}, sleep for 5 seconds and try again
-  // if it is ${status}, return the ClusterPort with that status
-
-  await new Promise((f) => setTimeout(f, sleeptimeMs)); // sleep for sleeptimeMs seconds before polling as the ClusterPort takes a few seconds to start provisioning
-  // iterate for timeout/sleeptime times
-  const iterations = (timeout * 1000) / sleeptimeMs;
-  for (let i = 0; i < iterations; i++) {
-    try {
-      const clusterPortDetails = await getPortDetails(
-        vendorPortalApi,
-        clusterId,
-        host
-      );
-      if (clusterPortDetails.state === expectedStatus) {
-        return clusterPortDetails;
-      }
-
-      // Once state is "error", it will never change. So we can shortcut polling.
-      if (clusterPortDetails.state === 'error') {
-        throw new Error(`Cluster port has entered error state.`);
-      }
-
-      console.debug(
-        `Cluster status is ${clusterPortDetails.state}, sleeping for ${sleeptimeMs / 1000} seconds`
-      );
-    } catch (err) {
-      if (err instanceof StatusError) {
-        if (err.statusCode >= 500) {
-          // 5xx errors are likely transient, so we should retry
-          console.debug(
-            `Got HTTP error with status ${err.statusCode}, sleeping for ${sleeptimeMs / 1000} seconds`
-          );
-        } else {
-          console.debug(
-            `Got HTTP error with status ${err.statusCode}, exiting`
-          );
-          throw err;
-        }
-      } else {
-        throw err;
-      }
-    }
-
-    await new Promise((f) => setTimeout(f, sleeptimeMs));
+  var exposedPorts: ClusterExposedPort[] = [];
+  for (const exposed_port of body.port.exposed_ports) {
+    const exposedPort: ClusterExposedPort = {
+      protocol: exposed_port.protocol,
+      exposed_port: exposed_port.exposed_port
+    };
+    exposedPorts.push(exposedPort);
   }
-
-  throw new Error(
-    `Cluster port did not reach state ${expectedStatus} within ${timeout} seconds`
-  );
-}
-
-async function getPortDetails(
-  vendorPortalApi: VendorPortalApi,
-  clusterId: string,
-  host: string
-): Promise<ClusterPort> {
-  const http = await vendorPortalApi.client();
-
-  const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/ports`;
-  const res = await http.get(uri);
-  if (res.message.statusCode != 200) {
-    throw new StatusError(
-      `Failed to get ports: Server responded with ${res.message.statusCode}`,
-      res.message.statusCode
-    );
-  }
-
-  const body: any = JSON.parse(await res.readBody());
-  for (const port of body.ports) {
-    if (port.hostname === host) {
-      var exposedPorts: ClusterExposedPort[] = [];
-      for (const exposed_port of port.exposed_ports) {
-        const exposedPort: ClusterExposedPort = {
-          protocol: exposed_port.protocol,
-          exposed_port: exposed_port.exposed_port
-        };
-        exposedPorts.push(exposedPort);
-      }
-      var portObj: ClusterPort = {
-        upstream_port: port.upstream_port,
-        hostname: port.hostname,
-        state: port.state,
-        exposed_ports: exposedPorts
-      };
-      return portObj;
-    }
-  }
-
-  throw new Error(`Port with hostname ${host} not found`);
+  var portObj: ClusterPort = {
+    upstream_port: body.port.upstream_port,
+    hostname: body.port.hostname,
+    exposed_ports: exposedPorts
+  };
+  return portObj;
 }

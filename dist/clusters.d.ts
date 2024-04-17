@@ -31,7 +31,6 @@ export declare class ClusterPort {
     upstream_port: number;
     exposed_ports: ClusterExposedPort[];
     hostname: string;
-    state: string;
 }
 export declare class ClusterExposedPort {
     protocol: string;
@@ -64,5 +63,4 @@ export declare function createAddonObjectStore(vendorPortalApi: VendorPortalApi,
 export declare function createAddonPostgres(vendorPortalApi: VendorPortalApi, clusterId: string, version?: string, instanceType?: string, diskGib?: number): Promise<Addon>;
 export declare function pollForAddonStatus(vendorPortalApi: VendorPortalApi, clusterId: string, addonId: string, expectedStatus: string, timeout?: number, sleeptimeMs?: number): Promise<Addon>;
 export declare function exposeClusterPort(vendorPortalApi: VendorPortalApi, clusterId: string, port: number, protocols: string[]): Promise<ClusterPort>;
-export declare function pollForPortStatus(vendorPortalApi: VendorPortalApi, clusterId: string, host: string, expectedStatus: string, timeout?: number, sleeptimeMs?: number): Promise<ClusterPort>;
 export {};
