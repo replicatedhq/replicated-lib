@@ -3,34 +3,36 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const configuration_1 = require("./configuration");
 const customers_1 = require("./customers");
 const mockttp = require("mockttp");
-describe('Archive Customer', () => {
+describe("Archive Customer", () => {
     beforeAll(() => globalThis.provider.setup());
     afterEach(() => globalThis.provider.verify());
     afterAll(() => globalThis.provider.finalize());
-    test('archive customer', () => {
+    test("archive customer", () => {
         globalThis.provider.addInteraction({
-            state: 'customer archived',
-            uponReceiving: 'a request for archiving a customer',
+            state: "customer archived",
+            uponReceiving: "a request for archiving a customer",
             withRequest: {
-                method: 'POST',
-                path: '/customer/1234abcd/archive'
+                method: "POST",
+                path: "/customer/1234abcd/archive"
             },
             willRespondWith: {
                 status: 204,
-                headers: { 'Content-Type': 'application/json' },
+                headers: { "Content-Type": "application/json" }
             }
         });
         const apiClient = new configuration_1.VendorPortalApi();
         apiClient.apiToken = "abcd1234";
         apiClient.endpoint = globalThis.provider.mockService.baseUrl;
-        return (0, customers_1.archiveCustomer)(apiClient, "1234abcd").then(() => {
+        return (0, customers_1.archiveCustomer)(apiClient, "1234abcd")
+            .then(() => {
             expect(true).toEqual(true);
-        }).catch((err) => {
+        })
+            .catch(err => {
             fail(err);
         });
     });
 });
-describe('Create Customer', () => {
+describe("Create Customer", () => {
     const mockServer = mockttp.getLocal();
     const apiClient = new configuration_1.VendorPortalApi();
     apiClient.apiToken = "abcd1234";
@@ -42,14 +44,16 @@ describe('Create Customer', () => {
         mockServer.stop();
     });
     it("create a new customer for testing", async () => {
-        const expectedApplications = { 'apps': [
-                { id: "1234abcd", name: 'App 1', slug: 'app-1' },
-                { id: "5678efgh", name: 'App 2', slug: 'app-2' }
-            ] };
+        const expectedApplications = {
+            apps: [
+                { id: "1234abcd", name: "App 1", slug: "app-1" },
+                { id: "5678efgh", name: "App 2", slug: "app-2" }
+            ]
+        };
         const customerResponse = {
-            "customer": {
-                "id": "5678efgh",
-                "installationId": "1234abcd",
+            customer: {
+                id: "5678efgh",
+                installationId: "1234abcd"
             }
         };
         await mockServer.forGet("/apps").thenReply(200, JSON.stringify(expectedApplications));

@@ -7,7 +7,7 @@ class Channel {
 exports.Channel = Channel;
 exports.exportedForTesting = {
     getChannelByApplicationId,
-    findChannelDetailsInOutput,
+    findChannelDetailsInOutput
 };
 async function createChannel(vendorPortalApi, appSlug, channelName) {
     const http = await vendorPortalApi.client();
@@ -16,7 +16,7 @@ async function createChannel(vendorPortalApi, appSlug, channelName) {
     // 2. create the channel
     console.log(`Creating channel ${channelName}...`);
     const reqBody = {
-        "name": channelName
+        name: channelName
     };
     const createChannelUri = `${vendorPortalApi.endpoint}/app/${app.id}/channel`;
     const createChannelRes = await http.post(createChannelUri, JSON.stringify(reqBody));
@@ -32,7 +32,7 @@ async function getChannelDetails(vendorPortalApi, appSlug, { slug, name }) {
     const http = await vendorPortalApi.client();
     // 1. get the app id from the app slug
     const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
-    if (typeof slug === 'undefined' && typeof name === 'undefined') {
+    if (typeof slug === "undefined" && typeof name === "undefined") {
         throw new Error(`Must provide either a channel slug or channel name`);
     }
     // 2. get the channel id from the channel slug
@@ -75,5 +75,5 @@ async function findChannelDetailsInOutput(channels, { slug, name }) {
             return { name: channel.name, id: channel.id, slug: channel.channelSlug, releaseSequence: channel.releaseSequence };
         }
     }
-    return Promise.reject({ "channel": null, "reason": `Could not find channel with slug ${slug} or name ${name}` });
+    return Promise.reject({ channel: null, reason: `Could not find channel with slug ${slug} or name ${name}` });
 }

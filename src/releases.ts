@@ -1,12 +1,12 @@
 import { getApplicationDetails } from "./applications";
 import { VendorPortalApi } from "./configuration";
 import { gzip } from "pako";
-import * as path from 'path';
-import * as fs from 'fs';
-import * as util from 'util';
-import * as base64 from 'base64-js';
+import * as path from "path";
+import * as fs from "fs";
+import * as util from "util";
+import * as base64 from "base64-js";
 
-import { zonedTimeToUtc } from 'date-fns-tz';
+import { zonedTimeToUtc } from "date-fns-tz";
 
 export interface Release {
   sequence: string;
@@ -43,7 +43,7 @@ export const exportedForTesting = {
   promoteReleaseByAppId,
   readChart,
   reportCompatibilityResultByAppId
-}
+};
 
 export async function createRelease(vendorPortalApi: VendorPortalApi, appSlug: string, yamlDir: string): Promise<Release> {
   const http = await vendorPortalApi.client();
@@ -55,8 +55,8 @@ export async function createRelease(vendorPortalApi: VendorPortalApi, appSlug: s
   const createReleasePayload = await readYAMLDir(yamlDir);
 
   const reqBody = {
-    "spec_gzip": gzipData(createReleasePayload),
-  }
+    spec_gzip: gzipData(createReleasePayload)
+  };
   const createReleaseUri = `${vendorPortalApi.endpoint}/app/${app.id}/release`;
   const createReleaseRes = await http.post(createReleaseUri, JSON.stringify(reqBody));
   if (createReleaseRes.message.statusCode != 201) {
@@ -75,7 +75,6 @@ export async function createRelease(vendorPortalApi: VendorPortalApi, appSlug: s
     }
   }
   return { sequence: createReleaseBody.release.sequence, charts: createReleaseBody.release.charts };
-
 }
 
 export async function createReleaseFromChart(vendorPortalApi: VendorPortalApi, appSlug: string, chart: string): Promise<Release> {
@@ -84,30 +83,30 @@ export async function createReleaseFromChart(vendorPortalApi: VendorPortalApi, a
   // 1. get the app id from the app slug
   const app = await getApplicationDetails(vendorPortalApi, appSlug);
 
-   // 2. create the release
-   const createReleasePayload = await readChart(chart);
+  // 2. create the release
+  const createReleasePayload = await readChart(chart);
 
-   const reqBody = {
-     "spec_gzip": gzipData(createReleasePayload),
-   }
-   const createReleaseUri = `${vendorPortalApi.endpoint}/app/${app.id}/release`;
-   const createReleaseRes = await http.post(createReleaseUri, JSON.stringify(reqBody));
-   if (createReleaseRes.message.statusCode != 201) {
-     throw new Error(`Failed to create release: Server responded with ${createReleaseRes.message.statusCode}`);
-   }
-   const createReleaseBody: any = JSON.parse(await createReleaseRes.readBody());
- 
-   console.log(`Created release with sequence number ${createReleaseBody.release.sequence}`);
- 
-   // 3. If contains charts, wait for charts to be ready
-   // If there are charts, wait for them to be ready
-   if (createReleaseBody.release.charts?.length > 0) {
-     const isReleaseReady: boolean = await isReleaseReadyForInstall(vendorPortalApi, app.id, createReleaseBody.release.sequence);
-     if (!isReleaseReady) {
-       throw new Error(`Release ${createReleaseBody.release.sequence} is not ready`);
-     }
-   }
-   return { sequence: createReleaseBody.release.sequence, charts: createReleaseBody.release.charts };
+  const reqBody = {
+    spec_gzip: gzipData(createReleasePayload)
+  };
+  const createReleaseUri = `${vendorPortalApi.endpoint}/app/${app.id}/release`;
+  const createReleaseRes = await http.post(createReleaseUri, JSON.stringify(reqBody));
+  if (createReleaseRes.message.statusCode != 201) {
+    throw new Error(`Failed to create release: Server responded with ${createReleaseRes.message.statusCode}`);
+  }
+  const createReleaseBody: any = JSON.parse(await createReleaseRes.readBody());
+
+  console.log(`Created release with sequence number ${createReleaseBody.release.sequence}`);
+
+  // 3. If contains charts, wait for charts to be ready
+  // If there are charts, wait for them to be ready
+  if (createReleaseBody.release.charts?.length > 0) {
+    const isReleaseReady: boolean = await isReleaseReadyForInstall(vendorPortalApi, app.id, createReleaseBody.release.sequence);
+    if (!isReleaseReady) {
+      throw new Error(`Release ${createReleaseBody.release.sequence} is not ready`);
+    }
+  }
+  return { sequence: createReleaseBody.release.sequence, charts: createReleaseBody.release.charts };
 }
 
 export const gzipData = (data: any) => {
@@ -169,7 +168,7 @@ async function readYAMLDir(yamlDir: string, prefix: string = ""): Promise<KotsSi
 
   const files = await readdir(yamlDir);
   for (const file of files) {
-    console.info(`Processing file ${file}`)
+    console.info(`Processing file ${file}`);
     if ((await stat(path.join(yamlDir, file))).isDirectory()) {
       const subdir = await readYAMLDir(path.join(yamlDir, file), path.join(prefix, file));
       if (subdir) {
@@ -186,7 +185,6 @@ async function readYAMLDir(yamlDir: string, prefix: string = ""): Promise<KotsSi
   return allKotsReleaseSpecs;
 }
 
-
 async function readChart(chart: string): Promise<KotsSingleSpec[]> {
   const allKotsReleaseSpecs: KotsSingleSpec[] = [];
   if ((await stat(chart)).isDirectory()) {
@@ -199,14 +197,12 @@ async function readChart(chart: string): Promise<KotsSingleSpec[]> {
   }
 
   return allKotsReleaseSpecs;
-
 }
 
 function isSupportedExt(ext: string): boolean {
-  const supportedExts = [".tgz", ".gz", ".yaml", ".yml", ".css", ".woff", ".woff2", ".ttf", ".otf", ".eot", ".svg",];
+  const supportedExts = [".tgz", ".gz", ".yaml", ".yml", ".css", ".woff", ".woff2", ".ttf", ".otf", ".eot", ".svg"];
   return supportedExts.includes(ext);
 }
-
 
 export async function promoteRelease(vendorPortalApi: VendorPortalApi, appSlug: string, channelId: string, releaseSequence: number, version: string) {
   // 1. get the app id from the app slug
@@ -216,13 +212,12 @@ export async function promoteRelease(vendorPortalApi: VendorPortalApi, appSlug: 
   await promoteReleaseByAppId(vendorPortalApi, app.id, channelId, releaseSequence, version);
 }
 
-
 async function promoteReleaseByAppId(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, releaseSequence: number, version: string) {
-  const http = await vendorPortalApi.client()
+  const http = await vendorPortalApi.client();
   const reqBody = {
-    "versionLabel": version,
-    "channelIds": [channelId],
-  }
+    versionLabel: version,
+    channelIds: [channelId]
+  };
   const uri = `${vendorPortalApi.endpoint}/app/${appId}/release/${releaseSequence}/promote`;
   const res = await http.post(uri, JSON.stringify(reqBody));
   if (res.message.statusCode != 200) {
@@ -237,29 +232,29 @@ async function promoteReleaseByAppId(vendorPortalApi: VendorPortalApi, appId: st
   }
 }
 
-async function isReleaseReadyForInstall(vendorPortalApi: VendorPortalApi,  appId: string, releaseSequence: number): Promise<boolean> {
+async function isReleaseReadyForInstall(vendorPortalApi: VendorPortalApi, appId: string, releaseSequence: number): Promise<boolean> {
   let release: Release = await getReleaseByAppId(vendorPortalApi, appId, releaseSequence);
   if (release.charts?.length === 0) {
     throw new Error(`Release ${releaseSequence} does not contain any charts`);
   }
   const sleeptime: number = 5;
-  const timeout: number = 30*release.charts.length;
+  const timeout: number = 30 * release.charts.length;
   // iterate for timeout/sleeptime times
-  for (let i = 0; i < timeout/sleeptime; i++) {
+  for (let i = 0; i < timeout / sleeptime; i++) {
     release = await getReleaseByAppId(vendorPortalApi, appId, releaseSequence);
     const ready: boolean = areReleaseChartsPushed(release.charts);
     if (ready) {
       return true;
     }
     console.debug(`Release ${releaseSequence} is not ready, sleeping for ${sleeptime} seconds`);
-    await new Promise(f => setTimeout(f, sleeptime*1000));
+    await new Promise(f => setTimeout(f, sleeptime * 1000));
   }
-  return false
+  return false;
 }
 
 function areReleaseChartsPushed(charts: ReleaseChart[]): boolean {
-  let pushedChartsCount : number = 0;
-  let chartsCount : number = 0;
+  let pushedChartsCount: number = 0;
+  let chartsCount: number = 0;
   for (const chart of charts) {
     switch (chart.status) {
       case "pushed":
@@ -293,7 +288,6 @@ async function getReleaseByAppId(vendorPortalApi: VendorPortalApi, appId: string
   return { sequence: body.release.sequence, charts: body.release.charts };
 }
 
-
 export async function reportCompatibilityResult(vendorPortalApi: VendorPortalApi, appSlug: string, releaseSequence: number, compatibilityResult: CompatibilityResult) {
   // 1. get the app id from the app slug
   const app = await getApplicationDetails(vendorPortalApi, appSlug);
@@ -303,20 +297,20 @@ export async function reportCompatibilityResult(vendorPortalApi: VendorPortalApi
 }
 
 async function reportCompatibilityResultByAppId(vendorPortalApi: VendorPortalApi, appId: string, releaseSequence: number, compatibilityResult: CompatibilityResult) {
-  const http = await vendorPortalApi.client()
+  const http = await vendorPortalApi.client();
   const reqBody = {
-    "distribution": compatibilityResult.distribution,
-    "version": compatibilityResult.version,
-  }
+    distribution: compatibilityResult.distribution,
+    version: compatibilityResult.version
+  };
   if (compatibilityResult.successAt) {
-    const successAt = zonedTimeToUtc(compatibilityResult.successAt, 'UTC');
+    const successAt = zonedTimeToUtc(compatibilityResult.successAt, "UTC");
     reqBody["successAt"] = successAt.toISOString();
-    reqBody["successNotes"] = compatibilityResult.successNotes
+    reqBody["successNotes"] = compatibilityResult.successNotes;
   }
   if (compatibilityResult.failureAt) {
-    const failureAt = zonedTimeToUtc(compatibilityResult.failureAt, 'UTC');
+    const failureAt = zonedTimeToUtc(compatibilityResult.failureAt, "UTC");
     reqBody["failureAt"] = failureAt.toISOString();
-    reqBody["failureNotes"] = compatibilityResult.failureNotes
+    reqBody["failureNotes"] = compatibilityResult.failureNotes;
   }
   const uri = `${vendorPortalApi.endpoint}/app/${appId}/release/${releaseSequence}/compatibility`;
   const res = await http.post(uri, JSON.stringify(reqBody));

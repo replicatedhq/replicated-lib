@@ -5,16 +5,16 @@ exports.VendorPortalApi = void 0;
 const httpClient = require("@actions/http-client");
 class VendorPortalApi {
     constructor() {
-        this.endpoint = 'https://api.replicated.com/vendor/v3';
+        this.endpoint = "https://api.replicated.com/vendor/v3";
         // apiToken with default value
-        this.apiToken = 'default';
+        this.apiToken = "default";
     }
     async client() {
         const http = new httpClient.HttpClient();
         const headers = {
-            "Authorization": this.apiToken,
+            Authorization: this.apiToken,
             "Content-Type": "application/json",
-            "Accept": "application/json"
+            Accept: "application/json"
         };
         // while this is specifically a github action, we still check
         // for the github actions environment variables
@@ -34,7 +34,7 @@ class VendorPortalApi {
             headers["X-Replicated-GitHubRepository"] = process.env.GITHUB_REPOSITORY;
         }
         http.requestOptions = {
-            headers,
+            headers
         };
         return http;
     }

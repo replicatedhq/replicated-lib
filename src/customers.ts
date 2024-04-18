@@ -1,15 +1,15 @@
-import { VendorPortalApi } from './configuration';
-import { getChannelDetails } from './channels';
-import { getApplicationDetails } from './applications';
+import { VendorPortalApi } from "./configuration";
+import { getChannelDetails } from "./channels";
+import { getApplicationDetails } from "./applications";
 
-import { add } from 'date-fns';
-import { zonedTimeToUtc } from 'date-fns-tz';
+import { add } from "date-fns";
+import { zonedTimeToUtc } from "date-fns-tz";
 
 export class Customer {
-    name: string;
-    customerId: string;
-    licenseId: string;
-    license: string;
+  name: string;
+  customerId: string;
+  licenseId: string;
+  license: string;
 }
 
 interface entitlementValue {
@@ -27,13 +27,12 @@ export class KubernetesDistribution {
   isAirgap: boolean;
 }
 
-export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: string, name: string, email: string, licenseType: string, channelSlug: string, 
-                                     expiresIn: number, entitlementValues?: entitlementValue[], isKotsInstallEnabled?: boolean): Promise<Customer> {
+export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: string, name: string, email: string, licenseType: string, channelSlug: string, expiresIn: number, entitlementValues?: entitlementValue[], isKotsInstallEnabled?: boolean): Promise<Customer> {
   try {
     const app = await getApplicationDetails(vendorPortalApi, appSlug);
 
-    console.log('Creating customer on appId ' + app.id);
-    
+    console.log("Creating customer on appId " + app.id);
+
     const http = await vendorPortalApi.client();
 
     // 1. create the customer
@@ -42,23 +41,23 @@ export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: 
       name: name,
       email: email,
       type: licenseType,
-      app_id: app.id,
-    }
+      app_id: app.id
+    };
     if (isKotsInstallEnabled !== undefined) {
-      createCustomerReqBody['is_kots_install_enabled'] = isKotsInstallEnabled
+      createCustomerReqBody["is_kots_install_enabled"] = isKotsInstallEnabled;
     }
     if (channelSlug) {
-      const channel = await getChannelDetails(vendorPortalApi, appSlug, {slug: channelSlug})
-      createCustomerReqBody['channel_id'] = channel.id
+      const channel = await getChannelDetails(vendorPortalApi, appSlug, { slug: channelSlug });
+      createCustomerReqBody["channel_id"] = channel.id;
     }
     // expiresIn is in days, if it's 0 or less, ignore it - non-expiring license
     if (expiresIn > 0) {
       const now = new Date();
-      const expiresAt = zonedTimeToUtc(add(now, { days: expiresIn }), 'UTC');
-      createCustomerReqBody['expires_at'] = expiresAt.toISOString();
+      const expiresAt = zonedTimeToUtc(add(now, { days: expiresIn }), "UTC");
+      createCustomerReqBody["expires_at"] = expiresAt.toISOString();
     }
     if (entitlementValues) {
-      createCustomerReqBody['entitlementValues'] = entitlementValues
+      createCustomerReqBody["entitlementValues"] = entitlementValues;
     }
 
     const createCustomerRes = await http.post(createCustomerUri, JSON.stringify(createCustomerReqBody));
@@ -85,26 +84,23 @@ export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: 
       downloadLicenseBody = await downloadLicenseRes.readBody();
     }
 
-    return {name: name, customerId: createCustomerBody.customer.id, licenseId: createCustomerBody.customer.installationId, license: downloadLicenseBody};
-
-   
+    return { name: name, customerId: createCustomerBody.customer.id, licenseId: createCustomerBody.customer.installationId, license: downloadLicenseBody };
   } catch (error) {
     console.error(error.message);
-    throw error
+    throw error;
   }
-
 }
 
 export async function archiveCustomer(vendorPortalApi: VendorPortalApi, customerId: string) {
-    const http = await vendorPortalApi.client();
+  const http = await vendorPortalApi.client();
 
-    // 2. Archive a customer
-    console.log(`Archive Customer ...`);
-    const archiveCustomerUri = `${vendorPortalApi.endpoint}/customer/${customerId}/archive`;
-    const archiveCustomerRes = await http.post(archiveCustomerUri, undefined);
-    if (archiveCustomerRes.message.statusCode != 204) {
-      throw new Error(`Failed to archive customer: Server responded with ${archiveCustomerRes.message.statusCode}`);
-    }
+  // 2. Archive a customer
+  console.log(`Archive Customer ...`);
+  const archiveCustomerUri = `${vendorPortalApi.endpoint}/customer/${customerId}/archive`;
+  const archiveCustomerRes = await http.post(archiveCustomerUri, undefined);
+  if (archiveCustomerRes.message.statusCode != 204) {
+    throw new Error(`Failed to archive customer: Server responded with ${archiveCustomerRes.message.statusCode}`);
+  }
 }
 
 export async function getUsedKubernetesDistributions(vendorPortalApi: VendorPortalApi, appSlug: string): Promise<KubernetesDistribution[]> {
@@ -128,7 +124,7 @@ export async function getUsedKubernetesDistributions(vendorPortalApi: VendorPort
   if (!getClusterUsageBody.clusterUsageDetails) {
     return kubernetesDistributions;
   }
-  
+
   for (const cluster of getClusterUsageBody.clusterUsageDetails) {
     kubernetesDistributions.push({
       k8sDistribution: cluster.kubernetes_distribution,
@@ -138,8 +134,7 @@ export async function getUsedKubernetesDistributions(vendorPortalApi: VendorPort
       isKurl: cluster.is_kurl,
       numberOfInstances: cluster.number_of_instances,
       isAirgap: cluster.is_airgap
-    })
-
+    });
   }
 
   return kubernetesDistributions;

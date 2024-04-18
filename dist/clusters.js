@@ -21,34 +21,34 @@ exports.createCluster = createCluster;
 async function createClusterWithLicense(vendorPortalApi, clusterName, k8sDistribution, k8sVersion, licenseId, clusterTTL, diskGib, nodeCount, minNodeCount, maxNodeCount, instanceType, nodeGroups, tags) {
     const http = await vendorPortalApi.client();
     const reqBody = {
-        "name": clusterName,
-        "kubernetes_distribution": k8sDistribution,
-        "kubernetes_version": k8sVersion,
-        "ttl": clusterTTL,
+        name: clusterName,
+        kubernetes_distribution: k8sDistribution,
+        kubernetes_version: k8sVersion,
+        ttl: clusterTTL
     };
     if (licenseId) {
-        reqBody['license_id'] = licenseId;
+        reqBody["license_id"] = licenseId;
     }
     if (diskGib) {
-        reqBody['disk_gib'] = diskGib;
+        reqBody["disk_gib"] = diskGib;
     }
     if (instanceType) {
-        reqBody['instance_type'] = instanceType;
+        reqBody["instance_type"] = instanceType;
     }
     if (nodeCount) {
-        reqBody['node_count'] = nodeCount;
+        reqBody["node_count"] = nodeCount;
     }
     if (minNodeCount) {
-        reqBody['min_node_count'] = minNodeCount;
+        reqBody["min_node_count"] = minNodeCount;
     }
     if (maxNodeCount) {
-        reqBody['max_node_count'] = maxNodeCount;
+        reqBody["max_node_count"] = maxNodeCount;
     }
     if (nodeGroups) {
-        reqBody['node_groups'] = nodeGroups;
+        reqBody["node_groups"] = nodeGroups;
     }
     if (tags) {
-        reqBody['tags'] = tags;
+        reqBody["tags"] = tags;
     }
     const uri = `${vendorPortalApi.endpoint}/cluster`;
     const res = await http.post(uri, JSON.stringify(reqBody));
@@ -72,7 +72,7 @@ async function pollForStatus(vendorPortalApi, clusterId, expectedStatus, timeout
     // if it is ${status}, return the cluster with that status
     await new Promise(f => setTimeout(f, sleeptimeMs)); // sleep for 5 seconds before polling as the cluster takes a few seconds to start provisioning
     // iterate for timeout/sleeptime times
-    const iterations = timeout * 1000 / sleeptimeMs;
+    const iterations = (timeout * 1000) / sleeptimeMs;
     for (let i = 0; i < iterations; i++) {
         try {
             const clusterDetails = await getClusterDetails(vendorPortalApi, clusterId);
@@ -138,7 +138,7 @@ exports.removeCluster = removeCluster;
 async function upgradeCluster(vendorPortalApi, clusterId, k8sVersion) {
     const http = await vendorPortalApi.client();
     const reqBody = {
-        "kubernetes_version": k8sVersion,
+        kubernetes_version: k8sVersion
     };
     const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/upgrade`;
     const res = await http.post(uri, JSON.stringify(reqBody));
@@ -158,7 +158,7 @@ async function getClusterVersions(vendorPortalApi) {
     const body = JSON.parse(await res.readBody());
     // 2. Convert body into ClusterVersion[]
     let clusterVersions = [];
-    for (const cluster of body['cluster-versions']) {
+    for (const cluster of body["cluster-versions"]) {
         for (const version of cluster.versions) {
             clusterVersions.push({
                 name: cluster.short_name,
