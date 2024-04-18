@@ -74,10 +74,7 @@ export async function createRelease(vendorPortalApi: VendorPortalApi, appSlug: s
       throw new Error(`Release ${createReleaseBody.release.sequence} is not ready`);
     }
   }
-  return {
-    sequence: createReleaseBody.release.sequence,
-    charts: createReleaseBody.release.charts
-  };
+  return { sequence: createReleaseBody.release.sequence, charts: createReleaseBody.release.charts };
 }
 
 export async function createReleaseFromChart(vendorPortalApi: VendorPortalApi, appSlug: string, chart: string): Promise<Release> {
@@ -109,10 +106,7 @@ export async function createReleaseFromChart(vendorPortalApi: VendorPortalApi, a
       throw new Error(`Release ${createReleaseBody.release.sequence} is not ready`);
     }
   }
-  return {
-    sequence: createReleaseBody.release.sequence,
-    charts: createReleaseBody.release.charts
-  };
+  return { sequence: createReleaseBody.release.sequence, charts: createReleaseBody.release.charts };
 }
 
 export const gzipData = (data: any) => {

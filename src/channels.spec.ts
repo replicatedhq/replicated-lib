@@ -28,9 +28,7 @@ describe("findChannelDetailsInOutput", () => {
       }
     ];
     const channelSlug = "ci-reliability-matrix";
-    const channel = await findChannelDetailsInOutput(channels, {
-      slug: channelSlug
-    });
+    const channel = await findChannelDetailsInOutput(channels, { slug: channelSlug });
     expect(channel.id).toBe("channelid2");
   });
 });
@@ -43,18 +41,8 @@ describe("ChannelsService", () => {
   test("should return channel", () => {
     const expectedChannels = {
       channels: [
-        {
-          id: "1234abcd",
-          name: "Stable",
-          channelSlug: "stable",
-          releaseSequence: 1
-        },
-        {
-          id: "5678efgh",
-          name: "Beta",
-          channelSlug: "beta",
-          releaseSequence: 2
-        }
+        { id: "1234abcd", name: "Stable", channelSlug: "stable", releaseSequence: 1 },
+        { id: "5678efgh", name: "Beta", channelSlug: "beta", releaseSequence: 2 }
       ]
     };
 
@@ -83,9 +71,7 @@ describe("ChannelsService", () => {
     apiClient.apiToken = "abcd1234";
     apiClient.endpoint = globalThis.provider.mockService.baseUrl;
 
-    return getChannelByApplicationId(apiClient, "1234abcd", {
-      slug: "stable"
-    }).then(channel => {
+    return getChannelByApplicationId(apiClient, "1234abcd", { slug: "stable" }).then(channel => {
       expect(channel.id).toEqual(expectedChannels.channels[0].id);
       expect(channel.name).toEqual(expectedChannels.channels[0].name);
       expect(channel.slug).toEqual(expectedChannels.channels[0].channelSlug);

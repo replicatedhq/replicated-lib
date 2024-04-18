@@ -47,9 +47,7 @@ export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: 
       createCustomerReqBody["is_kots_install_enabled"] = isKotsInstallEnabled;
     }
     if (channelSlug) {
-      const channel = await getChannelDetails(vendorPortalApi, appSlug, {
-        slug: channelSlug
-      });
+      const channel = await getChannelDetails(vendorPortalApi, appSlug, { slug: channelSlug });
       createCustomerReqBody["channel_id"] = channel.id;
     }
     // expiresIn is in days, if it's 0 or less, ignore it - non-expiring license
@@ -86,12 +84,7 @@ export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: 
       downloadLicenseBody = await downloadLicenseRes.readBody();
     }
 
-    return {
-      name: name,
-      customerId: createCustomerBody.customer.id,
-      licenseId: createCustomerBody.customer.installationId,
-      license: downloadLicenseBody
-    };
+    return { name: name, customerId: createCustomerBody.customer.id, licenseId: createCustomerBody.customer.installationId, license: downloadLicenseBody };
   } catch (error) {
     console.error(error.message);
     throw error;

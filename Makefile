@@ -15,7 +15,7 @@ test: build
 .PHONY: prettier
 prettier:
 	npm run prettier
-
+	
 .PHONY: publish
 publish: test
 	npm publish

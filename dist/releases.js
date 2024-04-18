@@ -41,10 +41,7 @@ async function createRelease(vendorPortalApi, appSlug, yamlDir) {
             throw new Error(`Release ${createReleaseBody.release.sequence} is not ready`);
         }
     }
-    return {
-        sequence: createReleaseBody.release.sequence,
-        charts: createReleaseBody.release.charts
-    };
+    return { sequence: createReleaseBody.release.sequence, charts: createReleaseBody.release.charts };
 }
 exports.createRelease = createRelease;
 async function createReleaseFromChart(vendorPortalApi, appSlug, chart) {
@@ -72,10 +69,7 @@ async function createReleaseFromChart(vendorPortalApi, appSlug, chart) {
             throw new Error(`Release ${createReleaseBody.release.sequence} is not ready`);
         }
     }
-    return {
-        sequence: createReleaseBody.release.sequence,
-        charts: createReleaseBody.release.charts
-    };
+    return { sequence: createReleaseBody.release.sequence, charts: createReleaseBody.release.charts };
 }
 exports.createReleaseFromChart = createReleaseFromChart;
 const gzipData = (data) => {

@@ -32,11 +32,7 @@ export async function createChannel(vendorPortalApi: VendorPortalApi, appSlug: s
   const createChannelBody: any = JSON.parse(await createChannelRes.readBody());
 
   console.log(`Created channel with id ${createChannelBody.channel.id}`);
-  return {
-    name: createChannelBody.channel.name,
-    id: createChannelBody.channel.id,
-    slug: createChannelBody.channel.channelSlug
-  };
+  return { name: createChannelBody.channel.name, id: createChannelBody.channel.id, slug: createChannelBody.channel.channelSlug };
 }
 
 interface ChannelIdentifier {
@@ -55,10 +51,7 @@ export async function getChannelDetails(vendorPortalApi: VendorPortalApi, appSlu
   }
 
   // 2. get the channel id from the channel slug
-  return await getChannelByApplicationId(vendorPortalApi, app.id, {
-    slug,
-    name
-  });
+  return await getChannelByApplicationId(vendorPortalApi, app.id, { slug, name });
 }
 
 async function getChannelByApplicationId(vendorPortalApi: VendorPortalApi, appid: string, { slug, name }: ChannelIdentifier): Promise<Channel> {
@@ -71,19 +64,14 @@ async function getChannelByApplicationId(vendorPortalApi: VendorPortalApi, appid
   }
   const listChannelsBody: any = JSON.parse(await listChannelsRes.readBody());
 
-  const channel = await findChannelDetailsInOutput(listChannelsBody.channels, {
-    slug,
-    name
-  });
+  const channel = await findChannelDetailsInOutput(listChannelsBody.channels, { slug, name });
   console.log(`Found channel for channel slug ${channel.slug}`);
 
   return channel;
 }
 
 export async function archiveChannel(vendorPortalApi: VendorPortalApi, appSlug: string, channelSlug: string) {
-  const channel = await getChannelDetails(vendorPortalApi, appSlug, {
-    slug: channelSlug
-  });
+  const channel = await getChannelDetails(vendorPortalApi, appSlug, { slug: channelSlug });
 
   const http = await vendorPortalApi.client();
 
@@ -102,24 +90,11 @@ export async function archiveChannel(vendorPortalApi: VendorPortalApi, appSlug: 
 async function findChannelDetailsInOutput(channels: any[], { slug, name }: ChannelIdentifier): Promise<Channel> {
   for (const channel of channels) {
     if (slug && channel.channelSlug == slug) {
-      return {
-        name: channel.name,
-        id: channel.id,
-        slug: channel.channelSlug,
-        releaseSequence: channel.releaseSequence
-      };
+      return { name: channel.name, id: channel.id, slug: channel.channelSlug, releaseSequence: channel.releaseSequence };
     }
     if (name && channel.name == name) {
-      return {
-        name: channel.name,
-        id: channel.id,
-        slug: channel.channelSlug,
-        releaseSequence: channel.releaseSequence
-      };
+      return { name: channel.name, id: channel.id, slug: channel.channelSlug, releaseSequence: channel.releaseSequence };
     }
   }
-  return Promise.reject({
-    channel: null,
-    reason: `Could not find channel with slug ${slug} or name ${name}`
-  });
+  return Promise.reject({ channel: null, reason: `Could not find channel with slug ${slug} or name ${name}` });
 }

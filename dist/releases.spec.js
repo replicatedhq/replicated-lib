@@ -119,12 +119,7 @@ describe("areReleaseChartsPushed", () => {
     it("throws an error if any chart has error status", () => {
         const charts = [
             { name: "chart1", version: "1.0.0", status: "pushed", error: null },
-            {
-                name: "chart2",
-                version: "1.0.0",
-                status: "error",
-                error: "Some error message"
-            }
+            { name: "chart2", version: "1.0.0", status: "error", error: "Some error message" }
         ];
         expect(() => {
             areReleaseChartsPushed(charts);
