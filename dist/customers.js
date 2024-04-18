@@ -14,7 +14,7 @@ exports.KubernetesDistribution = KubernetesDistribution;
 async function createCustomer(vendorPortalApi, appSlug, name, email, licenseType, channelSlug, expiresIn, entitlementValues, isKotsInstallEnabled) {
     try {
         const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
-        console.log('Creating customer on appId ' + app.id);
+        console.log("Creating customer on appId " + app.id);
         const http = await vendorPortalApi.client();
         // 1. create the customer
         const createCustomerUri = `${vendorPortalApi.endpoint}/customer`;
@@ -22,23 +22,23 @@ async function createCustomer(vendorPortalApi, appSlug, name, email, licenseType
             name: name,
             email: email,
             type: licenseType,
-            app_id: app.id,
+            app_id: app.id
         };
         if (isKotsInstallEnabled !== undefined) {
-            createCustomerReqBody['is_kots_install_enabled'] = isKotsInstallEnabled;
+            createCustomerReqBody["is_kots_install_enabled"] = isKotsInstallEnabled;
         }
         if (channelSlug) {
             const channel = await (0, channels_1.getChannelDetails)(vendorPortalApi, appSlug, { slug: channelSlug });
-            createCustomerReqBody['channel_id'] = channel.id;
+            createCustomerReqBody["channel_id"] = channel.id;
         }
         // expiresIn is in days, if it's 0 or less, ignore it - non-expiring license
         if (expiresIn > 0) {
             const now = new Date();
-            const expiresAt = (0, date_fns_tz_1.zonedTimeToUtc)((0, date_fns_1.add)(now, { days: expiresIn }), 'UTC');
-            createCustomerReqBody['expires_at'] = expiresAt.toISOString();
+            const expiresAt = (0, date_fns_tz_1.zonedTimeToUtc)((0, date_fns_1.add)(now, { days: expiresIn }), "UTC");
+            createCustomerReqBody["expires_at"] = expiresAt.toISOString();
         }
         if (entitlementValues) {
-            createCustomerReqBody['entitlementValues'] = entitlementValues;
+            createCustomerReqBody["entitlementValues"] = entitlementValues;
         }
         const createCustomerRes = await http.post(createCustomerUri, JSON.stringify(createCustomerReqBody));
         if (createCustomerRes.message.statusCode != 201) {

@@ -2,17 +2,18 @@ name: CI
 
 on: push
 
-
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Build
-      run: make build
+      - name: Build
+        run: make build
 
-    - name: Test
-      run: make test
+      - name: Prettier
+        run: make prettier
+
+      - name: Test
+        run: make test

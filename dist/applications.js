@@ -7,7 +7,7 @@ exports.Application = Application;
 async function getApplicationDetails(vendorPortalApi, appSlug) {
     const http = await vendorPortalApi.client();
     // 1. get the app id from the app slug
-    console.log('Getting app id from app slug...');
+    console.log("Getting app id from app slug...");
     const listAppsUri = `${vendorPortalApi.endpoint}/apps`;
     const listAppsRes = await http.get(listAppsUri);
     if (listAppsRes.message.statusCode != 200) {

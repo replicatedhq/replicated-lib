@@ -24,7 +24,7 @@ async function createRelease(vendorPortalApi, appSlug, yamlDir) {
     // 2. create the release
     const createReleasePayload = await readYAMLDir(yamlDir);
     const reqBody = {
-        "spec_gzip": (0, exports.gzipData)(createReleasePayload),
+        spec_gzip: (0, exports.gzipData)(createReleasePayload)
     };
     const createReleaseUri = `${vendorPortalApi.endpoint}/app/${app.id}/release`;
     const createReleaseRes = await http.post(createReleaseUri, JSON.stringify(reqBody));
@@ -52,7 +52,7 @@ async function createReleaseFromChart(vendorPortalApi, appSlug, chart) {
     // 2. create the release
     const createReleasePayload = await readChart(chart);
     const reqBody = {
-        "spec_gzip": (0, exports.gzipData)(createReleasePayload),
+        spec_gzip: (0, exports.gzipData)(createReleasePayload)
     };
     const createReleaseUri = `${vendorPortalApi.endpoint}/app/${app.id}/release`;
     const createReleaseRes = await http.post(createReleaseUri, JSON.stringify(reqBody));
@@ -150,7 +150,7 @@ async function readChart(chart) {
     return allKotsReleaseSpecs;
 }
 function isSupportedExt(ext) {
-    const supportedExts = [".tgz", ".gz", ".yaml", ".yml", ".css", ".woff", ".woff2", ".ttf", ".otf", ".eot", ".svg",];
+    const supportedExts = [".tgz", ".gz", ".yaml", ".yml", ".css", ".woff", ".woff2", ".ttf", ".otf", ".eot", ".svg"];
     return supportedExts.includes(ext);
 }
 async function promoteRelease(vendorPortalApi, appSlug, channelId, releaseSequence, version) {
@@ -163,8 +163,8 @@ exports.promoteRelease = promoteRelease;
 async function promoteReleaseByAppId(vendorPortalApi, appId, channelId, releaseSequence, version) {
     const http = await vendorPortalApi.client();
     const reqBody = {
-        "versionLabel": version,
-        "channelIds": [channelId],
+        versionLabel: version,
+        channelIds: [channelId]
     };
     const uri = `${vendorPortalApi.endpoint}/app/${appId}/release/${releaseSequence}/promote`;
     const res = await http.post(uri, JSON.stringify(reqBody));
@@ -240,16 +240,16 @@ exports.reportCompatibilityResult = reportCompatibilityResult;
 async function reportCompatibilityResultByAppId(vendorPortalApi, appId, releaseSequence, compatibilityResult) {
     const http = await vendorPortalApi.client();
     const reqBody = {
-        "distribution": compatibilityResult.distribution,
-        "version": compatibilityResult.version,
+        distribution: compatibilityResult.distribution,
+        version: compatibilityResult.version
     };
     if (compatibilityResult.successAt) {
-        const successAt = (0, date_fns_tz_1.zonedTimeToUtc)(compatibilityResult.successAt, 'UTC');
+        const successAt = (0, date_fns_tz_1.zonedTimeToUtc)(compatibilityResult.successAt, "UTC");
         reqBody["successAt"] = successAt.toISOString();
         reqBody["successNotes"] = compatibilityResult.successNotes;
     }
     if (compatibilityResult.failureAt) {
-        const failureAt = (0, date_fns_tz_1.zonedTimeToUtc)(compatibilityResult.failureAt, 'UTC');
+        const failureAt = (0, date_fns_tz_1.zonedTimeToUtc)(compatibilityResult.failureAt, "UTC");
         reqBody["failureAt"] = failureAt.toISOString();
         reqBody["failureNotes"] = compatibilityResult.failureNotes;
     }
