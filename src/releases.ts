@@ -172,7 +172,12 @@ async function readYAMLDir(yamlDir: string, prefix: string = ""): Promise<KotsSi
     if ((await stat(path.join(yamlDir, file))).isDirectory()) {
       const subdir = await readYAMLDir(path.join(yamlDir, file), path.join(prefix, file));
       if (subdir) {
-        allKotsReleaseSpecs.push({ name: file, path: path.join(prefix, file), content: "", children: subdir });
+        allKotsReleaseSpecs.push({
+          name: file,
+          path: path.join(prefix, file),
+          content: "",
+          children: subdir
+        });
       }
     } else {
       const spec = await encodeKotsFile(yamlDir, file, prefix);

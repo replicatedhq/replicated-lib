@@ -126,7 +126,12 @@ async function readYAMLDir(yamlDir, prefix = "") {
         if ((await stat(path.join(yamlDir, file))).isDirectory()) {
             const subdir = await readYAMLDir(path.join(yamlDir, file), path.join(prefix, file));
             if (subdir) {
-                allKotsReleaseSpecs.push({ name: file, path: path.join(prefix, file), content: "", children: subdir });
+                allKotsReleaseSpecs.push({
+                    name: file,
+                    path: path.join(prefix, file),
+                    content: "",
+                    children: subdir
+                });
             }
         }
         else {

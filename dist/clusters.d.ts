@@ -8,6 +8,34 @@ export declare class ClusterVersion {
     name: string;
     version: string;
 }
+export declare class Addon {
+    id: string;
+    status: string;
+    object_store?: ObjectStore;
+    postgres?: Postgres;
+}
+export declare class ObjectStore {
+    bucket_name: string;
+    bucket_prefix: string;
+    service_account_name: string;
+    service_account_name_read_only: string;
+    service_account_namespace: string;
+}
+export declare class Postgres {
+    version: string;
+    instance_type: string;
+    disk_gib: number;
+    uri: string;
+}
+export declare class ClusterPort {
+    upstream_port: number;
+    exposed_ports: ClusterExposedPort[];
+    hostname: string;
+}
+export declare class ClusterExposedPort {
+    protocol: string;
+    exposed_port: number;
+}
 export declare class StatusError extends Error {
     statusCode: number;
     constructor(message: string, statusCode: number);
@@ -31,4 +59,8 @@ export declare function getKubeconfig(vendorPortalApi: VendorPortalApi, clusterI
 export declare function removeCluster(vendorPortalApi: VendorPortalApi, clusterId: string): Promise<void>;
 export declare function upgradeCluster(vendorPortalApi: VendorPortalApi, clusterId: string, k8sVersion: string): Promise<Cluster>;
 export declare function getClusterVersions(vendorPortalApi: VendorPortalApi): Promise<ClusterVersion[]>;
+export declare function createAddonObjectStore(vendorPortalApi: VendorPortalApi, clusterId: string, bucketName: string): Promise<Addon>;
+export declare function createAddonPostgres(vendorPortalApi: VendorPortalApi, clusterId: string, version?: string, instanceType?: string, diskGib?: number): Promise<Addon>;
+export declare function pollForAddonStatus(vendorPortalApi: VendorPortalApi, clusterId: string, addonId: string, expectedStatus: string, timeout?: number, sleeptimeMs?: number): Promise<Addon>;
+export declare function exposeClusterPort(vendorPortalApi: VendorPortalApi, clusterId: string, port: number, protocols: string[]): Promise<ClusterPort>;
 export {};
