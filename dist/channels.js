@@ -64,6 +64,8 @@ async function archiveChannel(vendorPortalApi, appSlug, channelSlug) {
     if (archiveChannelRes.message.statusCode != 200) {
         throw new Error(`Failed to archive channel: Server responded with ${archiveChannelRes.message.statusCode}`);
     }
+    // discard the response body
+    await archiveChannelRes.readBody();
 }
 exports.archiveChannel = archiveChannel;
 async function findChannelDetailsInOutput(channels, { slug, name }) {
