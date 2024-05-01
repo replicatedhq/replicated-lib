@@ -82,6 +82,9 @@ export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: 
     let downloadLicenseBody: string = "";
     if (downloadLicenseRes.message.statusCode == 200) {
       downloadLicenseBody = await downloadLicenseRes.readBody();
+    } else {
+      // discard the response body
+      await downloadLicenseRes.readBody();
     }
 
     return { name: name, customerId: createCustomerBody.customer.id, licenseId: createCustomerBody.customer.installationId, license: downloadLicenseBody };
@@ -101,6 +104,8 @@ export async function archiveCustomer(vendorPortalApi: VendorPortalApi, customer
   if (archiveCustomerRes.message.statusCode != 204) {
     throw new Error(`Failed to archive customer: Server responded with ${archiveCustomerRes.message.statusCode}`);
   }
+  // discard the response body
+  await archiveCustomerRes.readBody();
 }
 
 export async function getUsedKubernetesDistributions(vendorPortalApi: VendorPortalApi, appSlug: string): Promise<KubernetesDistribution[]> {

@@ -184,6 +184,8 @@ async function promoteReleaseByAppId(vendorPortalApi, appId, channelId, releaseS
         }
         throw new Error(`Failed to promote release: Server responded with ${res.message.statusCode}: ${body}`);
     }
+    // discard the response body
+    await res.readBody();
 }
 async function isReleaseReadyForInstall(vendorPortalApi, appId, releaseSequence) {
     var _a;
@@ -271,4 +273,6 @@ async function reportCompatibilityResultByAppId(vendorPortalApi, appId, releaseS
         }
         throw new Error(`Failed to report compatibility results: Server responded with ${res.message.statusCode}: ${body}`);
     }
+    // discard the response body
+    await res.readBody();
 }

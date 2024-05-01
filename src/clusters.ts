@@ -233,9 +233,11 @@ export async function removeCluster(vendorPortalApi: VendorPortalApi, clusterId:
 
   const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}`;
   const res = await http.del(uri);
-  if (res.message.statusCode != 200) {
+  if (res.message.statusCode != 201) {
     throw new StatusError(`Failed to remove cluster: Server responded with ${res.message.statusCode}`, res.message.statusCode);
   }
+  // discard the response body
+  await res.readBody();
 }
 
 export async function upgradeCluster(vendorPortalApi: VendorPortalApi, clusterId: string, k8sVersion: string): Promise<Cluster> {
@@ -249,6 +251,9 @@ export async function upgradeCluster(vendorPortalApi: VendorPortalApi, clusterId
   const res = await http.post(uri, JSON.stringify(reqBody));
   if (res.message.statusCode != 200) {
     throw new StatusError(`Failed to upgrade cluster: Server responded with ${res.message.statusCode}`, res.message.statusCode);
+  } else {
+    // discard the response body
+    await res.readBody();
   }
 
   return getClusterDetails(vendorPortalApi, clusterId);
