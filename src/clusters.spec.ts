@@ -333,15 +333,17 @@ describe("Cluster Exposed Ports", () => {
     const clusterId = "1234abcd";
     const expectedExposedPort = {
       port: {
+        addon_id: "abcd1234",
         upstream_port: 80,
         hostname: "http://mystifying-kepler.ingress.replicatedcluster.com/",
-        exposed_ports: [{ exposed_port: 80, protocol: "http" }]
+        exposed_ports: [{ exposed_port: 80, protocol: "http" }],
+        is_wildcard: true
       }
     };
 
     await mockServer.forPost(`/cluster/${clusterId}/port`).thenReply(201, JSON.stringify(expectedExposedPort));
 
-    const clusterPort: ClusterPort = await exposeClusterPort(apiClient, clusterId, 80, ["http"]);
+    const clusterPort: ClusterPort = await exposeClusterPort(apiClient, clusterId, 80, ["http"], true);
     expect(clusterPort).toEqual(expectedExposedPort.port);
   });
 });
