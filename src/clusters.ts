@@ -34,9 +34,11 @@ export class Postgres {
 }
 
 export class ClusterPort {
+  addon_id: string;
   upstream_port: number;
   exposed_ports: ClusterExposedPort[];
   hostname: string;
+  is_wildcard: boolean;
 }
 
 export class ClusterExposedPort {
@@ -437,13 +439,14 @@ async function getAddonDetails(vendorPortalApi: VendorPortalApi, clusterId: stri
   throw new Error(`Add-on with id ${addonId} not found`);
 }
 
-export async function exposeClusterPort(vendorPortalApi: VendorPortalApi, clusterId: string, port: number, protocols: string[]): Promise<ClusterPort> {
+export async function exposeClusterPort(vendorPortalApi: VendorPortalApi, clusterId: string, port: number, protocols: string[], isWildcard?: boolean): Promise<ClusterPort> {
   const http = await vendorPortalApi.client();
 
   const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/port`;
   const reqBody = {
     port: port,
-    protocols: protocols
+    protocols: protocols,
+    is_wildcard: isWildcard
   };
   const res = await http.post(uri, JSON.stringify(reqBody));
   if (res.message.statusCode != 201) {
@@ -467,9 +470,11 @@ export async function exposeClusterPort(vendorPortalApi: VendorPortalApi, cluste
     exposedPorts.push(exposedPort);
   }
   var portObj: ClusterPort = {
+    addon_id: body.port.addon_id,
     upstream_port: body.port.upstream_port,
     hostname: body.port.hostname,
-    exposed_ports: exposedPorts
+    exposed_ports: exposedPorts,
+    is_wildcard: body.port.is_wildcard
   };
   return portObj;
 }

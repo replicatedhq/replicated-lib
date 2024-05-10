@@ -15,7 +15,7 @@ const protocol = process.argv[4];
 const api = new VendorPortalApi();
 api.apiToken = process.env.REPLICATED_API_TOKEN ?? "";
 
-exposeClusterPort(api, clusterId, port, [protocol])
+exposeClusterPort(api, clusterId, port, [protocol], false)
   .then(clusterPort => {
     console.log(`ClusterPort created: ${clusterPort.hostname}`);
   })
