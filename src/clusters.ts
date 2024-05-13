@@ -81,9 +81,10 @@ export async function createCluster(
   maxNodeCount?: number,
   instanceType?: string,
   nodeGroups?: nodeGroup[],
-  tags?: tag[]
+  tags?: tag[],
+  ipFamily?: string
 ): Promise<Cluster> {
-  return await createClusterWithLicense(vendorPortalApi, clusterName, k8sDistribution, k8sVersion, "", clusterTTL, diskGib, nodeCount, minNodeCount, maxNodeCount, instanceType, nodeGroups, tags);
+  return await createClusterWithLicense(vendorPortalApi, clusterName, k8sDistribution, k8sVersion, "", clusterTTL, diskGib, nodeCount, minNodeCount, maxNodeCount, instanceType, nodeGroups, tags, ipFamily);
 }
 
 export async function createClusterWithLicense(
@@ -99,7 +100,8 @@ export async function createClusterWithLicense(
   maxNodeCount?: number,
   instanceType?: string,
   nodeGroups?: nodeGroup[],
-  tags?: tag[]
+  tags?: tag[],
+  ipFamily?: string
 ): Promise<Cluster> {
   const http = await vendorPortalApi.client();
 
@@ -134,6 +136,9 @@ export async function createClusterWithLicense(
 
   if (tags) {
     reqBody["tags"] = tags;
+  }
+  if (ipFamily) {
+    reqBody["ip_family"] = ipFamily;
   }
 
   const uri = `${vendorPortalApi.endpoint}/cluster`;

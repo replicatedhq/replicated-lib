@@ -41,7 +41,7 @@ describe("ReleasesService", () => {
     });
     test("report compatibility results", () => {
         globalThis.provider.addInteraction({
-            state: "release promoted",
+            state: "result reported",
             uponReceiving: "a request for reporting compatibility result",
             withRequest: {
                 method: "POST",

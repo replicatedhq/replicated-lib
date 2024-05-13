@@ -240,7 +240,7 @@ async function getReleaseByAppId(vendorPortalApi, appId, releaseSequence) {
 async function reportCompatibilityResult(vendorPortalApi, appSlug, releaseSequence, compatibilityResult) {
     // 1. get the app id from the app slug
     const app = await (0, applications_1.getApplicationDetails)(vendorPortalApi, appSlug);
-    // 2. promote the release
+    // 2. report the compatibility result
     await reportCompatibilityResultByAppId(vendorPortalApi, app.id, releaseSequence, compatibilityResult);
 }
 exports.reportCompatibilityResult = reportCompatibilityResult;
