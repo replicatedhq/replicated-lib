@@ -62,12 +62,8 @@ export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: 
 
     const createCustomerRes = await http.post(createCustomerUri, JSON.stringify(createCustomerReqBody));
     if (createCustomerRes.message.statusCode != 201) {
-      let body = "";
-      try {
-        body = await createCustomerRes.readBody();
-      } catch (err) {
-        // ignore
-      }
+      // discard the response body
+      await createCustomerRes.readBody();
       throw new Error(`Failed to create customer: Server responded with ${createCustomerRes.message.statusCode}: ${body}`);
     }
     const createCustomerBody: any = JSON.parse(await createCustomerRes.readBody());
@@ -77,6 +73,8 @@ export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: 
     const downloadLicenseRes = await http.get(downloadLicenseUri);
     // If response is 403, ignore as we could be using a trial license (on builders plan)
     if (downloadLicenseRes.message.statusCode != 200 && downloadLicenseRes.message.statusCode != 403) {
+      // discard the response body
+      await downloadLicenseRes.readBody();
       throw new Error(`Failed to download created license: Server responded with ${downloadLicenseRes.message.statusCode}`);
     }
     let downloadLicenseBody: string = "";
@@ -101,11 +99,11 @@ export async function archiveCustomer(vendorPortalApi: VendorPortalApi, customer
   console.log(`Archive Customer ...`);
   const archiveCustomerUri = `${vendorPortalApi.endpoint}/customer/${customerId}/archive`;
   const archiveCustomerRes = await http.post(archiveCustomerUri, undefined);
+  // discard the response body
+  await archiveCustomerRes.readBody();
   if (archiveCustomerRes.message.statusCode != 204) {
     throw new Error(`Failed to archive customer: Server responded with ${archiveCustomerRes.message.statusCode}`);
   }
-  // discard the response body
-  await archiveCustomerRes.readBody();
 }
 
 export async function getUsedKubernetesDistributions(vendorPortalApi: VendorPortalApi, appSlug: string): Promise<KubernetesDistribution[]> {
@@ -118,6 +116,8 @@ export async function getUsedKubernetesDistributions(vendorPortalApi: VendorPort
   const getClusterUsageUri = `${vendorPortalApi.endpoint}/app/${app.id}/cluster-usage`;
   const getClusterUsageRes = await http.get(getClusterUsageUri);
   if (getClusterUsageRes.message.statusCode != 200) {
+    // discard the response body
+    await getClusterUsageRes.readBody();
     throw new Error(`Failed to get Cluster Usage: Server responded with ${getClusterUsageRes.message.statusCode}`);
   }
   const getClusterUsageBody: any = JSON.parse(await getClusterUsageRes.readBody());

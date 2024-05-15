@@ -139,12 +139,8 @@ export async function createClusterWithLicense(
   const uri = `${vendorPortalApi.endpoint}/cluster`;
   const res = await http.post(uri, JSON.stringify(reqBody));
   if (res.message.statusCode != 201) {
-    let body = "";
-    try {
-      body = await res.readBody();
-    } catch (err) {
-      // ignore
-    }
+    // discard the response body
+    await res.readBody();
     throw new Error(`Failed to queue cluster create: Server responded with ${res.message.statusCode}: ${body}`);
   }
 
@@ -204,6 +200,8 @@ async function getClusterDetails(vendorPortalApi: VendorPortalApi, clusterId: st
   const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}`;
   const res = await http.get(uri);
   if (res.message.statusCode != 200) {
+    // discard the response body
+    await res.readBody();
     throw new StatusError(`Failed to get cluster: Server responded with ${res.message.statusCode}`, res.message.statusCode);
   }
 
@@ -222,6 +220,8 @@ export async function getKubeconfig(vendorPortalApi: VendorPortalApi, clusterId:
   const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/kubeconfig`;
   const res = await http.get(uri);
   if (res.message.statusCode != 200) {
+    // discard the response body
+    await res.readBody();
     throw new StatusError(`Failed to get kubeconfig: Server responded with ${res.message.statusCode}`, res.message.statusCode);
   }
 
@@ -235,11 +235,11 @@ export async function removeCluster(vendorPortalApi: VendorPortalApi, clusterId:
 
   const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}`;
   const res = await http.del(uri);
+  // discard the response body
+  await res.readBody();
   if (res.message.statusCode != 200) {
     throw new StatusError(`Failed to remove cluster: Server responded with ${res.message.statusCode}`, res.message.statusCode);
   }
-  // discard the response body
-  await res.readBody();
 }
 
 export async function upgradeCluster(vendorPortalApi: VendorPortalApi, clusterId: string, k8sVersion: string): Promise<Cluster> {
@@ -251,11 +251,10 @@ export async function upgradeCluster(vendorPortalApi: VendorPortalApi, clusterId
 
   const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/upgrade`;
   const res = await http.post(uri, JSON.stringify(reqBody));
+  // discard the response body
+  await res.readBody();
   if (res.message.statusCode != 200) {
     throw new StatusError(`Failed to upgrade cluster: Server responded with ${res.message.statusCode}`, res.message.statusCode);
-  } else {
-    // discard the response body
-    await res.readBody();
   }
 
   return getClusterDetails(vendorPortalApi, clusterId);
@@ -266,6 +265,8 @@ export async function getClusterVersions(vendorPortalApi: VendorPortalApi): Prom
   const uri = `${vendorPortalApi.endpoint}/cluster/versions`;
   const res = await http.get(uri);
   if (res.message.statusCode != 200) {
+    // discard the response body
+    await res.readBody();
     throw new StatusError(`Failed to get cluster versions: Server responded with ${res.message.statusCode}`, res.message.statusCode);
   }
 
@@ -295,12 +296,8 @@ export async function createAddonObjectStore(vendorPortalApi: VendorPortalApi, c
   };
   const res = await http.post(uri, JSON.stringify(reqBody));
   if (res.message.statusCode != 201) {
-    let body = "";
-    try {
-      body = await res.readBody();
-    } catch (err) {
-      // ignore
-    }
+    // discard the response body
+    await res.readBody();
     throw new Error(`Failed to queue add-on create: Server responded with ${res.message.statusCode}: ${body}`);
   }
 
@@ -337,12 +334,8 @@ export async function createAddonPostgres(vendorPortalApi: VendorPortalApi, clus
   }
   const res = await http.post(uri, JSON.stringify(reqBody));
   if (res.message.statusCode != 201) {
-    let body = "";
-    try {
-      body = await res.readBody();
-    } catch (err) {
-      // ignore
-    }
+    // discard the response body
+    await res.readBody();
     throw new Error(`Failed to queue add-on create: Server responded with ${res.message.statusCode}: ${body}`);
   }
 
@@ -408,6 +401,8 @@ async function getAddonDetails(vendorPortalApi: VendorPortalApi, clusterId: stri
   const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/addons`;
   const res = await http.get(uri);
   if (res.message.statusCode != 200) {
+    // discard the response body
+    await res.readBody();
     throw new StatusError(`Failed to get add-on: Server responded with ${res.message.statusCode}`, res.message.statusCode);
   }
 
@@ -450,12 +445,8 @@ export async function exposeClusterPort(vendorPortalApi: VendorPortalApi, cluste
   };
   const res = await http.post(uri, JSON.stringify(reqBody));
   if (res.message.statusCode != 201) {
-    let body = "";
-    try {
-      body = await res.readBody();
-    } catch (err) {
-      // ignore
-    }
+    // discard the response body
+    await res.readBody();
     throw new Error(`Failed to expose cluster port: Server responded with ${res.message.statusCode}: ${body}`);
   }
 
