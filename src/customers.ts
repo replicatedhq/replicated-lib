@@ -62,8 +62,12 @@ export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: 
 
     const createCustomerRes = await http.post(createCustomerUri, JSON.stringify(createCustomerReqBody));
     if (createCustomerRes.message.statusCode != 201) {
-      // discard the response body
-      await createCustomerRes.readBody();
+      let body = "";
+      try {
+        body = await createCustomerRes.readBody();
+      } catch (err) {
+        // ignore
+      }
       throw new Error(`Failed to create customer: Server responded with ${createCustomerRes.message.statusCode}: ${body}`);
     }
     const createCustomerBody: any = JSON.parse(await createCustomerRes.readBody());

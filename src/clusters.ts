@@ -139,8 +139,12 @@ export async function createClusterWithLicense(
   const uri = `${vendorPortalApi.endpoint}/cluster`;
   const res = await http.post(uri, JSON.stringify(reqBody));
   if (res.message.statusCode != 201) {
-    // discard the response body
-    await res.readBody();
+    let body = "";
+    try {
+      body = await res.readBody();
+    } catch (err) {
+      // ignore
+    }
     throw new Error(`Failed to queue cluster create: Server responded with ${res.message.statusCode}: ${body}`);
   }
 
@@ -296,8 +300,12 @@ export async function createAddonObjectStore(vendorPortalApi: VendorPortalApi, c
   };
   const res = await http.post(uri, JSON.stringify(reqBody));
   if (res.message.statusCode != 201) {
-    // discard the response body
-    await res.readBody();
+    let body = "";
+    try {
+      body = await res.readBody();
+    } catch (err) {
+      // ignore
+    }
     throw new Error(`Failed to queue add-on create: Server responded with ${res.message.statusCode}: ${body}`);
   }
 
@@ -334,8 +342,12 @@ export async function createAddonPostgres(vendorPortalApi: VendorPortalApi, clus
   }
   const res = await http.post(uri, JSON.stringify(reqBody));
   if (res.message.statusCode != 201) {
-    // discard the response body
-    await res.readBody();
+    let body = "";
+    try {
+      body = await res.readBody();
+    } catch (err) {
+      // ignore
+    }
     throw new Error(`Failed to queue add-on create: Server responded with ${res.message.statusCode}: ${body}`);
   }
 
@@ -445,8 +457,12 @@ export async function exposeClusterPort(vendorPortalApi: VendorPortalApi, cluste
   };
   const res = await http.post(uri, JSON.stringify(reqBody));
   if (res.message.statusCode != 201) {
-    // discard the response body
-    await res.readBody();
+    let body = "";
+    try {
+      body = await res.readBody();
+    } catch (err) {
+      // ignore
+    }
     throw new Error(`Failed to expose cluster port: Server responded with ${res.message.statusCode}: ${body}`);
   }
 

@@ -230,8 +230,12 @@ async function promoteReleaseByAppId(vendorPortalApi: VendorPortalApi, appId: st
   const uri = `${vendorPortalApi.endpoint}/app/${appId}/release/${releaseSequence}/promote`;
   const res = await http.post(uri, JSON.stringify(reqBody));
   if (res.message.statusCode != 200) {
-    // discard the response body
-    await res.readBody();
+    let body = "";
+    try {
+      body = await res.readBody();
+    } catch (err) {
+      // ignore
+    }
     throw new Error(`Failed to promote release: Server responded with ${res.message.statusCode}: ${body}`);
   }
   // discard the response body
@@ -322,9 +326,15 @@ async function reportCompatibilityResultByAppId(vendorPortalApi: VendorPortalApi
   }
   const uri = `${vendorPortalApi.endpoint}/app/${appId}/release/${releaseSequence}/compatibility`;
   const res = await http.post(uri, JSON.stringify(reqBody));
-  // discard the response body
-  await res.readBody();
   if (res.message.statusCode != 201) {
+    let body = "";
+    try {
+      body = await res.readBody();
+    } catch (err) {
+      // ignore
+    }
     throw new Error(`Failed to report compatibility results: Server responded with ${res.message.statusCode}: ${body}`);
   }
+  // discard the response body
+  await res.readBody();
 }
