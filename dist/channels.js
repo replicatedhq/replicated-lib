@@ -21,6 +21,8 @@ async function createChannel(vendorPortalApi, appSlug, channelName) {
     const createChannelUri = `${vendorPortalApi.endpoint}/app/${app.id}/channel`;
     const createChannelRes = await http.post(createChannelUri, JSON.stringify(reqBody));
     if (createChannelRes.message.statusCode != 201) {
+        // discard the response body
+        await createChannelRes.readBody();
         throw new Error(`Failed to create channel: Server responded with ${createChannelRes.message.statusCode}`);
     }
     const createChannelBody = JSON.parse(await createChannelRes.readBody());
@@ -45,6 +47,8 @@ async function getChannelByApplicationId(vendorPortalApi, appid, { slug, name })
     const listChannelsUri = `${vendorPortalApi.endpoint}/app/${appid}/channels?excludeDetail=true`;
     const listChannelsRes = await http.get(listChannelsUri);
     if (listChannelsRes.message.statusCode != 200) {
+        // discard the response body
+        await listChannelsRes.readBody();
         throw new Error(`Failed to list channels: Server responded with ${listChannelsRes.message.statusCode}`);
     }
     const listChannelsBody = JSON.parse(await listChannelsRes.readBody());
@@ -62,6 +66,8 @@ async function archiveChannel(vendorPortalApi, appSlug, channelSlug) {
     const archiveChannelUri = `${vendorPortalApi.endpoint}/app/${app.id}/channel/${channel.id}`;
     const archiveChannelRes = await http.del(archiveChannelUri);
     if (archiveChannelRes.message.statusCode != 200) {
+        // discard the response body
+        await archiveChannelRes.readBody();
         throw new Error(`Failed to archive channel: Server responded with ${archiveChannelRes.message.statusCode}`);
     }
     // discard the response body

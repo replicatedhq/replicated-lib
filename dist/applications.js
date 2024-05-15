@@ -11,6 +11,8 @@ async function getApplicationDetails(vendorPortalApi, appSlug) {
     const listAppsUri = `${vendorPortalApi.endpoint}/apps`;
     const listAppsRes = await http.get(listAppsUri);
     if (listAppsRes.message.statusCode != 200) {
+        // discard the response body
+        await listAppsRes.readBody();
         throw new Error(`Failed to list apps: Server responded with ${listAppsRes.message.statusCode}`);
     }
     const listAppsBody = JSON.parse(await listAppsRes.readBody());

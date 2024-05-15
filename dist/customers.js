@@ -57,6 +57,8 @@ async function createCustomer(vendorPortalApi, appSlug, name, email, licenseType
         const downloadLicenseRes = await http.get(downloadLicenseUri);
         // If response is 403, ignore as we could be using a trial license (on builders plan)
         if (downloadLicenseRes.message.statusCode != 200 && downloadLicenseRes.message.statusCode != 403) {
+            // discard the response body
+            await downloadLicenseRes.readBody();
             throw new Error(`Failed to download created license: Server responded with ${downloadLicenseRes.message.statusCode}`);
         }
         let downloadLicenseBody = "";
@@ -81,11 +83,11 @@ async function archiveCustomer(vendorPortalApi, customerId) {
     console.log(`Archive Customer ...`);
     const archiveCustomerUri = `${vendorPortalApi.endpoint}/customer/${customerId}/archive`;
     const archiveCustomerRes = await http.post(archiveCustomerUri, undefined);
+    // discard the response body
+    await archiveCustomerRes.readBody();
     if (archiveCustomerRes.message.statusCode != 204) {
         throw new Error(`Failed to archive customer: Server responded with ${archiveCustomerRes.message.statusCode}`);
     }
-    // discard the response body
-    await archiveCustomerRes.readBody();
 }
 exports.archiveCustomer = archiveCustomer;
 async function getUsedKubernetesDistributions(vendorPortalApi, appSlug) {
@@ -96,6 +98,8 @@ async function getUsedKubernetesDistributions(vendorPortalApi, appSlug) {
     const getClusterUsageUri = `${vendorPortalApi.endpoint}/app/${app.id}/cluster-usage`;
     const getClusterUsageRes = await http.get(getClusterUsageUri);
     if (getClusterUsageRes.message.statusCode != 200) {
+        // discard the response body
+        await getClusterUsageRes.readBody();
         throw new Error(`Failed to get Cluster Usage: Server responded with ${getClusterUsageRes.message.statusCode}`);
     }
     const getClusterUsageBody = JSON.parse(await getClusterUsageRes.readBody());
