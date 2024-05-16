@@ -60,6 +60,8 @@ export async function createRelease(vendorPortalApi: VendorPortalApi, appSlug: s
   const createReleaseUri = `${vendorPortalApi.endpoint}/app/${app.id}/release`;
   const createReleaseRes = await http.post(createReleaseUri, JSON.stringify(reqBody));
   if (createReleaseRes.message.statusCode != 201) {
+    // discard the response body
+    await createReleaseRes.readBody();
     throw new Error(`Failed to create release: Server responded with ${createReleaseRes.message.statusCode}`);
   }
   const createReleaseBody: any = JSON.parse(await createReleaseRes.readBody());
@@ -92,6 +94,8 @@ export async function createReleaseFromChart(vendorPortalApi: VendorPortalApi, a
   const createReleaseUri = `${vendorPortalApi.endpoint}/app/${app.id}/release`;
   const createReleaseRes = await http.post(createReleaseUri, JSON.stringify(reqBody));
   if (createReleaseRes.message.statusCode != 201) {
+    // discard the response body
+    await createReleaseRes.readBody();
     throw new Error(`Failed to create release: Server responded with ${createReleaseRes.message.statusCode}`);
   }
   const createReleaseBody: any = JSON.parse(await createReleaseRes.readBody());
@@ -226,7 +230,6 @@ async function promoteReleaseByAppId(vendorPortalApi: VendorPortalApi, appId: st
   const uri = `${vendorPortalApi.endpoint}/app/${appId}/release/${releaseSequence}/promote`;
   const res = await http.post(uri, JSON.stringify(reqBody));
   if (res.message.statusCode != 200) {
-    // If res has a body, read it and add it to the error message
     let body = "";
     try {
       body = await res.readBody();
@@ -287,6 +290,8 @@ async function getReleaseByAppId(vendorPortalApi: VendorPortalApi, appId: string
   const uri = `${vendorPortalApi.endpoint}/app/${appId}/release/${releaseSequence}`;
   const res = await http.get(uri);
   if (res.message.statusCode != 200) {
+    // discard the response body
+    await res.readBody();
     throw new Error(`Failed to get release: Server responded with ${res.message.statusCode}`);
   }
 
@@ -322,7 +327,6 @@ async function reportCompatibilityResultByAppId(vendorPortalApi: VendorPortalApi
   const uri = `${vendorPortalApi.endpoint}/app/${appId}/release/${releaseSequence}/compatibility`;
   const res = await http.post(uri, JSON.stringify(reqBody));
   if (res.message.statusCode != 201) {
-    // If res has a body, read it and add it to the error message
     let body = "";
     try {
       body = await res.readBody();

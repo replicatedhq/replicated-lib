@@ -129,6 +129,8 @@ async function getClusterDetails(vendorPortalApi, clusterId) {
     const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}`;
     const res = await http.get(uri);
     if (res.message.statusCode != 200) {
+        // discard the response body
+        await res.readBody();
         throw new StatusError(`Failed to get cluster: Server responded with ${res.message.statusCode}`, res.message.statusCode);
     }
     const body = JSON.parse(await res.readBody());
@@ -143,6 +145,8 @@ async function getKubeconfig(vendorPortalApi, clusterId) {
     const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/kubeconfig`;
     const res = await http.get(uri);
     if (res.message.statusCode != 200) {
+        // discard the response body
+        await res.readBody();
         throw new StatusError(`Failed to get kubeconfig: Server responded with ${res.message.statusCode}`, res.message.statusCode);
     }
     const body = JSON.parse(await res.readBody());
@@ -153,11 +157,11 @@ async function removeCluster(vendorPortalApi, clusterId) {
     const http = await vendorPortalApi.client();
     const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}`;
     const res = await http.del(uri);
+    // discard the response body
+    await res.readBody();
     if (res.message.statusCode != 200) {
         throw new StatusError(`Failed to remove cluster: Server responded with ${res.message.statusCode}`, res.message.statusCode);
     }
-    // discard the response body
-    await res.readBody();
 }
 exports.removeCluster = removeCluster;
 async function upgradeCluster(vendorPortalApi, clusterId, k8sVersion) {
@@ -167,12 +171,10 @@ async function upgradeCluster(vendorPortalApi, clusterId, k8sVersion) {
     };
     const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/upgrade`;
     const res = await http.post(uri, JSON.stringify(reqBody));
+    // discard the response body
+    await res.readBody();
     if (res.message.statusCode != 200) {
         throw new StatusError(`Failed to upgrade cluster: Server responded with ${res.message.statusCode}`, res.message.statusCode);
-    }
-    else {
-        // discard the response body
-        await res.readBody();
     }
     return getClusterDetails(vendorPortalApi, clusterId);
 }
@@ -182,6 +184,8 @@ async function getClusterVersions(vendorPortalApi) {
     const uri = `${vendorPortalApi.endpoint}/cluster/versions`;
     const res = await http.get(uri);
     if (res.message.statusCode != 200) {
+        // discard the response body
+        await res.readBody();
         throw new StatusError(`Failed to get cluster versions: Server responded with ${res.message.statusCode}`, res.message.statusCode);
     }
     const body = JSON.parse(await res.readBody());
@@ -310,6 +314,8 @@ async function getAddonDetails(vendorPortalApi, clusterId, addonId) {
     const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/addons`;
     const res = await http.get(uri);
     if (res.message.statusCode != 200) {
+        // discard the response body
+        await res.readBody();
         throw new StatusError(`Failed to get add-on: Server responded with ${res.message.statusCode}`, res.message.statusCode);
     }
     const body = JSON.parse(await res.readBody());
