@@ -23,6 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Build
+        run: make build
       - name: Prettier
         run: make prettier
       - run: npm version --no-commit-hooks --no-git-tag-version ${{ github.event.release.tag_name }}
