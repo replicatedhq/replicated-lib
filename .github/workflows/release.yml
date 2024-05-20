@@ -18,6 +18,8 @@ jobs:
       - name: Test
         run: make test
   release:
+    runs-on: ubuntu-latest
+    steps:
       - uses: actions/checkout@v4
       - name: Prettier
         run: make prettier
