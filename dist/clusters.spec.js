@@ -154,7 +154,7 @@ describe("Cluster Add-ons", () => {
     const apiClient = new configuration_1.VendorPortalApi();
     apiClient.apiToken = "abcd1234";
     beforeAll(async () => {
-        await mockServer.start();
+        await mockServer.start(8181);
         apiClient.endpoint = `http://localhost:${mockServer.port}`;
     });
     afterAll(async () => {
@@ -251,7 +251,7 @@ describe("Cluster Exposed Ports", () => {
     const apiClient = new configuration_1.VendorPortalApi();
     apiClient.apiToken = "abcd1234";
     beforeAll(async () => {
-        await mockServer.start();
+        await mockServer.start(8282);
         apiClient.endpoint = `http://localhost:${mockServer.port}`;
     });
     afterAll(async () => {
