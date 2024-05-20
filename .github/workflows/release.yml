@@ -6,7 +6,6 @@ on:
       - '.github/workflows/release.yml'
     tags:
       - "v*"
-  workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
