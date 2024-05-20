@@ -15,8 +15,6 @@ jobs:
           node-version-file: 'package.json'
       - name: Build
         run: make build
-      - name: Prettier
-        run: make prettier
       - name: Test
         run: make test
       - run: gh release create ${{ github.ref_name }} --generate-notes
@@ -35,8 +33,6 @@ jobs:
           node-version-file: 'package.json'
       - name: Build
         run: make build
-      - name: Prettier
-        run: make prettier
       - run: npm version --no-commit-hooks --no-git-tag-version ${{ github.ref_name }}
       - run: make publish
         env:
