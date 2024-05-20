@@ -1,9 +1,12 @@
 name: Publish Package to npmjs
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Overwrite the version to publish to npmjs (e.g. 1.0.0)'
+        type: string
+        required: false
   push:
-    paths:
-      - '.github/workflows/release.yml'
     tags:
       - "v*"
 jobs:
@@ -29,7 +32,7 @@ jobs:
         run: make build
       - name: Prettier
         run: make prettier
-      - run: npm version --no-commit-hooks --no-git-tag-version ${{ github.ref_name || 'patch' }}
+      - run: npm version --no-commit-hooks --no-git-tag-version ${{ github.event.inputs.version || github.ref_name }}
       - run: make publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
