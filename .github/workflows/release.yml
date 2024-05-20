@@ -2,18 +2,24 @@ name: Publish Package to npmjs
 on:
   release:
     types: [published]
-  workflow_dispatch:
   push:
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      # Setup .npmrc file to publish to npm
-      - uses: actions/setup-node@v3
-        with:
-          node-version: "20.x"
-          registry-url: "https://registry.npmjs.org"
+      - uses: actions/checkout@v4
+      - name: Build
+        run: make build
+
+      - name: Prettier
+        run: make prettier
+
+      - name: Test
+        run: make test
+  release:
+      - uses: actions/checkout@v4
+      - name: Prettier
+        run: make prettier
       - run: npm version --no-commit-hooks --no-git-tag-version ${{ github.event.release.tag_name }}
       - run: make publish
         env:
