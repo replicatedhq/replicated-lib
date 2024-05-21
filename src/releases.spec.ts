@@ -45,25 +45,6 @@ describe("Promote Release", () => {
   });
 });
 
-<<<<<<< HEAD
-  test("report compatibility results", () => {
-    globalThis.provider.addInteraction({
-      state: "result reported",
-      uponReceiving: "a request for reporting compatibility result",
-      withRequest: {
-        method: "POST",
-        path: "/app/1234abcd/release/1/compatibility"
-      },
-      willRespondWith: {
-        status: 201,
-        headers: { "Content-Type": "application/json" }
-      }
-    });
-
-    const apiClient = new VendorPortalApi();
-    apiClient.apiToken = "abcd1234";
-    apiClient.endpoint = globalThis.provider.mockService.baseUrl;
-=======
 describe("Report Results", () => {
   const mockServer = mockttp.getLocal();
   const apiClient = new VendorPortalApi();
@@ -74,7 +55,6 @@ describe("Report Results", () => {
     mockServer.start(8282);
   });
   afterEach(() => mockServer.stop());
->>>>>>> main
 
   test("report compatibility results", async () => {
     const c11yResult: CompatibilityResult = {
