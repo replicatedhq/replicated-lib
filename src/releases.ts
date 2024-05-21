@@ -304,7 +304,7 @@ export async function reportCompatibilityResult(vendorPortalApi: VendorPortalApi
   // 1. get the app id from the app slug
   const app = await getApplicationDetails(vendorPortalApi, appSlug);
 
-  // 2. promote the release
+  // 2. report the compatibility result
   await reportCompatibilityResultByAppId(vendorPortalApi, app.id, releaseSequence, compatibilityResult);
 }
 
