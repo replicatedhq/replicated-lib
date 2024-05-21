@@ -18,6 +18,9 @@
     "publishConfig": {
         "access": "public"
     },
+    "engines": {
+        "node": ">=20.0.0"
+    },
     "dependencies": {
         "@actions/core": "^1.10.0",
         "@types/node": "^20.9.2",
