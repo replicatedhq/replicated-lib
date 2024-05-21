@@ -3,6 +3,7 @@ import { ReleaseChart, exportedForTesting, KotsSingleSpec, createReleaseFromChar
 import * as mockttp from "mockttp";
 import * as fs from "fs-extra";
 import * as path from "path";
+import { sl } from "date-fns/locale";
 
 const areReleaseChartsPushed = exportedForTesting.areReleaseChartsPushed;
 const getReleaseByAppId = exportedForTesting.getReleaseByAppId;
@@ -11,7 +12,7 @@ const promoteReleaseByAppId = exportedForTesting.promoteReleaseByAppId;
 const reportCompatibilityResultByAppId = exportedForTesting.reportCompatibilityResultByAppId;
 const readChart = exportedForTesting.readChart;
 
-describe("ReleasesService", () => {
+describe("Promote Release", () => {
   beforeAll(() => globalThis.provider.setup());
   afterEach(() => globalThis.provider.verify());
   afterAll(() => globalThis.provider.finalize());
@@ -42,7 +43,9 @@ describe("ReleasesService", () => {
         fail(err);
       });
   });
+});
 
+<<<<<<< HEAD
   test("report compatibility results", () => {
     globalThis.provider.addInteraction({
       state: "result reported",
@@ -60,7 +63,20 @@ describe("ReleasesService", () => {
     const apiClient = new VendorPortalApi();
     apiClient.apiToken = "abcd1234";
     apiClient.endpoint = globalThis.provider.mockService.baseUrl;
+=======
+describe("Report Results", () => {
+  const mockServer = mockttp.getLocal();
+  const apiClient = new VendorPortalApi();
+  apiClient.apiToken = "abcd1234";
+  apiClient.endpoint = "http://localhost:8282";
+  // Start your mock server
+  beforeEach(() => {
+    mockServer.start(8282);
+  });
+  afterEach(() => mockServer.stop());
+>>>>>>> main
 
+  test("report compatibility results", async () => {
     const c11yResult: CompatibilityResult = {
       distribution: "eks",
       version: "1.27",
@@ -68,6 +84,7 @@ describe("ReleasesService", () => {
       successNotes: "working"
     };
 
+    await mockServer.forPost("/app/1234abcd/release/1/compatibility").thenReply(201, JSON.stringify(c11yResult));
     return reportCompatibilityResultByAppId(apiClient, "1234abcd", 1, c11yResult)
       .then(() => {
         expect(true).toEqual(true);
@@ -76,36 +93,34 @@ describe("ReleasesService", () => {
         fail(err);
       });
   });
+});
 
-  test("get release", () => {
-    globalThis.provider.addInteraction({
-      state: "get promoted",
-      uponReceiving: "a request for get a release",
-      withRequest: {
-        method: "GET",
-        path: "/app/1234abcd/release/1"
-      },
-      willRespondWith: {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-        body: {
-          release: {
-            sequence: 1,
-            charts: [
-              {
-                name: "my-chart",
-                version: "1.0.0",
-                status: "unknowm"
-              }
-            ]
+describe("Get Release", () => {
+  const mockServer = mockttp.getLocal();
+  const apiClient = new VendorPortalApi();
+  apiClient.apiToken = "abcd1234";
+  apiClient.endpoint = "http://localhost:8181";
+  // Start your mock server
+  beforeEach(() => {
+    mockServer.start(8181);
+  });
+  afterEach(() => mockServer.stop());
+
+  test("get release", async () => {
+    const data = {
+      release: {
+        sequence: 1,
+        charts: [
+          {
+            name: "my-chart",
+            version: "1.0.0",
+            status: "unknown"
           }
-        }
+        ]
       }
-    });
+    };
 
-    const apiClient = new VendorPortalApi();
-    apiClient.apiToken = "abcd1234";
-    apiClient.endpoint = globalThis.provider.mockService.baseUrl;
+    await mockServer.forGet("/app/1234abcd/release/1").thenReply(200, JSON.stringify(data));
 
     return getReleaseByAppId(apiClient, "1234abcd", 1)
       .then(() => {

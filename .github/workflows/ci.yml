@@ -1,19 +1,33 @@
 name: CI
 
-on: push
+on:
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
-
+      - uses: actions/checkout@v4
+      - name: set node-version
+        uses: actions/setup-node@v4
+        with:
+          registry-url: 'https://registry.npmjs.org/'
+          node-version-file: 'package.json'
       - name: Build
         run: make build
 
       - name: Prettier
         run: make prettier
+
+      - name: fail if files changed
+        run: |
+          if ! git diff --quiet --exit-code ; then
+            echo "Please run 'make package-all' and 'make readme-all' locally and commit the changes."
+            exit 1
+          fi
 
       - name: Test
         run: make test

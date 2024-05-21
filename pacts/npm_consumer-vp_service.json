@@ -110,32 +110,6 @@
       }
     },
     {
-      "description": "a request for get a release",
-      "providerState": "get promoted",
-      "request": {
-        "method": "GET",
-        "path": "/app/1234abcd/release/1"
-      },
-      "response": {
-        "body": {
-          "release": {
-            "charts": [
-              {
-                "name": "my-chart",
-                "status": "unknowm",
-                "version": "1.0.0"
-              }
-            ],
-            "sequence": 1
-          }
-        },
-        "headers": {
-          "Content-Type": "application/json"
-        },
-        "status": 200
-      }
-    },
-    {
       "description": "a request for promoting a release",
       "providerState": "release promoted",
       "request": {
@@ -147,20 +121,6 @@
           "Content-Type": "application/json"
         },
         "status": 200
-      }
-    },
-    {
-      "description": "a request for reporting compatibility result",
-      "providerState": "release promoted",
-      "request": {
-        "method": "POST",
-        "path": "/app/1234abcd/release/1/compatibility"
-      },
-      "response": {
-        "headers": {
-          "Content-Type": "application/json"
-        },
-        "status": 201
       }
     }
   ],

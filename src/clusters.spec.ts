@@ -194,7 +194,7 @@ describe("Cluster Add-ons", () => {
   apiClient.apiToken = "abcd1234";
 
   beforeAll(async () => {
-    await mockServer.start();
+    await mockServer.start(8181);
     apiClient.endpoint = `http://localhost:${mockServer.port}`;
   });
 
@@ -321,7 +321,7 @@ describe("Cluster Exposed Ports", () => {
   apiClient.apiToken = "abcd1234";
 
   beforeAll(async () => {
-    await mockServer.start();
+    await mockServer.start(8282);
     apiClient.endpoint = `http://localhost:${mockServer.port}`;
   });
 
