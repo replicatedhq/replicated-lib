@@ -27,7 +27,7 @@ export class KubernetesDistribution {
   isAirgap: boolean;
 }
 
-export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: string, name: string, email: string, licenseType: string, channelSlug: string, expiresIn: number, entitlementValues?: entitlementValue[], isKotsInstallEnabled?: boolean): Promise<Customer> {
+export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: string, name: string, email: string, licenseType: string, channelSlug: string, expiresIn: number, entitlementValues?: entitlementValue[], isKotsInstallEnabled?: boolean, isDevModeEnabled?: boolean): Promise<Customer> {
   try {
     const app = await getApplicationDetails(vendorPortalApi, appSlug);
 
@@ -58,6 +58,9 @@ export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: 
     }
     if (entitlementValues) {
       createCustomerReqBody["entitlementValues"] = entitlementValues;
+    }
+    if (isDevModeEnabled !== undefined) {
+      createCustomerReqBody["is_dev_mode_enabled"] = isDevModeEnabled;
     }
 
     const createCustomerRes = await http.post(createCustomerUri, JSON.stringify(createCustomerReqBody));
