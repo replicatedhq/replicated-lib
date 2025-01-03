@@ -330,47 +330,6 @@ export async function createAddonObjectStore(vendorPortalApi: VendorPortalApi, c
   return addon;
 }
 
-export async function createAddonPostgres(vendorPortalApi: VendorPortalApi, clusterId: string, version?: string, instanceType?: string, diskGib?: number): Promise<Addon> {
-  const http = await vendorPortalApi.client();
-
-  const uri = `${vendorPortalApi.endpoint}/cluster/${clusterId}/addons/postgres`;
-
-  const reqBody = {};
-  if (version) {
-    reqBody["version"] = version;
-  }
-  if (instanceType) {
-    reqBody["instance_type"] = instanceType;
-  }
-  if (diskGib) {
-    reqBody["disk_gib"] = diskGib;
-  }
-  const res = await http.post(uri, JSON.stringify(reqBody));
-  if (res.message.statusCode != 201) {
-    let body = "";
-    try {
-      body = await res.readBody();
-    } catch (err) {
-      // ignore
-    }
-    throw new Error(`Failed to queue add-on create: Server responded with ${res.message.statusCode}: ${body}`);
-  }
-
-  const body: any = JSON.parse(await res.readBody());
-
-  var addon: Addon = { id: body.addon.id, status: body.addon.status };
-  if (body.addon.postgres) {
-    addon.postgres = {
-      uri: body.addon.postgres.uri,
-      version: body.addon.postgres.version,
-      instance_type: body.addon.postgres.instance_type,
-      disk_gib: body.addon.postgres.disk_gib
-    };
-  }
-
-  return addon;
-}
-
 export async function pollForAddonStatus(vendorPortalApi: VendorPortalApi, clusterId: string, addonId: string, expectedStatus: string, timeout: number = 120, sleeptimeMs: number = 5000): Promise<Addon> {
   // get add-ons from the api, look for the status of the id to be ${status}
   // if it's not ${status}, sleep for 5 seconds and try again
