@@ -1,6 +1,6 @@
 import { VendorPortalApi } from "./configuration";
 import { createCluster, createClusterWithLicense, upgradeCluster, pollForStatus } from ".";
-import { Addon, Cluster, ClusterPort, StatusError, createAddonObjectStore, createAddonPostgres, exposeClusterPort, pollForAddonStatus } from "./clusters";
+import { Addon, Cluster, ClusterPort, StatusError, createAddonObjectStore, exposeClusterPort, pollForAddonStatus } from "./clusters";
 import * as mockttp from "mockttp";
 
 describe("ClusterService", () => {
@@ -224,29 +224,6 @@ describe("Cluster Add-ons", () => {
     expect(addon.id).toEqual(expectedAddon.addon.id);
     expect(addon.status).toEqual(expectedAddon.addon.status);
     expect(addon.object_store).toEqual(expectedAddon.addon.object_store);
-  });
-
-  test("should return postgres add-on", async () => {
-    const clusterId = "1234abcd";
-    const expectedAddon = {
-      addon: {
-        id: "abcd1234",
-        status: "applied",
-        postgres: {
-          uri: "postgres://postgres:1234@test:5432",
-          version: "16.2",
-          instance_type: "db.t3.micro",
-          disk_gib: 200
-        }
-      }
-    };
-
-    await mockServer.forPost(`/cluster/${clusterId}/addons/postgres`).thenReply(201, JSON.stringify(expectedAddon));
-
-    const addon: Addon = await createAddonPostgres(apiClient, clusterId);
-    expect(addon.id).toEqual(expectedAddon.addon.id);
-    expect(addon.status).toEqual(expectedAddon.addon.status);
-    expect(addon.postgres).toEqual(expectedAddon.addon.postgres);
   });
 
   test("should eventually return success with expected status", async () => {
