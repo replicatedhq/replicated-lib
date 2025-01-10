@@ -113,6 +113,16 @@
       "description": "a request for promoting a release",
       "providerState": "release promoted",
       "request": {
+        "body": {
+          "channelIds": [
+            "channelid"
+          ],
+          "releaseNotesGzip": "H4sIAAAAAAAAA1MqSs1JTSxOVcjLL0ktVgIAxFWEEQ8AAAA=",
+          "versionLabel": "v1.0.0"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
         "method": "POST",
         "path": "/app/1234abcd/release/1/promote"
       },

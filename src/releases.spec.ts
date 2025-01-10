@@ -3,7 +3,7 @@ import { ReleaseChart, exportedForTesting, KotsSingleSpec, createReleaseFromChar
 import * as mockttp from "mockttp";
 import * as fs from "fs-extra";
 import * as path from "path";
-import { sl } from "date-fns/locale";
+import { gzip } from "pako";
 
 const areReleaseChartsPushed = exportedForTesting.areReleaseChartsPushed;
 const getReleaseByAppId = exportedForTesting.getReleaseByAppId;
@@ -23,7 +23,12 @@ describe("Promote Release", () => {
       uponReceiving: "a request for promoting a release",
       withRequest: {
         method: "POST",
-        path: "/app/1234abcd/release/1/promote"
+        path: "/app/1234abcd/release/1/promote",
+        body: {
+          versionLabel: "v1.0.0",
+          channelIds: ["channelid"],
+          releaseNotesGzip: Buffer.from(gzip(JSON.stringify("release notes"))).toString("base64")
+        }
       },
       willRespondWith: {
         status: 200,
@@ -35,7 +40,7 @@ describe("Promote Release", () => {
     apiClient.apiToken = "abcd1234";
     apiClient.endpoint = globalThis.provider.mockService.baseUrl;
 
-    return promoteReleaseByAppId(apiClient, "1234abcd", "channelid", 1, "v1.0.0")
+    return promoteReleaseByAppId(apiClient, "1234abcd", "channelid", 1, "v1.0.0", "release notes")
       .then(() => {
         expect(true).toEqual(true);
       })
