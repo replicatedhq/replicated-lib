@@ -213,20 +213,23 @@ function isSupportedExt(ext: string): boolean {
   return supportedExts.includes(ext);
 }
 
-export async function promoteRelease(vendorPortalApi: VendorPortalApi, appSlug: string, channelId: string, releaseSequence: number, version: string) {
+export async function promoteRelease(vendorPortalApi: VendorPortalApi, appSlug: string, channelId: string, releaseSequence: number, version: string, releaseNotes?: string) {
   // 1. get the app id from the app slug
   const app = await getApplicationDetails(vendorPortalApi, appSlug);
 
   // 2. promote the release
-  await promoteReleaseByAppId(vendorPortalApi, app.id, channelId, releaseSequence, version);
+  await promoteReleaseByAppId(vendorPortalApi, app.id, channelId, releaseSequence, version, releaseNotes);
 }
 
-async function promoteReleaseByAppId(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, releaseSequence: number, version: string) {
+async function promoteReleaseByAppId(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, releaseSequence: number, version: string, releaseNotes?: string) {
   const http = await vendorPortalApi.client();
   const reqBody = {
     versionLabel: version,
     channelIds: [channelId]
   };
+  if (releaseNotes) {
+    reqBody["releaseNotesGzip"] = gzipData(releaseNotes);
+  }
   const uri = `${vendorPortalApi.endpoint}/app/${appId}/release/${releaseSequence}/promote`;
   const res = await http.post(uri, JSON.stringify(reqBody));
   if (res.message.statusCode != 200) {
