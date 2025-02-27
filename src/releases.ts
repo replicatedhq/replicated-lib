@@ -11,6 +11,7 @@ import { zonedTimeToUtc } from "date-fns-tz";
 export interface Release {
   sequence: string;
   charts?: ReleaseChart[];
+  airgapBuildStatus?: string;
 }
 
 export interface ReleaseChart {
@@ -44,6 +45,15 @@ export const exportedForTesting = {
   readChart,
   reportCompatibilityResultByAppId
 };
+
+export class StatusError extends Error {
+  statusCode: number;
+
+  constructor(message: string, statusCode: number) {
+    super(message);
+    this.statusCode = statusCode;
+  }
+}
 
 export async function createRelease(vendorPortalApi: VendorPortalApi, appSlug: string, yamlDir: string): Promise<Release> {
   const http = await vendorPortalApi.client();
@@ -340,4 +350,57 @@ async function reportCompatibilityResultByAppId(vendorPortalApi: VendorPortalApi
   }
   // discard the response body
   await res.readBody();
+}
+
+export async function pollForAirgapReleaseStatus(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, releaseSequence: number, expectedStatus: string, timeout: number = 120, sleeptimeMs: number = 5000): Promise<string> {
+  // get airgapped build release from the api, look for the status of the id to be ${status}
+  // if it's not ${status}, sleep for 5 seconds and try again
+  // if it is ${status}, return the release with that status
+  // iterate for timeout/sleeptime times
+  const iterations = (timeout * 1000) / sleeptimeMs;
+  for (let i = 0; i < iterations; i++) {
+    try {
+        const release = await getAirgapBuildRelease(vendorPortalApi, appId, channelId, releaseSequence);
+        if (release.airgapBuildStatus === expectedStatus) {
+          return release.airgapBuildStatus;
+      }
+      if (release.airgapBuildStatus === "failed") {
+        console.debug(`Airgapped build release ${releaseSequence} failed`);
+        return "failed";
+      }
+      console.debug(`Airgapped build release ${releaseSequence} is not ready, sleeping for ${sleeptimeMs / 1000} seconds`);
+      await new Promise(f => setTimeout(f, sleeptimeMs));
+    } catch (err) {
+      if (err instanceof StatusError) {
+        if (err.statusCode >= 500) {
+          // 5xx errors are likely transient, so we should retry
+          console.debug(`Got HTTP error with status ${err.statusCode}, sleeping for ${sleeptimeMs / 1000} seconds`);
+        } else {
+          console.debug(`Got HTTP error with status ${err.statusCode}, exiting`);
+          throw err;
+        }
+      } else {
+        throw err;
+      }
+    }
+  }
+}
+
+
+async function getAirgapBuildRelease(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, releaseSequence: number): Promise<Release> {
+  const http = await vendorPortalApi.client();
+  const uri = `${vendorPortalApi.endpoint}/app/${appId}/channel/${channelId}/releases`;
+  const res = await http.get(uri);
+  if (res.message.statusCode != 200) {
+    // discard the response body
+    await res.readBody();
+    throw new Error(`Failed to get airgap build release: Server responded with ${res.message.statusCode}`);
+  }
+  const body: any = JSON.parse(await res.readBody());
+  console.debug(`Airgapped build release body: ${JSON.stringify(body)}`);
+  const release = body.releases.find((r: any) => r.sequence === releaseSequence);
+  return {
+    sequence: release.sequence,
+    airgapBuildStatus: release.airgapBuildStatus,
+  }
 }
