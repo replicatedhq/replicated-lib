@@ -1,5 +1,5 @@
 import { VendorPortalApi } from "./configuration";
-import { ReleaseChart, exportedForTesting, KotsSingleSpec, createReleaseFromChart, Release, CompatibilityResult } from "./releases";
+import { ReleaseChart, exportedForTesting, KotsSingleSpec, createReleaseFromChart, Release, CompatibilityResult, pollForAirgapReleaseStatus } from "./releases";
 import * as mockttp from "mockttp";
 import * as fs from "fs-extra";
 import * as path from "path";
@@ -296,5 +296,32 @@ describe("createReleaseFromChart", () => {
     const release: Release = await createReleaseFromChart(apiClient, "app-1", tempFilePath);
     expect(release.sequence).toBeGreaterThanOrEqual(0);
     expect(release.charts?.length).toEqual(1);
+  });
+});
+
+describe("pollForAirgapReleaseStatus", () => {
+  const mockServer = mockttp.getLocal();
+  const apiClient = new VendorPortalApi();
+  apiClient.apiToken = "abcd1234";
+  apiClient.endpoint = "http://localhost:8080";
+  // Start your mock server
+  beforeEach(() => {
+    mockServer.start(8080);
+  });
+  afterEach(() => mockServer.stop());
+
+  it("poll for airgapped release status", async () => {
+    const data = {
+      releases: [
+        {
+          sequence: 0,
+          airgapBuildStatus: "built"
+        }
+      ]
+    };
+    await mockServer.forGet("/app/1234abcd/channel/1/releases").thenReply(200, JSON.stringify(data));
+
+    const result = await pollForAirgapReleaseStatus(apiClient, "1234abcd", "1", 0, "built");
+    expect(result).toEqual("built");
   });
 });

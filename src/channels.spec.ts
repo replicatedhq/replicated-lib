@@ -15,7 +15,8 @@ describe("findChannelDetailsInOutput", () => {
         appName: "relmatrix",
         channelSlug: "stable",
         name: "Stable",
-        releaseSequence: 1
+        releaseSequence: 1,
+        buildAirgapAutomatically: true
       },
       {
         id: "channelid2",
@@ -24,7 +25,8 @@ describe("findChannelDetailsInOutput", () => {
         appName: "relmatrix",
         channelSlug: "ci-reliability-matrix",
         name: "ci-reliability-matrix",
-        releaseSequence: 2
+        releaseSequence: 2,
+        buildAirgapAutomatically: false
       }
     ];
     const channelSlug = "ci-reliability-matrix";
@@ -41,8 +43,8 @@ describe("ChannelsService", () => {
   test("should return channel", () => {
     const expectedChannels = {
       channels: [
-        { id: "1234abcd", name: "Stable", channelSlug: "stable", releaseSequence: 1 },
-        { id: "5678efgh", name: "Beta", channelSlug: "beta", releaseSequence: 2 }
+        { id: "1234abcd", name: "Stable", channelSlug: "stable", releaseSequence: 1, buildAirgapAutomatically: true },
+        { id: "5678efgh", name: "Beta", channelSlug: "beta", releaseSequence: 2, buildAirgapAutomatically: false }
       ]
     };
 

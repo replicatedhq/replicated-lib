@@ -18,12 +18,14 @@
         "body": {
           "channels": [
             {
+              "buildAirgapAutomatically": true,
               "channelSlug": "stable",
               "id": "1234abcd",
               "name": "Stable",
               "releaseSequence": 1
             },
             {
+              "buildAirgapAutomatically": false,
               "channelSlug": "beta",
               "id": "5678efgh",
               "name": "Beta",
