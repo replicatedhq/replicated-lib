@@ -6,6 +6,7 @@ export class Channel {
   id: string;
   slug: string;
   releaseSequence?: number;
+  buildAirgapAutomatically?: boolean;
 }
 
 export const exportedForTesting = {
@@ -98,10 +99,10 @@ export async function archiveChannel(vendorPortalApi: VendorPortalApi, appSlug: 
 async function findChannelDetailsInOutput(channels: any[], { slug, name }: ChannelIdentifier): Promise<Channel> {
   for (const channel of channels) {
     if (slug && channel.channelSlug == slug) {
-      return { name: channel.name, id: channel.id, slug: channel.channelSlug, releaseSequence: channel.releaseSequence };
+      return { name: channel.name, id: channel.id, slug: channel.channelSlug, releaseSequence: channel.releaseSequence, buildAirgapAutomatically: channel.buildAirgapAutomatically };
     }
     if (name && channel.name == name) {
-      return { name: channel.name, id: channel.id, slug: channel.channelSlug, releaseSequence: channel.releaseSequence };
+      return { name: channel.name, id: channel.id, slug: channel.channelSlug, releaseSequence: channel.releaseSequence, buildAirgapAutomatically: channel.buildAirgapAutomatically };
     }
   }
   return Promise.reject({ channel: null, reason: `Could not find channel with slug ${slug} or name ${name}` });
