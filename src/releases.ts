@@ -360,9 +360,9 @@ export async function pollForAirgapReleaseStatus(vendorPortalApi: VendorPortalAp
   const iterations = (timeout * 1000) / sleeptimeMs;
   for (let i = 0; i < iterations; i++) {
     try {
-        const release = await getAirgapBuildRelease(vendorPortalApi, appId, channelId, releaseSequence);
-        if (release.airgapBuildStatus === expectedStatus) {
-          return release.airgapBuildStatus;
+      const release = await getAirgapBuildRelease(vendorPortalApi, appId, channelId, releaseSequence);
+      if (release.airgapBuildStatus === expectedStatus) {
+        return release.airgapBuildStatus;
       }
       if (release.airgapBuildStatus === "failed") {
         console.debug(`Airgapped build release ${releaseSequence} failed`);
@@ -386,7 +386,6 @@ export async function pollForAirgapReleaseStatus(vendorPortalApi: VendorPortalAp
   }
 }
 
-
 async function getAirgapBuildRelease(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, releaseSequence: number): Promise<Release> {
   const http = await vendorPortalApi.client();
   const uri = `${vendorPortalApi.endpoint}/app/${appId}/channel/${channelId}/releases`;
@@ -401,6 +400,6 @@ async function getAirgapBuildRelease(vendorPortalApi: VendorPortalApi, appId: st
   const release = body.releases.find((r: any) => r.sequence === releaseSequence);
   return {
     sequence: release.sequence,
-    airgapBuildStatus: release.airgapBuildStatus,
-  }
+    airgapBuildStatus: release.airgapBuildStatus
+  };
 }
