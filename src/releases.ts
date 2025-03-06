@@ -375,6 +375,7 @@ export async function pollForAirgapReleaseStatus(vendorPortalApi: VendorPortalAp
         if (err.statusCode >= 500) {
           // 5xx errors are likely transient, so we should retry
           console.debug(`Got HTTP error with status ${err.statusCode}, sleeping for ${sleeptimeMs / 1000} seconds`);
+          await new Promise(f => setTimeout(f, sleeptimeMs));
         } else {
           console.debug(`Got HTTP error with status ${err.statusCode}, exiting`);
           throw err;
@@ -384,6 +385,7 @@ export async function pollForAirgapReleaseStatus(vendorPortalApi: VendorPortalAp
       }
     }
   }
+  throw new Error(`Airgapped build release ${releaseSequence} did not reach status ${expectedStatus} in ${timeout} seconds`);
 }
 
 async function getAirgapBuildRelease(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, releaseSequence: number): Promise<Release> {

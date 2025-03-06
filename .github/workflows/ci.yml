@@ -25,7 +25,7 @@ jobs:
       - name: fail if files changed
         run: |
           if ! git diff --quiet --exit-code ; then
-            echo "Please run 'make build' and 'make Prettier' locally and commit the changes."
+            echo "Please run 'make build' and 'make prettier' locally and commit the changes."
             exit 1
           fi
 
