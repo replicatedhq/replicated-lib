@@ -8,7 +8,8 @@
         "test": "npx jest --coverage --verbose --setupFiles ./pacts/configuration.ts",
         "create-object-store": "rm -rf examples/*.js && tsc examples/create-object-store.ts && node examples/create-object-store.js",
         "create-postgres": "rm -rf examples/*.js && tsc examples/create-postgres.ts && node examples/create-postgres.js",
-        "expose-port": "rm -rf examples/*.js && tsc examples/expose-port.ts && node examples/expose-port.js"
+        "expose-port": "rm -rf examples/*.js && tsc examples/expose-port.ts && node examples/expose-port.js",
+        "poll-airgap": "rm -rf examples/*.js && tsc examples/poll-for-airgap-build.ts && node examples/poll-for-airgap-build.js"
     },
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
