@@ -398,7 +398,6 @@ async function getAirgapBuildRelease(vendorPortalApi: VendorPortalApi, appId: st
     throw new Error(`Failed to get airgap build release: Server responded with ${res.message.statusCode}`);
   }
   const body: any = JSON.parse(await res.readBody());
-  console.debug(`Airgapped build release body: ${JSON.stringify(body)}`);
   const release = body.releases.find((r: any) => r.sequence === releaseSequence);
   return {
     sequence: release.sequence,
