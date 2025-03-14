@@ -1,6 +1,7 @@
 import { Interaction } from "@pact-foundation/pact";
-import { exportedForTesting } from "./channels";
+import { exportedForTesting, pollForAirgapReleaseStatus } from "./channels";
 import { VendorPortalApi } from "./configuration";
+import * as mockttp from "mockttp";
 
 const getChannelByApplicationId = exportedForTesting.getChannelByApplicationId;
 const findChannelDetailsInOutput = exportedForTesting.findChannelDetailsInOutput;
@@ -79,5 +80,32 @@ describe("ChannelsService", () => {
       expect(channel.slug).toEqual(expectedChannels.channels[0].channelSlug);
       expect(channel.releaseSequence).toEqual(expectedChannels.channels[0].releaseSequence);
     });
+  });
+});
+
+describe("pollForAirgapReleaseStatus", () => {
+  const mockServer = mockttp.getLocal();
+  const apiClient = new VendorPortalApi();
+  apiClient.apiToken = "abcd1234";
+  apiClient.endpoint = "http://localhost:8080";
+  // Start your mock server
+  beforeEach(() => {
+    mockServer.start(8080);
+  });
+  afterEach(() => mockServer.stop());
+
+  it("poll for airgapped release status", async () => {
+    const data = {
+      releases: [
+        {
+          sequence: 0,
+          airgapBuildStatus: "built"
+        }
+      ]
+    };
+    await mockServer.forGet("/app/1234abcd/channel/1/releases").thenReply(200, JSON.stringify(data));
+
+    const result = await pollForAirgapReleaseStatus(apiClient, "1234abcd", "1", 0, "built");
+    expect(result).toEqual("built");
   });
 });

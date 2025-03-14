@@ -2,7 +2,7 @@
 // Usage: node poll-for-airgap-build.js <appId> <channelId> <releaseSequence> <expectedStatus>
 
 import { VendorPortalApi } from "../dist/configuration";
-import { pollForAirgapReleaseStatus } from "../dist/releases";
+import { pollForAirgapReleaseStatus } from "../dist/channels";
 import * as readline from 'readline';
 
 // Function to get input from the user
