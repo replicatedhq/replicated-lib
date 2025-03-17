@@ -2,7 +2,7 @@
 // Usage: node poll-for-airgap-build.js <appId> <channelId> <releaseSequence> <expectedStatus>
 
 import { VendorPortalApi } from "../dist/configuration";
-import { pollForAirgapReleaseStatus } from "../dist/channels";
+import { pollForAirgapReleaseStatus, getDownloadUrlAirgapBuildRelease } from "../dist/channels";
 import * as readline from 'readline';
 
 // Function to get input from the user
@@ -81,6 +81,12 @@ async function main() {
     );
 
     console.log(`\nSuccess! Release ${releaseSequence} has reached status: ${status}`);
+
+    if (status === "built") {
+      const downloadUrl = await getDownloadUrlAirgapBuildRelease(api, appId, channelId, releaseSequence);
+      console.log(`\nDownload URL: ${downloadUrl}`);
+    }
+
   } catch (error) {
     console.error(`\nError: ${error.message}`);
     process.exit(1);

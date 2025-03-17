@@ -1,5 +1,5 @@
 import { Interaction } from "@pact-foundation/pact";
-import { exportedForTesting, pollForAirgapReleaseStatus } from "./channels";
+import { exportedForTesting, pollForAirgapReleaseStatus, getDownloadUrlAirgapBuildRelease } from "./channels";
 import { VendorPortalApi } from "./configuration";
 import * as mockttp from "mockttp";
 
@@ -94,18 +94,53 @@ describe("pollForAirgapReleaseStatus", () => {
   });
   afterEach(() => mockServer.stop());
 
-  it("poll for airgapped release status", async () => {
-    const data = {
+  it("should poll for airgapped release status until it reaches the expected status", async () => {
+    const releaseData = {
       releases: [
         {
           sequence: 0,
+          channelSequence: 1,
           airgapBuildStatus: "built"
         }
       ]
     };
-    await mockServer.forGet("/app/1234abcd/channel/1/releases").thenReply(200, JSON.stringify(data));
 
-    const result = await pollForAirgapReleaseStatus(apiClient, "1234abcd", "1", 0, "built");
-    expect(result).toEqual("built");
+    await mockServer.forGet("/app/1234abcd/channel/1/releases").thenReply(200, JSON.stringify(releaseData));
+
+    const releaseResult = await pollForAirgapReleaseStatus(apiClient, "1234abcd", "1", 0, "built");
+    expect(releaseResult).toEqual("built");
+  });
+});
+
+describe("getDownloadUrlAirgapBuildRelease", () => {
+  const mockServer = mockttp.getLocal();
+  const apiClient = new VendorPortalApi();
+  apiClient.apiToken = "abcd1234";
+  apiClient.endpoint = "http://localhost:8081";
+  // Start your mock server
+  beforeEach(() => {
+    mockServer.start(8081);
+  });
+  afterEach(() => mockServer.stop());
+
+  it("should get the download URL for an airgap build release", async () => {
+    const releaseData = {
+      releases: [
+        {
+          sequence: 0,
+          channelSequence: 1,
+          airgapBuildStatus: "built"
+        }
+      ]
+    };
+    const downloadUrlData = {
+      url: "https://s3.amazonaws.com/airgap.replicated.com/xxxxxxxxx/7.airgap?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=xxxxxx%2F20250317%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date="
+    };
+
+    await mockServer.forGet("/app/1234abcd/channel/1/releases").thenReply(200, JSON.stringify(releaseData));
+    await mockServer.forGet("/app/1234abcd/channel/1/airgap/download-url").withQuery({ channelSequence: 1 }).thenReply(200, JSON.stringify(downloadUrlData));
+
+    const downloadUrlResult = await getDownloadUrlAirgapBuildRelease(apiClient, "1234abcd", "1", 0);
+    expect(downloadUrlResult).toEqual("https://s3.amazonaws.com/airgap.replicated.com/xxxxxxxxx/7.airgap?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=xxxxxx%2F20250317%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=");
   });
 });

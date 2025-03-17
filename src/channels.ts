@@ -116,6 +116,7 @@ async function findChannelDetailsInOutput(channels: any[], { slug, name }: Chann
     }
   }
   return Promise.reject({ channel: null, reason: `Could not find channel with slug ${slug} or name ${name}` });
+  
 }
 
 export async function pollForAirgapReleaseStatus(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, releaseSequence: number, expectedStatus: string, timeout: number = 120, sleeptimeMs: number = 5000): Promise<string> {
@@ -154,6 +155,22 @@ export async function pollForAirgapReleaseStatus(vendorPortalApi: VendorPortalAp
   throw new Error(`Airgapped build release ${releaseSequence} did not reach status ${expectedStatus} in ${timeout} seconds`);
 }
 
+export async function getDownloadUrlAirgapBuildRelease(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, releaseSequence: number): Promise<string> {
+  const release = await getAirgapBuildRelease(vendorPortalApi, appId, channelId, releaseSequence);
+  const http = await vendorPortalApi.client();
+  const uri = `${vendorPortalApi.endpoint}/app/${appId}/channel/${channelId}/airgap/download-url?channelSequence=${release.channelSequence}`;
+  console.log(`Getting download url for airgapped build release ${releaseSequence} from ${uri}`);
+  const res = await http.get(uri);
+
+  if (res.message.statusCode != 200) {
+    // discard the response body
+    await res.readBody();
+    throw new Error(`Failed to get airgap build release: Server responded with ${res.message.statusCode}`);
+  }
+  const body: any = JSON.parse(await res.readBody());
+  return body.url;
+}
+
 async function getAirgapBuildRelease(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, releaseSequence: number): Promise<Release> {
   const http = await vendorPortalApi.client();
   const uri = `${vendorPortalApi.endpoint}/app/${appId}/channel/${channelId}/releases`;
@@ -167,6 +184,7 @@ async function getAirgapBuildRelease(vendorPortalApi: VendorPortalApi, appId: st
   const release = body.releases.find((r: any) => r.sequence === releaseSequence);
   return {
     sequence: release.sequence,
+    channelSequence: release.channelSequence,
     airgapBuildStatus: release.airgapBuildStatus
   };
 }
