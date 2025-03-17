@@ -116,7 +116,6 @@ async function findChannelDetailsInOutput(channels: any[], { slug, name }: Chann
     }
   }
   return Promise.reject({ channel: null, reason: `Could not find channel with slug ${slug} or name ${name}` });
-  
 }
 
 export async function pollForAirgapReleaseStatus(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, releaseSequence: number, expectedStatus: string, timeout: number = 120, sleeptimeMs: number = 5000): Promise<string> {
