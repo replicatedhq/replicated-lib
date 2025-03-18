@@ -1,6 +1,10 @@
 import { getApplicationDetails } from "./applications";
 import { VendorPortalApi } from "./configuration";
-import { AirgapBuildRelease } from "./releases";
+export interface ChannelRelease {
+  sequence: string;
+  channelSequence?: string;
+  airgapBuildStatus?: string;
+}
 
 export class Channel {
   name: string;
@@ -157,7 +161,7 @@ export async function pollForAirgapReleaseStatus(vendorPortalApi: VendorPortalAp
 export async function getDownloadUrlAirgapBuildRelease(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, releaseSequence: number): Promise<string> {
   const release = await getAirgapBuildRelease(vendorPortalApi, appId, channelId, releaseSequence);
   const http = await vendorPortalApi.client();
-  const uri = `${vendorPortalApi.endpoint}/app/${appId}/channel/${channelId}/airgap/download-url?channelSequence=${release.promotedChannelSequence}`;
+  const uri = `${vendorPortalApi.endpoint}/app/${appId}/channel/${channelId}/airgap/download-url?channelSequence=${release.channelSequence}`;
   const res = await http.get(uri);
 
   if (res.message.statusCode != 200) {
@@ -169,7 +173,7 @@ export async function getDownloadUrlAirgapBuildRelease(vendorPortalApi: VendorPo
   return body.url;
 }
 
-async function getAirgapBuildRelease(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, releaseSequence: number): Promise<AirgapBuildRelease> {
+async function getAirgapBuildRelease(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, releaseSequence: number): Promise<ChannelRelease> {
   const http = await vendorPortalApi.client();
   const uri = `${vendorPortalApi.endpoint}/app/${appId}/channel/${channelId}/releases`;
   const res = await http.get(uri);
@@ -182,7 +186,7 @@ async function getAirgapBuildRelease(vendorPortalApi: VendorPortalApi, appId: st
   const release = body.releases.find((r: any) => r.sequence === releaseSequence);
   return {
     sequence: release.sequence,
-    promotedChannelSequence: release.channelSequence,
+    channelSequence: release.channelSequence,
     airgapBuildStatus: release.airgapBuildStatus
   };
 }

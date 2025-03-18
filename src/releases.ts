@@ -13,12 +13,6 @@ export interface Release {
   charts?: ReleaseChart[];
 }
 
-export interface AirgapBuildRelease {
-  sequence: string;
-  promotedChannelSequence?: string;
-  airgapBuildStatus?: string;
-}
-
 export interface ReleaseChart {
   name: string;
   version: string;
