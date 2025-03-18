@@ -157,8 +157,7 @@ export async function pollForAirgapReleaseStatus(vendorPortalApi: VendorPortalAp
 export async function getDownloadUrlAirgapBuildRelease(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, releaseSequence: number): Promise<string> {
   const release = await getAirgapBuildRelease(vendorPortalApi, appId, channelId, releaseSequence);
   const http = await vendorPortalApi.client();
-  const uri = `${vendorPortalApi.endpoint}/app/${appId}/channel/${channelId}/airgap/download-url?channelSequence=${release.channelSequence}`;
-  console.log(`Getting download url for airgapped build release ${releaseSequence} from ${uri}`);
+  const uri = `${vendorPortalApi.endpoint}/app/${appId}/channel/${channelId}/airgap/download-url?channelSequence=${release.promotedChannelSequence}`;
   const res = await http.get(uri);
 
   if (res.message.statusCode != 200) {
@@ -183,7 +182,7 @@ async function getAirgapBuildRelease(vendorPortalApi: VendorPortalApi, appId: st
   const release = body.releases.find((r: any) => r.sequence === releaseSequence);
   return {
     sequence: release.sequence,
-    channelSequence: release.channelSequence,
+    promotedChannelSequence: release.channelSequence,
     airgapBuildStatus: release.airgapBuildStatus
   };
 }

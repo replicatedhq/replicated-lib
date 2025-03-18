@@ -10,7 +10,7 @@ import { zonedTimeToUtc } from "date-fns-tz";
 
 export interface Release {
   sequence: string;
-  channelSequence?: string;
+  promotedChannelSequence?: string;
   charts?: ReleaseChart[];
   airgapBuildStatus?: string;
 }
