@@ -1,6 +1,6 @@
 import { getApplicationDetails } from "./applications";
 import { VendorPortalApi } from "./configuration";
-import { Release } from "./releases";
+import { AirgapBuildRelease } from "./releases";
 
 export class Channel {
   name: string;
@@ -169,7 +169,7 @@ export async function getDownloadUrlAirgapBuildRelease(vendorPortalApi: VendorPo
   return body.url;
 }
 
-async function getAirgapBuildRelease(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, releaseSequence: number): Promise<Release> {
+async function getAirgapBuildRelease(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, releaseSequence: number): Promise<AirgapBuildRelease> {
   const http = await vendorPortalApi.client();
   const uri = `${vendorPortalApi.endpoint}/app/${appId}/channel/${channelId}/releases`;
   const res = await http.get(uri);
