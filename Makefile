@@ -38,8 +38,15 @@ ci-check: deps build prettier
 		if git diff --quiet package-lock.json 2>/dev/null; then \
 			echo "Please run 'make build' and 'make prettier' locally and commit the changes."; \
 		else \
-			echo "package-lock.json was modified. This means it's out of sync with package.json"; \
-			echo "Please run 'npm install' locally and commit the updated package-lock.json"; \
+			echo "package-lock.json was modified. Checking if it's just peer metadata differences..."; \
+			git diff package-lock.json > /tmp/package-lock.diff; \
+			if grep -q '^[+-].*"peer":' /tmp/package-lock.diff && ! grep -qvE '^[+-].*"peer":|^[+-]---|^[+]\+\+\+|^@@' /tmp/package-lock.diff; then \
+				echo "⚠️  Only peer metadata differences detected. These are harmless but should be normalized."; \
+				echo "   Run 'npm install --package-lock-only' locally and commit the updated package-lock.json"; \
+			else \
+				echo "package-lock.json has significant differences (not just peer metadata)"; \
+				echo "Please run 'npm install' locally and commit the updated package-lock.json"; \
+			fi; \
 			echo ""; \
 			echo "Differences in package-lock.json:"; \
 			git diff package-lock.json | head -100; \

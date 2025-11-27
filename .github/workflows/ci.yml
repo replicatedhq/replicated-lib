@@ -16,6 +16,10 @@ jobs:
         with:
           registry-url: 'https://registry.npmjs.org/'
           node-version-file: 'package.json'
+      - name: Show versions
+        run: |
+          echo "Node version: $(node --version)"
+          echo "npm version: $(npm --version)"
       - name: CI Check
         run: make ci-check
 
