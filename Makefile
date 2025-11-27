@@ -9,7 +9,7 @@ clean:
 
 .PHONY: deps
 deps:
-	npm i
+	npm install
 
 .PHONY: build
 build: clean deps
@@ -28,14 +28,22 @@ prettier-check: deps
 	npx prettier --config .prettierrc 'src/**/*.ts' --check
 	
 .PHONY: ci-check
-ci-check: build prettier
+ci-check: deps build prettier
 	@echo "Checking for uncommitted changes..."
 	@if ! git diff --quiet --exit-code; then \
-		echo "❌ Error: Files were modified by 'make build' or 'make prettier'"; \
+		echo "❌ Error: Files were modified by 'npm install', build, or prettier"; \
 		echo "Modified files:"; \
 		git diff --name-only; \
 		echo ""; \
-		echo "Please run 'make build' and 'make prettier' locally and commit the changes."; \
+		if git diff --quiet package-lock.json 2>/dev/null; then \
+			echo "Please run 'make build' and 'make prettier' locally and commit the changes."; \
+		else \
+			echo "package-lock.json was modified. This means it's out of sync with package.json"; \
+			echo "Please run 'npm install' locally and commit the updated package-lock.json"; \
+			echo ""; \
+			echo "Differences in package-lock.json:"; \
+			git diff package-lock.json | head -100; \
+		fi; \
 		exit 1; \
 	fi
 	@echo "✅ No uncommitted changes detected"
