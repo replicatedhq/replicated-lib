@@ -12,6 +12,11 @@ export class Customer {
   license: string;
 }
 
+export class CustomerSummary {
+  name: string;
+  customerId: string;
+}
+
 interface entitlementValue {
   name: string;
   value: string;

@@ -148,7 +148,7 @@ describe("getDownloadUrlAirgapBuildRelease", () => {
 
     const releasesMock = mockServer.forGet("/app/1234abcd/channel/1/releases").once().thenReply(200, JSON.stringify(releaseData));
     const downloadUrlMock = mockServer.forGet("/app/1234abcd/channel/1/airgap/download-url").withQuery({ channelSequence: 1 }).once().thenReply(200, JSON.stringify(downloadUrlData));
-    
+
     // Ensure mocks are set up before making requests
     await releasesMock;
     await downloadUrlMock;

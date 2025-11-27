@@ -110,11 +110,8 @@ describe("List Customers By Name", () => {
     };
 
     const appsMock = mockServer.forGet("/apps").thenReply(200, JSON.stringify(expectedApplications));
-    const customersMock = mockServer.forGet(`/app/${appId}/customers`)
-      .withQuery({ name: customerName })
-      .once()
-      .thenReply(200, JSON.stringify(customersResponse));
-    
+    const customersMock = mockServer.forGet(`/app/${appId}/customers`).withQuery({ name: customerName }).once().thenReply(200, JSON.stringify(customersResponse));
+
     await appsMock;
     await customersMock;
 
@@ -153,11 +150,8 @@ describe("List Customers By Name", () => {
     const customersResponse = {};
 
     const appsMock = mockServer.forGet("/apps").thenReply(200, JSON.stringify(expectedApplications));
-    const customersMock = mockServer.forGet(`/app/${appId}/customers`)
-      .withQuery({ name: customerName })
-      .once()
-      .thenReply(200, JSON.stringify(customersResponse));
-    
+    const customersMock = mockServer.forGet(`/app/${appId}/customers`).withQuery({ name: customerName }).once().thenReply(200, JSON.stringify(customersResponse));
+
     await appsMock;
     await customersMock;
 
@@ -193,11 +187,12 @@ describe("List Customers By Name", () => {
     };
 
     const appsMock = mockServer.forGet("/apps").thenReply(200, JSON.stringify(expectedApplications));
-    const customersMock = mockServer.forGet(`/app/${appId}/customers`)
+    const customersMock = mockServer
+      .forGet(`/app/${appId}/customers`)
       .withQuery({ name: customerName })
       .once()
       .thenReply(500, JSON.stringify({ error: "Internal Server Error" }));
-    
+
     await appsMock;
     await customersMock;
 
