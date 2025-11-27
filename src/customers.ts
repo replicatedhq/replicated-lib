@@ -113,7 +113,6 @@ export async function archiveCustomer(vendorPortalApi: VendorPortalApi, customer
   }
 }
 
-
 export async function getUsedKubernetesDistributions(vendorPortalApi: VendorPortalApi, appSlug: string): Promise<KubernetesDistribution[]> {
   const http = await vendorPortalApi.client();
 
