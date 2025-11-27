@@ -117,15 +117,12 @@ describe("pollForAirgapReleaseStatus", () => {
 
 describe("getDownloadUrlAirgapBuildRelease", () => {
   let mockServer: mockttp.Mockttp;
-  let apiClient: VendorPortalApi;
+  const apiClient = new VendorPortalApi();
+  apiClient.apiToken = "abcd1234";
 
   beforeEach(async () => {
     mockServer = mockttp.getLocal();
     await mockServer.start();
-    // Ensure server is fully ready
-    await new Promise(resolve => setTimeout(resolve, 5));
-    apiClient = new VendorPortalApi();
-    apiClient.apiToken = "abcd1234";
     apiClient.endpoint = "http://localhost:" + mockServer.port;
   });
   afterEach(async () => {
@@ -146,12 +143,8 @@ describe("getDownloadUrlAirgapBuildRelease", () => {
       url: "https://s3.amazonaws.com/airgap.replicated.com/xxxxxxxxx/7.airgap?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=xxxxxx%2F20250317%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date="
     };
 
-    const releasesMock = mockServer.forGet("/app/1234abcd/channel/1/releases").once().thenReply(200, JSON.stringify(releaseData));
-    const downloadUrlMock = mockServer.forGet("/app/1234abcd/channel/1/airgap/download-url").withQuery({ channelSequence: 1 }).once().thenReply(200, JSON.stringify(downloadUrlData));
-
-    // Ensure mocks are set up before making requests
-    await releasesMock;
-    await downloadUrlMock;
+    await mockServer.forGet("/app/1234abcd/channel/1/releases").once().thenReply(200, JSON.stringify(releaseData));
+    await mockServer.forGet("/app/1234abcd/channel/1/airgap/download-url").withQuery({ channelSequence: 1 }).once().thenReply(200, JSON.stringify(downloadUrlData));
 
     const downloadUrlResult = await getDownloadUrlAirgapBuildRelease(apiClient, "1234abcd", "1", 0);
     expect(downloadUrlResult).toEqual("https://s3.amazonaws.com/airgap.replicated.com/xxxxxxxxx/7.airgap?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=xxxxxx%2F20250317%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=");
