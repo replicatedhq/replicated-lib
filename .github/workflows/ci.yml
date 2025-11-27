@@ -16,18 +16,8 @@ jobs:
         with:
           registry-url: 'https://registry.npmjs.org/'
           node-version-file: 'package.json'
-      - name: Build
-        run: make build
-
-      - name: Prettier
-        run: make prettier
-
-      - name: fail if files changed
-        run: |
-          if ! git diff --quiet --exit-code ; then
-            echo "Please run 'make build' and 'make prettier' locally and commit the changes."
-            exit 1
-          fi
+      - name: CI Check
+        run: make ci-check
 
       - name: Test
         run: make test
