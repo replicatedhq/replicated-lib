@@ -24,7 +24,7 @@ prettier:
 	npm run prettier
 
 .PHONY: prettier-check
-prettier-check:
+prettier-check: deps
 	npx prettier --config .prettierrc 'src/**/*.ts' --check
 	
 .PHONY: publish
