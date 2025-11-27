@@ -12,11 +12,6 @@ export class Customer {
   license: string;
 }
 
-export class CustomerSummary {
-  name: string;
-  customerId: string;
-}
-
 interface entitlementValue {
   name: string;
   value: string;
@@ -116,44 +111,6 @@ export async function archiveCustomer(vendorPortalApi: VendorPortalApi, customer
   if (archiveCustomerRes.message.statusCode != 204) {
     throw new Error(`Failed to archive customer: Server responded with ${archiveCustomerRes.message.statusCode}`);
   }
-}
-
-export async function listCustomersByName(vendorPortalApi: VendorPortalApi, appSlug: string, customerName: string): Promise<CustomerSummary[]> {
-  const http = await vendorPortalApi.client();
-
-  // 1. get the app
-  const app = await getApplicationDetails(vendorPortalApi, appSlug);
-
-  // 2. list customers filtered by name
-  const listCustomersUri = `${vendorPortalApi.endpoint}/app/${app.id}/customers?name=${encodeURIComponent(customerName)}`;
-  const listCustomersRes = await http.get(listCustomersUri);
-  if (listCustomersRes.message.statusCode != 200) {
-    let body = "";
-    try {
-      body = await listCustomersRes.readBody();
-    } catch (err) {
-      // ignore
-    }
-    throw new Error(`Failed to list customers: Server responded with ${listCustomersRes.message.statusCode}: ${body}`);
-  }
-  const listCustomersBody: any = JSON.parse(await listCustomersRes.readBody());
-
-  // 3. Convert response body into CustomerSummary array
-  let customers: CustomerSummary[] = [];
-
-  // check if listCustomersBody.customers is undefined
-  if (!listCustomersBody.customers) {
-    return customers;
-  }
-
-  for (const customer of listCustomersBody.customers) {
-    customers.push({
-      name: customer.name,
-      customerId: customer.id
-    });
-  }
-
-  return customers;
 }
 
 export async function getUsedKubernetesDistributions(vendorPortalApi: VendorPortalApi, appSlug: string): Promise<KubernetesDistribution[]> {
