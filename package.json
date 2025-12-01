@@ -43,5 +43,9 @@
         "mockttp": "^3.10.1",
         "prettier": "^3.2.5",
         "ts-jest": "^29.1.0"
+    },
+    "overrides": {
+        "braces": "^3.0.3",
+        "micromatch": "^4.0.8"
     }
 }
