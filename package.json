@@ -34,7 +34,7 @@
         "yaml": "^2.2.2"
     },
     "devDependencies": {
-        "@pact-foundation/pact": "^11.0.2",
+        "@pact-foundation/pact": "^16.0.2",
         "@types/fs-extra": "^11.0.1",
         "@types/jest": "^29.5.1",
         "@types/pako": "^2.0.0",
