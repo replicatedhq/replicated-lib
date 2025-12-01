@@ -12,6 +12,11 @@ export class Customer {
   license: string;
 }
 
+export class CustomerSummary {
+  name: string;
+  customerId: string;
+}
+
 interface entitlementValue {
   name: string;
   value: string;
@@ -150,4 +155,67 @@ export async function getUsedKubernetesDistributions(vendorPortalApi: VendorPort
   }
 
   return kubernetesDistributions;
+}
+
+export async function listCustomersByName(vendorPortalApi: VendorPortalApi, appSlug: string, customerName: string): Promise<CustomerSummary[]> {
+  const http = await vendorPortalApi.client();
+
+  // Get the app ID from the app slug to filter results
+  const app = await getApplicationDetails(vendorPortalApi, appSlug);
+
+  // Use the searchTeamCustomers endpoint to search for customers by name and app
+  const searchCustomersUri = `${vendorPortalApi.endpoint}/customers/search`;
+
+  let allCustomers: CustomerSummary[] = [];
+  let offset = 0; // offset is the number of pages to skip
+  const pageSize = 100;
+  let hasMorePages = true;
+
+  while (hasMorePages) {
+    const requestBody = {
+      include_paid: true,
+      include_inactive: true,
+      include_dev: true,
+      include_community: true,
+      include_archived: false,
+      include_active: true,
+      include_test: true,
+      include_trial: true,
+      query: `name:${customerName}`,
+      app_id: app.id,
+      offset: offset,
+      page_size: pageSize
+    };
+
+    const searchCustomersRes = await http.post(searchCustomersUri, JSON.stringify(requestBody));
+    if (searchCustomersRes.message.statusCode != 200) {
+      let body = "";
+      try {
+        body = await searchCustomersRes.readBody();
+      } catch (err) {
+        // ignore
+      }
+      throw new Error(`Failed to list customers: Server responded with ${searchCustomersRes.message.statusCode}: ${body}`);
+    }
+    const searchCustomersBody: any = JSON.parse(await searchCustomersRes.readBody());
+
+    // Convert response body into CustomerSummary array
+    if (searchCustomersBody.data && Array.isArray(searchCustomersBody.data)) {
+      for (const customer of searchCustomersBody.data) {
+        allCustomers.push({
+          name: customer.name,
+          customerId: customer.id
+        });
+      }
+    }
+
+    // Check if there are more pages to fetch
+    const totalCount = searchCustomersBody.total_count || 0;
+    const currentPageSize = searchCustomersBody.data ? searchCustomersBody.data.length : 0;
+    const totalPages = Math.ceil(totalCount / pageSize);
+    hasMorePages = currentPageSize > 0 && offset + 1 < totalPages;
+    offset++; // Increment offset by 1 (one more page to skip)
+  }
+
+  return allCustomers;
 }

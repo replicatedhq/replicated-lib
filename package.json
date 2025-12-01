@@ -4,7 +4,7 @@
     "description": "Can interact with the vendor portal api!",
     "scripts": {
         "build": "rm -rf dist && tsc --build",
-        "prettier": "prettier --config .prettierrc 'src/**/*.ts' --write",
+        "prettier": "npx prettier --config .prettierrc 'src/**/*.ts' --write",
         "test": "npx jest --coverage --verbose --setupFiles ./pacts/configuration.ts",
         "create-object-store": "rm -rf examples/*.js && tsc examples/create-object-store.ts && node examples/create-object-store.js",
         "create-postgres": "rm -rf examples/*.js && tsc examples/create-postgres.ts && node examples/create-postgres.js",
