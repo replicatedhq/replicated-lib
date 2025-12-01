@@ -160,37 +160,62 @@ export async function getUsedKubernetesDistributions(vendorPortalApi: VendorPort
 export async function listCustomersByName(vendorPortalApi: VendorPortalApi, appSlug: string, customerName: string): Promise<CustomerSummary[]> {
   const http = await vendorPortalApi.client();
 
-  // 1. get the app
+  // Get the app ID from the app slug to filter results
   const app = await getApplicationDetails(vendorPortalApi, appSlug);
 
-  // 2. list customers filtered by name
-  const listCustomersUri = `${vendorPortalApi.endpoint}/app/${app.id}/customers?name=${encodeURIComponent(customerName)}`;
-  const listCustomersRes = await http.get(listCustomersUri);
-  if (listCustomersRes.message.statusCode != 200) {
-    let body = "";
-    try {
-      body = await listCustomersRes.readBody();
-    } catch (err) {
-      // ignore
+  // Use the searchTeamCustomers endpoint to search for customers by name and app
+  const searchCustomersUri = `${vendorPortalApi.endpoint}/customers/search`;
+  
+  let allCustomers: CustomerSummary[] = [];
+  let offset = 0; // offset is the number of pages to skip
+  const pageSize = 100;
+  let hasMorePages = true;
+
+  while (hasMorePages) {
+    const requestBody = {
+      include_paid: true,
+      include_inactive: true,
+      include_dev: true,
+      include_community: true,
+      include_archived: false,
+      include_active: true,
+      include_test: true,
+      include_trial: true,
+      query: `name:${customerName}`,
+      app_id: app.id,
+      offset: offset,
+      page_size: pageSize
+    };
+
+    const searchCustomersRes = await http.post(searchCustomersUri, JSON.stringify(requestBody));
+    if (searchCustomersRes.message.statusCode != 200) {
+      let body = "";
+      try {
+        body = await searchCustomersRes.readBody();
+      } catch (err) {
+        // ignore
+      }
+      throw new Error(`Failed to list customers: Server responded with ${searchCustomersRes.message.statusCode}: ${body}`);
     }
-    throw new Error(`Failed to list customers: Server responded with ${listCustomersRes.message.statusCode}: ${body}`);
+    const searchCustomersBody: any = JSON.parse(await searchCustomersRes.readBody());
+
+    // Convert response body into CustomerSummary array
+    if (searchCustomersBody.data && Array.isArray(searchCustomersBody.data)) {
+      for (const customer of searchCustomersBody.data) {
+        allCustomers.push({
+          name: customer.name,
+          customerId: customer.id
+        });
+      }
+    }
+
+    // Check if there are more pages to fetch
+    const totalCount = searchCustomersBody.total_count || 0;
+    const currentPageSize = searchCustomersBody.data ? searchCustomersBody.data.length : 0;
+    const totalPages = Math.ceil(totalCount / pageSize);
+    hasMorePages = currentPageSize > 0 && (offset + 1) < totalPages;
+    offset++; // Increment offset by 1 (one more page to skip)
   }
-  const listCustomersBody: any = JSON.parse(await listCustomersRes.readBody());
 
-  // 3. Convert response body into CustomerSummary array
-  let customers: CustomerSummary[] = [];
-
-  // check if listCustomersBody.customers is undefined
-  if (!listCustomersBody.customers) {
-    return customers;
-  }
-
-  for (const customer of listCustomersBody.customers) {
-    customers.push({
-      name: customer.name,
-      customerId: customer.id
-    });
-  }
-
-  return customers;
+  return allCustomers;
 }

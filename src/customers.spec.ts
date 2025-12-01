@@ -99,14 +99,15 @@ describe("List Customers By Name", () => {
       ]
     };
     const customersResponse = {
-      customers: [
+      data: [
         { id: "customer-1", name: "Test Customer" },
         { id: "customer-2", name: "Test Customer Two" }
-      ]
+      ],
+      total_count: 2
     };
 
-    await mockServer.forGet("/apps").once().thenReply(200, JSON.stringify(expectedApplications));
-    await mockServer.forGet(`/app/${appId}/customers`).withQuery({ name: "Test Customer" }).once().thenReply(200, JSON.stringify(customersResponse));
+    await mockServer.forGet("/apps").thenReply(200, JSON.stringify(expectedApplications));
+    await mockServer.forPost("/customers/search").thenReply(200, JSON.stringify(customersResponse));
 
     const customers: CustomerSummary[] = await listCustomersByName(apiClient, appSlug, "Test Customer");
     expect(customers).toHaveLength(2);
@@ -117,47 +118,56 @@ describe("List Customers By Name", () => {
   });
 
   it("should return empty array when no customers match", async () => {
+    const appId = "1234abcd";
+    const appSlug = "app-1";
     const expectedApplications = {
-      apps: [{ id: "1234abcd", name: "App 1", slug: "app-1" }]
+      apps: [{ id: appId, name: "App 1", slug: appSlug }]
     };
     const customersResponse = {
-      customers: []
+      data: [],
+      total_count: 0
     };
 
-    await mockServer.forGet("/apps").once().thenReply(200, JSON.stringify(expectedApplications));
-    await mockServer.forGet("/app/1234abcd/customers").withQuery({ name: "NonExistent" }).once().thenReply(200, JSON.stringify(customersResponse));
+    await mockServer.forGet("/apps").thenReply(200, JSON.stringify(expectedApplications));
+    await mockServer.forPost("/customers/search").thenReply(200, JSON.stringify(customersResponse));
 
-    const customers: CustomerSummary[] = await listCustomersByName(apiClient, "app-1", "NonExistent");
+    const customers: CustomerSummary[] = await listCustomersByName(apiClient, appSlug, "NonExistent");
     expect(customers).toHaveLength(0);
   });
 
-  it("should return empty array when customers field is undefined", async () => {
+  it("should return empty array when data field is undefined", async () => {
     const appId = "test-app-2";
     const appSlug = "test-app-2";
     const expectedApplications = {
       apps: [{ id: appId, name: "Test App 2", slug: appSlug }]
     };
-    const customersResponse = {};
+    const customersResponse = {
+      data: undefined,
+      total_count: 0
+    };
 
-    await mockServer.forGet("/apps").once().thenReply(200, JSON.stringify(expectedApplications));
-    await mockServer.forGet(`/app/${appId}/customers`).withQuery({ name: "Test" }).once().thenReply(200, JSON.stringify(customersResponse));
+    await mockServer.forGet("/apps").thenReply(200, JSON.stringify(expectedApplications));
+    await mockServer.forPost("/customers/search").thenReply(200, JSON.stringify(customersResponse));
 
     const customers: CustomerSummary[] = await listCustomersByName(apiClient, appSlug, "Test");
     expect(customers).toHaveLength(0);
   });
 
-  it("should properly URL encode customer name", async () => {
+  it("should properly handle customer name with special characters", async () => {
+    const appId = "1234abcd";
+    const appSlug = "app-1";
     const expectedApplications = {
-      apps: [{ id: "1234abcd", name: "App 1", slug: "app-1" }]
+      apps: [{ id: appId, name: "App 1", slug: appSlug }]
     };
     const customersResponse = {
-      customers: [{ id: "customer-1", name: "Customer & Co" }]
+      data: [{ id: "customer-1", name: "Customer & Co" }],
+      total_count: 1
     };
 
-    await mockServer.forGet("/apps").once().thenReply(200, JSON.stringify(expectedApplications));
-    await mockServer.forGet("/app/1234abcd/customers").withQuery({ name: "Customer & Co" }).once().thenReply(200, JSON.stringify(customersResponse));
+    await mockServer.forGet("/apps").thenReply(200, JSON.stringify(expectedApplications));
+    await mockServer.forPost("/customers/search").thenReply(200, JSON.stringify(customersResponse));
 
-    const customers: CustomerSummary[] = await listCustomersByName(apiClient, "app-1", "Customer & Co");
+    const customers: CustomerSummary[] = await listCustomersByName(apiClient, appSlug, "Customer & Co");
     expect(customers).toHaveLength(1);
     expect(customers[0].name).toEqual("Customer & Co");
     expect(customers[0].customerId).toEqual("customer-1");
@@ -170,13 +180,49 @@ describe("List Customers By Name", () => {
       apps: [{ id: appId, name: "Test App 3", slug: appSlug }]
     };
 
-    await mockServer.forGet("/apps").once().thenReply(200, JSON.stringify(expectedApplications));
-    await mockServer
-      .forGet(`/app/${appId}/customers`)
-      .withQuery({ name: "Test" })
-      .once()
-      .thenReply(500, JSON.stringify({ error: "Internal Server Error" }));
+    await mockServer.forGet("/apps").thenReply(200, JSON.stringify(expectedApplications));
+    await mockServer.forPost("/customers/search").thenReply(500, JSON.stringify({ error: "Internal Server Error" }));
 
     await expect(listCustomersByName(apiClient, appSlug, "Test")).rejects.toThrow("Failed to list customers: Server responded with 500");
+  });
+
+  it("should handle pagination correctly", async () => {
+    const appId = "test-app-1";
+    const appSlug = "test-app-1";
+    const expectedApplications = {
+      apps: [
+        { id: appId, name: "Test App 1", slug: appSlug },
+        { id: "5678efgh", name: "App 2", slug: "app-2" }
+      ]
+    };
+    // Simulate pagination with total_count > pageSize (100)
+    // First page returns 100 items, second page returns 50 items
+    const firstPageData = Array.from({ length: 100 }, (_, i) => ({
+      id: `customer-${i + 1}`,
+      name: "Test Customer"
+    }));
+    const firstPageResponse = {
+      data: firstPageData,
+      total_count: 150
+    };
+    const secondPageData = Array.from({ length: 50 }, (_, i) => ({
+      id: `customer-${i + 101}`,
+      name: "Test Customer"
+    }));
+    const secondPageResponse = {
+      data: secondPageData,
+      total_count: 150
+    };
+
+    await mockServer.forGet("/apps").thenReply(200, JSON.stringify(expectedApplications));
+    await mockServer.forPost("/customers/search").thenReply(200, JSON.stringify(firstPageResponse));
+    await mockServer.forPost("/customers/search").thenReply(200, JSON.stringify(secondPageResponse));
+
+    const customers: CustomerSummary[] = await listCustomersByName(apiClient, appSlug, "Test Customer");
+    expect(customers).toHaveLength(150);
+    expect(customers[0].customerId).toEqual("customer-1");
+    expect(customers[99].customerId).toEqual("customer-100");
+    expect(customers[100].customerId).toEqual("customer-101");
+    expect(customers[149].customerId).toEqual("customer-150");
   });
 });
