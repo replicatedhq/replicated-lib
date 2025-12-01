@@ -165,7 +165,7 @@ export async function listCustomersByName(vendorPortalApi: VendorPortalApi, appS
 
   // Use the searchTeamCustomers endpoint to search for customers by name and app
   const searchCustomersUri = `${vendorPortalApi.endpoint}/customers/search`;
-  
+
   let allCustomers: CustomerSummary[] = [];
   let offset = 0; // offset is the number of pages to skip
   const pageSize = 100;
@@ -213,7 +213,7 @@ export async function listCustomersByName(vendorPortalApi: VendorPortalApi, appS
     const totalCount = searchCustomersBody.total_count || 0;
     const currentPageSize = searchCustomersBody.data ? searchCustomersBody.data.length : 0;
     const totalPages = Math.ceil(totalCount / pageSize);
-    hasMorePages = currentPageSize > 0 && (offset + 1) < totalPages;
+    hasMorePages = currentPageSize > 0 && offset + 1 < totalPages;
     offset++; // Increment offset by 1 (one more page to skip)
   }
 
