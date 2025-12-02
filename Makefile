@@ -54,7 +54,3 @@ ci-check: deps build prettier
 		exit 1; \
 	fi
 	@echo "✅ No uncommitted changes detected"
-
-.PHONY: publish
-publish: test
-	npm publish
