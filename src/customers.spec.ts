@@ -225,4 +225,49 @@ describe("List Customers By Name", () => {
     expect(customers[100].customerId).toEqual("customer-101");
     expect(customers[149].customerId).toEqual("customer-150");
   });
+
+  it("should search across all apps when appSlug is undefined", async () => {
+    const customersResponse = {
+      data: [
+        { id: "customer-1", name: "Test Customer", app_name: "App 1" },
+        { id: "customer-2", name: "Test Customer Two", app_name: "App 2" },
+        { id: "customer-3", name: "Test Customer Three", app_name: "App 3" }
+      ],
+      total_count: 3
+    };
+
+    // When appSlug is undefined, we should NOT call the /apps endpoint
+    // Just set up the search endpoint response
+    await mockServer.forPost("/customers/search")
+      .thenReply(200, JSON.stringify(customersResponse));
+
+    const customers: CustomerSummary[] = await listCustomersByName(apiClient, undefined, "Test Customer");
+    expect(customers).toHaveLength(3);
+    expect(customers[0].name).toEqual("Test Customer");
+    expect(customers[1].name).toEqual("Test Customer Two");
+    expect(customers[2].name).toEqual("Test Customer Three");
+  });
+
+  it("should include app_id when appSlug is provided", async () => {
+    const appId = "test-app-123";
+    const appSlug = "test-app";
+    const expectedApplications = {
+      apps: [{ id: appId, name: "Test App", slug: appSlug }]
+    };
+    const customersResponse = {
+      data: [
+        { id: "customer-1", name: "Test Customer" }
+      ],
+      total_count: 1
+    };
+
+    // When appSlug is provided, we should call /apps first, then search
+    await mockServer.forGet("/apps").thenReply(200, JSON.stringify(expectedApplications));
+    await mockServer.forPost("/customers/search")
+      .thenReply(200, JSON.stringify(customersResponse));
+
+    const customers: CustomerSummary[] = await listCustomersByName(apiClient, appSlug, "Test Customer");
+    expect(customers).toHaveLength(1);
+    expect(customers[0].name).toEqual("Test Customer");
+  });
 });

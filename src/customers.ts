@@ -157,11 +157,14 @@ export async function getUsedKubernetesDistributions(vendorPortalApi: VendorPort
   return kubernetesDistributions;
 }
 
-export async function listCustomersByName(vendorPortalApi: VendorPortalApi, appSlug: string, customerName: string): Promise<CustomerSummary[]> {
+export async function listCustomersByName(vendorPortalApi: VendorPortalApi, appSlug: string | undefined, customerName: string): Promise<CustomerSummary[]> {
   const http = await vendorPortalApi.client();
 
-  // Get the app ID from the app slug to filter results
-  const app = await getApplicationDetails(vendorPortalApi, appSlug);
+  // Get the app ID from the app slug to filter results (if appSlug is provided)
+  let app: any;
+  if (appSlug) {
+    app = await getApplicationDetails(vendorPortalApi, appSlug);
+  }
 
   // Use the searchTeamCustomers endpoint to search for customers by name and app
   const searchCustomersUri = `${vendorPortalApi.endpoint}/customers/search`;
@@ -172,7 +175,7 @@ export async function listCustomersByName(vendorPortalApi: VendorPortalApi, appS
   let hasMorePages = true;
 
   while (hasMorePages) {
-    const requestBody = {
+    const requestBody: any = {
       include_paid: true,
       include_inactive: true,
       include_dev: true,
@@ -182,10 +185,14 @@ export async function listCustomersByName(vendorPortalApi: VendorPortalApi, appS
       include_test: true,
       include_trial: true,
       query: `name:${customerName}`,
-      app_id: app.id,
       offset: offset,
       page_size: pageSize
     };
+
+    // Only add app_id if appSlug was provided
+    if (app) {
+      requestBody.app_id = app.id;
+    }
 
     const searchCustomersRes = await http.post(searchCustomersUri, JSON.stringify(requestBody));
     if (searchCustomersRes.message.statusCode != 200) {
