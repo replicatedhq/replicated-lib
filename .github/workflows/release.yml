@@ -39,6 +39,7 @@ jobs:
           npm_version=${{ github.ref_name }}
           echo "npm_version=${npm_version#v}" >> "$GITHUB_OUTPUT"
       - run: npm version --no-commit-hooks --no-git-tag-version ${{ steps.vars.outputs.npm_version }}
-      - run: make publish
+      - name: Publish to npm
+        run: npm publish --tag ${{ github.ref_name }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
