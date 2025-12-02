@@ -238,8 +238,7 @@ describe("List Customers By Name", () => {
 
     // When appSlug is undefined, we should NOT call the /apps endpoint
     // Just set up the search endpoint response
-    await mockServer.forPost("/customers/search")
-      .thenReply(200, JSON.stringify(customersResponse));
+    await mockServer.forPost("/customers/search").thenReply(200, JSON.stringify(customersResponse));
 
     const customers: CustomerSummary[] = await listCustomersByName(apiClient, undefined, "Test Customer");
     expect(customers).toHaveLength(3);
@@ -255,16 +254,13 @@ describe("List Customers By Name", () => {
       apps: [{ id: appId, name: "Test App", slug: appSlug }]
     };
     const customersResponse = {
-      data: [
-        { id: "customer-1", name: "Test Customer" }
-      ],
+      data: [{ id: "customer-1", name: "Test Customer" }],
       total_count: 1
     };
 
     // When appSlug is provided, we should call /apps first, then search
     await mockServer.forGet("/apps").thenReply(200, JSON.stringify(expectedApplications));
-    await mockServer.forPost("/customers/search")
-      .thenReply(200, JSON.stringify(customersResponse));
+    await mockServer.forPost("/customers/search").thenReply(200, JSON.stringify(customersResponse));
 
     const customers: CustomerSummary[] = await listCustomersByName(apiClient, appSlug, "Test Customer");
     expect(customers).toHaveLength(1);
