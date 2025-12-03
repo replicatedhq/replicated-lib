@@ -157,7 +157,7 @@ export async function getUsedKubernetesDistributions(vendorPortalApi: VendorPort
   return kubernetesDistributions;
 }
 
-export async function listCustomersByName(vendorPortalApi: VendorPortalApi, appSlug: string | undefined, customerName: string): Promise<CustomerSummary[]> {
+async function searchCustomers(vendorPortalApi: VendorPortalApi, appSlug: string | undefined, query: string): Promise<CustomerSummary[]> {
   const http = await vendorPortalApi.client();
 
   // Get the app ID from the app slug to filter results (if appSlug is provided)
@@ -166,7 +166,7 @@ export async function listCustomersByName(vendorPortalApi: VendorPortalApi, appS
     app = await getApplicationDetails(vendorPortalApi, appSlug);
   }
 
-  // Use the searchTeamCustomers endpoint to search for customers by name and app
+  // Use the searchTeamCustomers endpoint to search for customers
   const searchCustomersUri = `${vendorPortalApi.endpoint}/customers/search`;
 
   let allCustomers: CustomerSummary[] = [];
@@ -184,7 +184,7 @@ export async function listCustomersByName(vendorPortalApi: VendorPortalApi, appS
       include_active: true,
       include_test: true,
       include_trial: true,
-      query: `name:${customerName}`,
+      query: query,
       offset: offset,
       page_size: pageSize
     };
@@ -207,8 +207,8 @@ export async function listCustomersByName(vendorPortalApi: VendorPortalApi, appS
     const searchCustomersBody: any = JSON.parse(await searchCustomersRes.readBody());
 
     // Convert response body into CustomerSummary array
-    if (searchCustomersBody.data && Array.isArray(searchCustomersBody.data)) {
-      for (const customer of searchCustomersBody.data) {
+    if (searchCustomersBody.customers && Array.isArray(searchCustomersBody.customers)) {
+      for (const customer of searchCustomersBody.customers) {
         allCustomers.push({
           name: customer.name,
           customerId: customer.id
@@ -217,12 +217,20 @@ export async function listCustomersByName(vendorPortalApi: VendorPortalApi, appS
     }
 
     // Check if there are more pages to fetch
-    const totalCount = searchCustomersBody.total_count || 0;
-    const currentPageSize = searchCustomersBody.data ? searchCustomersBody.data.length : 0;
+    const totalCount = searchCustomersBody.total_hits || 0;
+    const currentPageSize = searchCustomersBody.customers ? searchCustomersBody.customers.length : 0;
     const totalPages = Math.ceil(totalCount / pageSize);
     hasMorePages = currentPageSize > 0 && offset + 1 < totalPages;
     offset++; // Increment offset by 1 (one more page to skip)
   }
 
   return allCustomers;
+}
+
+export async function listCustomersByName(vendorPortalApi: VendorPortalApi, appSlug: string | undefined, customerName: string): Promise<CustomerSummary[]> {
+  return searchCustomers(vendorPortalApi, appSlug, `name:${customerName}`);
+}
+
+export async function listCustomersByEmail(vendorPortalApi: VendorPortalApi, appSlug: string | undefined, customerEmail: string): Promise<CustomerSummary[]> {
+  return searchCustomers(vendorPortalApi, appSlug, `email:${customerEmail}`);
 }
