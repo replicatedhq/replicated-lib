@@ -9,7 +9,8 @@
         "create-object-store": "rm -rf examples/*.js && tsc examples/create-object-store.ts && node examples/create-object-store.js",
         "create-postgres": "rm -rf examples/*.js && tsc examples/create-postgres.ts && node examples/create-postgres.js",
         "expose-port": "rm -rf examples/*.js && tsc examples/expose-port.ts && node examples/expose-port.js",
-        "poll-airgap": "rm -rf examples/*.js && tsc examples/poll-for-airgap-build.ts && node examples/poll-for-airgap-build.js"
+        "poll-airgap": "rm -rf examples/*.js && tsc examples/poll-for-airgap-build.ts && node examples/poll-for-airgap-build.js",
+        "test-list-customers": "rm -rf examples/*.js && npm run build && tsc examples/test-list-customers-by-name.ts && node examples/test-list-customers-by-name.js"
     },
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
