@@ -6,7 +6,7 @@ import * as fs from "fs";
 import * as util from "util";
 import * as base64 from "base64-js";
 
-import { zonedTimeToUtc } from "date-fns-tz";
+import { fromZonedTime } from "date-fns-tz";
 
 export interface Release {
   sequence: string;
@@ -318,12 +318,12 @@ async function reportCompatibilityResultByAppId(vendorPortalApi: VendorPortalApi
     version: compatibilityResult.version
   };
   if (compatibilityResult.successAt) {
-    const successAt = zonedTimeToUtc(compatibilityResult.successAt, "UTC");
+    const successAt = fromZonedTime(compatibilityResult.successAt, "UTC");
     reqBody["successAt"] = successAt.toISOString();
     reqBody["successNotes"] = compatibilityResult.successNotes;
   }
   if (compatibilityResult.failureAt) {
-    const failureAt = zonedTimeToUtc(compatibilityResult.failureAt, "UTC");
+    const failureAt = fromZonedTime(compatibilityResult.failureAt, "UTC");
     reqBody["failureAt"] = failureAt.toISOString();
     reqBody["failureNotes"] = compatibilityResult.failureNotes;
   }

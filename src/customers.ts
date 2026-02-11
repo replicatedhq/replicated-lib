@@ -3,7 +3,7 @@ import { getChannelDetails } from "./channels";
 import { getApplicationDetails } from "./applications";
 
 import { add } from "date-fns";
-import { zonedTimeToUtc } from "date-fns-tz";
+import { fromZonedTime } from "date-fns-tz";
 
 export class Customer {
   name: string;
@@ -58,7 +58,7 @@ export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: 
     // expiresIn is in days, if it's 0 or less, ignore it - non-expiring license
     if (expiresIn > 0) {
       const now = new Date();
-      const expiresAt = zonedTimeToUtc(add(now, { days: expiresIn }), "UTC");
+      const expiresAt = fromZonedTime(add(now, { days: expiresIn }), "UTC");
       createCustomerReqBody["expires_at"] = expiresAt.toISOString();
     }
     if (entitlementValues) {
