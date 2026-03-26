@@ -137,7 +137,7 @@ describe("areReleaseChartsPushed", () => {
 
     expect(() => {
       areReleaseChartsPushed(charts);
-    }).toThrowError("chart chart2 failed to push: Some error message");
+    }).toThrow("chart chart2 failed to push: Some error message");
   });
 
   it("ignore charts with status different from known ones", () => {
