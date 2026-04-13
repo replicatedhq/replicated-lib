@@ -45,7 +45,7 @@ describe("Promote Release", () => {
         expect(true).toEqual(true);
       })
       .catch(err => {
-        fail(err);
+        throw err;
       });
   });
 });
@@ -75,7 +75,7 @@ describe("Report Results", () => {
         expect(true).toEqual(true);
       })
       .catch(err => {
-        fail(err);
+        throw err;
       });
   });
 });
@@ -112,7 +112,7 @@ describe("Get Release", () => {
         expect(true).toEqual(true);
       })
       .catch(err => {
-        fail(err);
+        throw err;
       });
   });
 });
