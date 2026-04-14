@@ -30,7 +30,7 @@ describe("Archive Customer", () => {
         expect(true).toEqual(true);
       })
       .catch(err => {
-        fail(err);
+        throw err;
       });
   });
 });
