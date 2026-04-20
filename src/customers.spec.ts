@@ -67,7 +67,12 @@ describe("Create Customer", () => {
     await mockServer.forPost("/customer").once().thenReply(201, JSON.stringify(customerResponse));
     await mockServer.forGet("/app/1234abcd/customer/5678efgh/license-download").once().thenReply(403);
 
-    const customer: Customer = await createCustomer(apiClient, "app-1", "testing", "testing@replicated.com", "test", "", 0);
+    const customer: Customer = await createCustomer(apiClient, {
+      appSlug: "app-1",
+      name: "testing",
+      email: "testing@replicated.com",
+      licenseType: "test"
+    });
     expect(customer.name).toEqual("testing");
     expect(customer.customerId).toEqual("5678efgh");
     expect(customer.licenseId).toEqual("1234abcd");
