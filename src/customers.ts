@@ -22,6 +22,30 @@ interface entitlementValue {
   value: string;
 }
 
+export interface CreateCustomerOptions {
+  appSlug: string;
+  name: string;
+  licenseType: string;
+  email?: string;
+  channelSlug?: string;
+  expiresIn?: number;
+  entitlementValues?: entitlementValue[];
+  customId?: string;
+  isKotsInstallEnabled?: boolean;
+  isDevModeEnabled?: boolean;
+  isAirgapEnabled?: boolean;
+  isGitopsSupported?: boolean;
+  isSnapshotSupported?: boolean;
+  isHelmInstallEnabled?: boolean;
+  isKurlInstallEnabled?: boolean;
+  isEmbeddedClusterDownloadEnabled?: boolean;
+  isEmbeddedClusterMultinodeEnabled?: boolean;
+  isGeoaxisSupported?: boolean;
+  isIdentityServiceSupported?: boolean;
+  isInstallerSupportEnabled?: boolean;
+  isSupportBundleUploadEnabled?: boolean;
+}
+
 export class KubernetesDistribution {
   k8sDistribution: string;
   k8sVersion: string;
@@ -32,8 +56,9 @@ export class KubernetesDistribution {
   isAirgap: boolean;
 }
 
-export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: string, name: string, email: string, licenseType: string, channelSlug: string, expiresIn: number, entitlementValues?: entitlementValue[], isKotsInstallEnabled?: boolean, isDevModeEnabled?: boolean): Promise<Customer> {
+export async function createCustomer(vendorPortalApi: VendorPortalApi, options: CreateCustomerOptions): Promise<Customer> {
   try {
+    const { appSlug, name, licenseType, email, channelSlug, expiresIn, entitlementValues } = options;
     const app = await getApplicationDetails(vendorPortalApi, appSlug);
 
     console.log("Creating customer on appId " + app.id);
@@ -42,21 +67,18 @@ export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: 
 
     // 1. create the customer
     const createCustomerUri = `${vendorPortalApi.endpoint}/customer`;
-    let createCustomerReqBody = {
+    let createCustomerReqBody: Record<string, any> = {
       name: name,
       email: email,
       type: licenseType,
       app_id: app.id
     };
-    if (isKotsInstallEnabled !== undefined) {
-      createCustomerReqBody["is_kots_install_enabled"] = isKotsInstallEnabled;
-    }
     if (channelSlug) {
       const channel = await getChannelDetails(vendorPortalApi, appSlug, { slug: channelSlug });
       createCustomerReqBody["channel_id"] = channel.id;
     }
     // expiresIn is in days, if it's 0 or less, ignore it - non-expiring license
-    if (expiresIn > 0) {
+    if (expiresIn !== undefined && expiresIn > 0) {
       const now = new Date();
       const expiresAt = fromZonedTime(add(now, { days: expiresIn }), "UTC");
       createCustomerReqBody["expires_at"] = expiresAt.toISOString();
@@ -64,8 +86,47 @@ export async function createCustomer(vendorPortalApi: VendorPortalApi, appSlug: 
     if (entitlementValues) {
       createCustomerReqBody["entitlementValues"] = entitlementValues;
     }
-    if (isDevModeEnabled !== undefined) {
-      createCustomerReqBody["is_dev_mode_enabled"] = isDevModeEnabled;
+    if (options.customId !== undefined) {
+      createCustomerReqBody["custom_id"] = options.customId;
+    }
+    if (options.isKotsInstallEnabled !== undefined) {
+      createCustomerReqBody["is_kots_install_enabled"] = options.isKotsInstallEnabled;
+    }
+    if (options.isDevModeEnabled !== undefined) {
+      createCustomerReqBody["is_dev_mode_enabled"] = options.isDevModeEnabled;
+    }
+    if (options.isAirgapEnabled !== undefined) {
+      createCustomerReqBody["is_airgap_enabled"] = options.isAirgapEnabled;
+    }
+    if (options.isGitopsSupported !== undefined) {
+      createCustomerReqBody["is_gitops_supported"] = options.isGitopsSupported;
+    }
+    if (options.isSnapshotSupported !== undefined) {
+      createCustomerReqBody["is_snapshot_supported"] = options.isSnapshotSupported;
+    }
+    if (options.isHelmInstallEnabled !== undefined) {
+      createCustomerReqBody["is_helm_install_enabled"] = options.isHelmInstallEnabled;
+    }
+    if (options.isKurlInstallEnabled !== undefined) {
+      createCustomerReqBody["is_kurl_install_enabled"] = options.isKurlInstallEnabled;
+    }
+    if (options.isEmbeddedClusterDownloadEnabled !== undefined) {
+      createCustomerReqBody["is_embedded_cluster_download_enabled"] = options.isEmbeddedClusterDownloadEnabled;
+    }
+    if (options.isEmbeddedClusterMultinodeEnabled !== undefined) {
+      createCustomerReqBody["is_embedded_cluster_multinode_enabled"] = options.isEmbeddedClusterMultinodeEnabled;
+    }
+    if (options.isGeoaxisSupported !== undefined) {
+      createCustomerReqBody["is_geoaxis_supported"] = options.isGeoaxisSupported;
+    }
+    if (options.isIdentityServiceSupported !== undefined) {
+      createCustomerReqBody["is_identity_service_supported"] = options.isIdentityServiceSupported;
+    }
+    if (options.isInstallerSupportEnabled !== undefined) {
+      createCustomerReqBody["is_installer_support_enabled"] = options.isInstallerSupportEnabled;
+    }
+    if (options.isSupportBundleUploadEnabled !== undefined) {
+      createCustomerReqBody["is_support_bundle_upload_enabled"] = options.isSupportBundleUploadEnabled;
     }
 
     const createCustomerRes = await http.post(createCustomerUri, JSON.stringify(createCustomerReqBody));
