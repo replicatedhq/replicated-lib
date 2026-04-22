@@ -1,5 +1,5 @@
 import { VendorPortalApi } from "./configuration";
-import { createVM, pollForVMStatus } from ".";
+import { createVM, pollForVMStatus, removeVM } from ".";
 import { VM } from "./vms";
 import { StatusError } from "./clusters";
 import * as mockttp from "mockttp";
@@ -101,6 +101,35 @@ describe("VMService use cases", () => {
     const vms: VM[] = await createVM(apiClient, "vm1", "ubuntu", "10m", undefined, undefined, undefined, undefined, ["ssh-rsa AAAA..."]);
     expect(vms).toHaveLength(1);
     expect(vms[0].id).toEqual(expectedVMs.vms[0].id);
+  });
+});
+
+describe("removeVM", () => {
+  const mockServer = mockttp.getLocal();
+  const apiClient = new VendorPortalApi();
+  apiClient.apiToken = "abcd1234";
+
+  beforeAll(async () => {
+    await mockServer.start();
+    apiClient.endpoint = `http://localhost:${mockServer.port}`;
+  });
+
+  afterAll(async () => {
+    await mockServer.stop();
+  });
+
+  test("should resolve on successful delete", async () => {
+    const vmId = "1234abcd";
+    await mockServer.forDelete(`/vm/${vmId}`).thenReply(200, "{}");
+
+    await expect(removeVM(apiClient, vmId)).resolves.toBeUndefined();
+  });
+
+  test("should throw StatusError on non-200", async () => {
+    const vmId = "9999zzzz";
+    await mockServer.forDelete(`/vm/${vmId}`).thenReply(404);
+
+    await expect(removeVM(apiClient, vmId)).rejects.toThrow(StatusError);
   });
 });
 

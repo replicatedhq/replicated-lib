@@ -124,3 +124,14 @@ export async function pollForVMStatus(vendorPortalApi: VendorPortalApi, vmId: st
 
   throw new Error(`VM did not reach state ${expectedStatus} within ${timeout} seconds`);
 }
+
+export async function removeVM(vendorPortalApi: VendorPortalApi, vmId: string) {
+  const http = await vendorPortalApi.client();
+
+  const uri = `${vendorPortalApi.endpoint}/vm/${vmId}`;
+  const res = await http.del(uri);
+  await res.readBody();
+  if (res.message.statusCode != 200) {
+    throw new StatusError(`Failed to remove vm: Server responded with ${res.message.statusCode}`, res.message.statusCode);
+  }
+}
