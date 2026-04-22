@@ -12,18 +12,7 @@ interface tag {
   value: string;
 }
 
-export async function createVM(
-  vendorPortalApi: VendorPortalApi,
-  name: string,
-  distribution: string,
-  vmTTL: string,
-  version?: string,
-  diskGib?: number,
-  instanceType?: string,
-  count?: number,
-  publicKeys?: string[],
-  tags?: tag[]
-): Promise<VM[]> {
+export async function createVM(vendorPortalApi: VendorPortalApi, name: string, distribution: string, vmTTL: string, version?: string, diskGib?: number, instanceType?: string, count?: number, publicKeys?: string[], tags?: tag[]): Promise<VM[]> {
   const http = await vendorPortalApi.client();
 
   const reqBody: any = {
