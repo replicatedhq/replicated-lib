@@ -1,6 +1,7 @@
 import { VendorPortalApi } from "./configuration";
-import { createVM } from ".";
+import { createVM, pollForVMStatus } from ".";
 import { VM } from "./vms";
+import { StatusError } from "./clusters";
 import * as mockttp from "mockttp";
 
 describe("VMService", () => {
@@ -100,5 +101,51 @@ describe("VMService use cases", () => {
     const vms: VM[] = await createVM(apiClient, "vm1", "ubuntu", "10m", undefined, undefined, undefined, undefined, ["ssh-rsa AAAA..."]);
     expect(vms).toHaveLength(1);
     expect(vms[0].id).toEqual(expectedVMs.vms[0].id);
+  });
+});
+
+describe("pollForVM", () => {
+  const mockServer = mockttp.getLocal();
+  const apiClient = new VendorPortalApi();
+  apiClient.apiToken = "abcd1234";
+
+  beforeEach(async () => {
+    await mockServer.start();
+    apiClient.endpoint = `http://localhost:${mockServer.port}`;
+  });
+
+  afterEach(async () => {
+    await mockServer.stop();
+  });
+
+  test("should eventually return success with expected status", async () => {
+    const expectedVM = { id: "1234abcd", name: "vm1", status: "running" };
+    const responseVM = { id: "1234abcd", name: "vm1" };
+
+    await mockServer
+      .forGet(`/vm/${responseVM.id}`)
+      .once()
+      .thenReply(200, JSON.stringify({ vm: { ...responseVM, status: "pending" } }));
+    await mockServer
+      .forGet(`/vm/${responseVM.id}`)
+      .once()
+      .thenReply(200, JSON.stringify({ vm: { ...responseVM, status: "provisioning" } }));
+    await mockServer.forGet(`/vm/${responseVM.id}`).once().thenReply(503);
+    await mockServer.forGet(`/vm/${responseVM.id}`).thenReply(200, JSON.stringify({ vm: { ...responseVM, status: "running" } }));
+
+    const vm: VM = await pollForVMStatus(apiClient, "1234abcd", "running", 1, 10);
+    expect(vm).toEqual(expectedVM);
+  });
+
+  test("should still fail on 404", async () => {
+    const responseVM = { id: "1234abcd", name: "vm1" };
+
+    await mockServer
+      .forGet(`/vm/${responseVM.id}`)
+      .once()
+      .thenReply(200, JSON.stringify({ vm: { ...responseVM, status: "pending" } }));
+    await mockServer.forGet(`/vm/${responseVM.id}`).thenReply(404);
+
+    await expect(pollForVMStatus(apiClient, "1234abcd", "running", 1, 10)).rejects.toThrow(StatusError);
   });
 });
