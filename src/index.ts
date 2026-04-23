@@ -4,3 +4,4 @@ export { Channel, createChannel, getChannelDetails, archiveChannel, pollForAirga
 export { ClusterVersion, createCluster, createClusterWithLicense, pollForStatus, getKubeconfig, removeCluster, upgradeCluster, getClusterVersions, createAddonObjectStore, pollForAddonStatus, exposeClusterPort } from "./clusters";
 export { KubernetesDistribution, CustomerSummary, CreateCustomerOptions, archiveCustomer, createCustomer, getUsedKubernetesDistributions, listCustomersByName, listCustomersByEmail } from "./customers";
 export { Release, CompatibilityResult, createRelease, createReleaseFromChart, promoteRelease, reportCompatibilityResult } from "./releases";
+export { VM, createVM, pollForVMStatus, removeVM } from "./vms";

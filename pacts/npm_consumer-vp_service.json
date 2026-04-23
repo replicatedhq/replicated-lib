@@ -126,6 +126,37 @@
       }
     },
     {
+      "description": "a request for creating a vm",
+      "providerState": "vm created",
+      "request": {
+        "body": {
+          "distribution": "ubuntu",
+          "name": "vm1",
+          "ttl": "10m"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/vm"
+      },
+      "response": {
+        "body": {
+          "vms": [
+            {
+              "id": "1234abcd",
+              "name": "vm1",
+              "status": "provisioning"
+            }
+          ]
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 201
+      }
+    },
+    {
       "description": "a request for promoting a release",
       "providerState": "release promoted",
       "request": {
