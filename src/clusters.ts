@@ -5,6 +5,7 @@ export class Cluster {
   id: string;
   status: string;
   last_scheduling_status?: string;
+  network_id?: string;
 }
 
 export class ClusterVersion {
@@ -159,7 +160,8 @@ export async function createClusterWithLicense(
   return {
     name: body.cluster.name,
     id: body.cluster.id,
-    status: body.cluster.status
+    status: body.cluster.status,
+    network_id: body.cluster.network_id
   };
 }
 
@@ -221,7 +223,8 @@ async function getClusterDetails(vendorPortalApi: VendorPortalApi, clusterId: st
     name: body.cluster.name,
     id: body.cluster.id,
     status: body.cluster.status,
-    last_scheduling_status: body.cluster.last_scheduling_status
+    last_scheduling_status: body.cluster.last_scheduling_status,
+    network_id: body.cluster.network_id
   };
 }
 

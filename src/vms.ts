@@ -5,6 +5,7 @@ export class VM {
   name: string;
   id: string;
   status: string;
+  network_id?: string;
 }
 
 interface tag {
@@ -57,7 +58,8 @@ export async function createVM(vendorPortalApi: VendorPortalApi, name: string, d
   return vmsArray.map(v => ({
     name: v.name,
     id: v.id,
-    status: v.status
+    status: v.status,
+    network_id: v.network_id
   }));
 }
 
@@ -76,7 +78,8 @@ async function getVMDetails(vendorPortalApi: VendorPortalApi, vmId: string): Pro
   return {
     name: body.vm.name,
     id: body.vm.id,
-    status: body.vm.status
+    status: body.vm.status,
+    network_id: body.vm.network_id
   };
 }
 
