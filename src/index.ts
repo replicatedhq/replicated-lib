@@ -5,4 +5,4 @@ export { ClusterVersion, createCluster, createClusterWithLicense, pollForStatus,
 export { KubernetesDistribution, CustomerSummary, CreateCustomerOptions, archiveCustomer, createCustomer, getUsedKubernetesDistributions, listCustomersByName, listCustomersByEmail } from "./customers";
 export { Release, CompatibilityResult, createRelease, createReleaseFromChart, promoteRelease, reportCompatibilityResult } from "./releases";
 export { VM, createVM, pollForVMStatus, removeVM } from "./vms";
-export { Network, UpdateNetworkOptions, updateNetwork } from "./networks";
+export { Network, UpdateNetworkOptions, NetworkReport, NetworkEventData, NetworkReportSummary, NetworkReportSummaryDomain, NetworkReportSummaryDestination, NetworkReportSummarySource, updateNetwork, getNetworkReport, getNetworkReportSummary } from "./networks";
