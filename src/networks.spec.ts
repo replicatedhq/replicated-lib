@@ -109,7 +109,10 @@ describe("getNetworkReport", () => {
     const after = new Date("2026-04-27T10:00:00.000Z");
     await getNetworkReport(apiClient, networkId, after);
 
-    const requests = await mockServer.getMockedEndpoints().then(eps => Promise.all(eps.map(ep => ep.getSeenRequests()))).then(rs => rs.flat());
+    const requests = await mockServer
+      .getMockedEndpoints()
+      .then(eps => Promise.all(eps.map(ep => ep.getSeenRequests())))
+      .then(rs => rs.flat());
     const matching = requests.filter(r => r.url.includes(`/network/${networkId}/report`));
     expect(matching.length).toBeGreaterThan(0);
     expect(matching[0].url).toContain(`after=${encodeURIComponent("2026-04-27T10:00:00.000Z")}`);
