@@ -1,5 +1,5 @@
 import { Interaction } from "@pact-foundation/pact";
-import { exportedForTesting, pollForAirgapReleaseStatus, getDownloadUrlAirgapBuildRelease } from "./channels";
+import { exportedForTesting, createChannel, pollForAirgapReleaseStatus, getDownloadUrlAirgapBuildRelease } from "./channels";
 import { VendorPortalApi } from "./configuration";
 import * as mockttp from "mockttp";
 
@@ -80,6 +80,79 @@ describe("ChannelsService", () => {
       expect(channel.slug).toEqual(expectedChannels.channels[0].channelSlug);
       expect(channel.releaseSequence).toEqual(expectedChannels.channels[0].releaseSequence);
     });
+  });
+});
+
+describe("createChannel", () => {
+  let mockServer: mockttp.Mockttp;
+  const apiClient = new VendorPortalApi();
+  apiClient.apiToken = "abcd1234";
+
+  beforeEach(async () => {
+    mockServer = mockttp.getLocal();
+    await mockServer.start();
+    apiClient.endpoint = "http://localhost:" + mockServer.port;
+  });
+  afterEach(async () => {
+    await mockServer.stop();
+  });
+
+  it("should create a channel without buildAirgapAutomatically", async () => {
+    const appData = {
+      apps: [
+        {
+          id: "appid1",
+          slug: "my-app",
+          name: "My App"
+        }
+      ]
+    };
+    const channelData = {
+      channel: {
+        id: "channelid1",
+        name: "Stable",
+        channelSlug: "stable",
+        buildAirgapAutomatically: false
+      }
+    };
+
+    await mockServer.forGet("/apps").once().thenReply(200, JSON.stringify(appData));
+    await mockServer.forPost("/app/appid1/channel").withJsonBodyIncluding({ name: "Stable" }).once().thenReply(201, JSON.stringify(channelData));
+
+    const channel = await createChannel(apiClient, "my-app", "Stable");
+    expect(channel.id).toEqual("channelid1");
+    expect(channel.name).toEqual("Stable");
+    expect(channel.slug).toEqual("stable");
+    expect(channel.buildAirgapAutomatically).toEqual(false);
+  });
+
+  it("should create a channel with buildAirgapAutomatically set to true", async () => {
+    const appData = {
+      apps: [
+        {
+          id: "appid1",
+          slug: "my-app",
+          name: "My App"
+        }
+      ]
+    };
+    const channelData = {
+      channel: {
+        id: "channelid2",
+        name: "Beta",
+        channelSlug: "beta",
+        buildAirgapAutomatically: true
+      }
+    };
+
+    await mockServer.forGet("/apps").once().thenReply(200, JSON.stringify(appData));
+    await mockServer.forPost("/app/appid1/channel").withJsonBodyIncluding({ name: "Beta", buildAirgapAutomatically: true }).once().thenReply(201, JSON.stringify(channelData));
+
+    const channel = await createChannel(apiClient, "my-app", "Beta", true);
+    expect(channel.id).toEqual("channelid2");
+    expect(channel.name).toEqual("Beta");
+    expect(channel.slug).toEqual("beta");
+    expect(channel.buildAirgapAutomatically).toEqual(true);
   });
 });
 
