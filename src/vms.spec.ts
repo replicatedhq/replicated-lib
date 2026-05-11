@@ -270,7 +270,10 @@ describe("VM Exposed Ports", () => {
       }
     };
 
-    await mockServer.forPost(`/vm/${vmId}/port`).withJsonBodyIncluding({ port: 80, protocols: ["http"], is_wildcard: true }).thenReply(201, JSON.stringify(expectedExposedPort));
+    await mockServer
+      .forPost(`/vm/${vmId}/port`)
+      .withJsonBodyIncluding({ port: 80, protocols: ["http"], is_wildcard: true })
+      .thenReply(201, JSON.stringify(expectedExposedPort));
 
     const vmPort: VMPort = await exposeVMPort(apiClient, vmId, 80, ["http"], true);
     expect(vmPort).toEqual(expectedExposedPort.port);
