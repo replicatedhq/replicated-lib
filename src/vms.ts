@@ -6,6 +6,23 @@ export class VM {
   id: string;
   status: string;
   network_id?: string;
+  sshEndpoint?: string;
+  sshPort?: number;
+}
+
+export class VMPort {
+  vm_id: string;
+  addon_id: string;
+  upstream_port: number;
+  exposed_ports: VMExposedPort[];
+  hostname: string;
+  port_name: string;
+  state: string;
+}
+
+export class VMExposedPort {
+  protocol: string;
+  exposed_port: number;
 }
 
 interface tag {
@@ -59,11 +76,13 @@ export async function createVM(vendorPortalApi: VendorPortalApi, name: string, d
     name: v.name,
     id: v.id,
     status: v.status,
-    network_id: v.network_id
+    network_id: v.network_id,
+    sshEndpoint: v.direct_ssh_endpoint,
+    sshPort: v.direct_ssh_port
   }));
 }
 
-async function getVMDetails(vendorPortalApi: VendorPortalApi, vmId: string): Promise<VM> {
+export async function getVMDetails(vendorPortalApi: VendorPortalApi, vmId: string): Promise<VM> {
   const http = await vendorPortalApi.client();
 
   const uri = `${vendorPortalApi.endpoint}/vm/${vmId}`;
@@ -79,7 +98,9 @@ async function getVMDetails(vendorPortalApi: VendorPortalApi, vmId: string): Pro
     name: body.vm.name,
     id: body.vm.id,
     status: body.vm.status,
-    network_id: body.vm.network_id
+    network_id: body.vm.network_id,
+    sshEndpoint: body.vm.direct_ssh_endpoint,
+    sshPort: body.vm.direct_ssh_port
   };
 }
 
@@ -126,4 +147,48 @@ export async function removeVM(vendorPortalApi: VendorPortalApi, vmId: string) {
   if (res.message.statusCode != 200) {
     throw new StatusError(`Failed to remove vm: Server responded with ${res.message.statusCode}`, res.message.statusCode);
   }
+}
+
+export async function exposeVMPort(vendorPortalApi: VendorPortalApi, vmId: string, port: number, protocols: string[], isWildcard?: boolean): Promise<VMPort> {
+  const http = await vendorPortalApi.client();
+
+  const uri = `${vendorPortalApi.endpoint}/vm/${vmId}/port`;
+  const reqBody: any = {
+    port: port,
+    protocols: protocols
+  };
+  if (typeof isWildcard !== "undefined") {
+    reqBody.is_wildcard = isWildcard;
+  }
+  const res = await http.post(uri, JSON.stringify(reqBody));
+  if (res.message.statusCode != 201) {
+    let body = "";
+    try {
+      body = await res.readBody();
+    } catch (err) {
+      // ignore
+    }
+    throw new Error(`Failed to expose vm port: Server responded with ${res.message.statusCode}: ${body}`);
+  }
+
+  const body: any = JSON.parse(await res.readBody());
+
+  var exposedPorts: VMExposedPort[] = [];
+  for (const exposed_port of body.port.exposed_ports) {
+    const exposedPort: VMExposedPort = {
+      protocol: exposed_port.protocol,
+      exposed_port: exposed_port.exposed_port
+    };
+    exposedPorts.push(exposedPort);
+  }
+  var portObj: VMPort = {
+    vm_id: body.port.vm_id,
+    addon_id: body.port.addon_id,
+    upstream_port: body.port.upstream_port,
+    hostname: body.port.hostname,
+    port_name: body.port.port_name,
+    state: body.port.state,
+    exposed_ports: exposedPorts
+  };
+  return portObj;
 }

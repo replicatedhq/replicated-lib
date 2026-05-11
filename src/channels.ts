@@ -28,7 +28,7 @@ export const exportedForTesting = {
   findChannelDetailsInOutput
 };
 
-export async function createChannel(vendorPortalApi: VendorPortalApi, appSlug: string, channelName: string): Promise<Channel> {
+export async function createChannel(vendorPortalApi: VendorPortalApi, appSlug: string, channelName: string, buildAirgapAutomatically?: boolean): Promise<Channel> {
   const http = await vendorPortalApi.client();
 
   // 1. get the app id from the app slug
@@ -36,9 +36,12 @@ export async function createChannel(vendorPortalApi: VendorPortalApi, appSlug: s
 
   // 2. create the channel
   console.log(`Creating channel ${channelName}...`);
-  const reqBody = {
+  const reqBody: any = {
     name: channelName
   };
+  if (typeof buildAirgapAutomatically !== "undefined") {
+    reqBody.buildAirgapAutomatically = buildAirgapAutomatically;
+  }
   const createChannelUri = `${vendorPortalApi.endpoint}/app/${app.id}/channel`;
   const createChannelRes = await http.post(createChannelUri, JSON.stringify(reqBody));
   if (createChannelRes.message.statusCode != 201) {
@@ -49,7 +52,7 @@ export async function createChannel(vendorPortalApi: VendorPortalApi, appSlug: s
   const createChannelBody: any = JSON.parse(await createChannelRes.readBody());
 
   console.log(`Created channel with id ${createChannelBody.channel.id}`);
-  return { name: createChannelBody.channel.name, id: createChannelBody.channel.id, slug: createChannelBody.channel.channelSlug };
+  return { name: createChannelBody.channel.name, id: createChannelBody.channel.id, slug: createChannelBody.channel.channelSlug, buildAirgapAutomatically: createChannelBody.channel.buildAirgapAutomatically };
 }
 
 interface ChannelIdentifier {
