@@ -6,3 +6,4 @@ export { KubernetesDistribution, CustomerSummary, CreateCustomerOptions, archive
 export { Release, CompatibilityResult, createRelease, createReleaseFromChart, promoteRelease, reportCompatibilityResult } from "./releases";
 export { VM, VMPort, VMExposedPort, createVM, getVMDetails, pollForVMStatus, removeVM, exposeVMPort } from "./vms";
 export { Network, UpdateNetworkOptions, NetworkReport, NetworkEventData, NetworkReportSummary, NetworkReportSummaryDomain, NetworkReportSummaryDestination, NetworkReportSummarySource, updateNetwork, getNetworkReport, getNetworkReportSummary } from "./networks";
+export { ReplicatedConfig, ChartConfig, PreflightConfig, ReplLintConfig, findAndParseConfig, parseConfigFile } from "./config";
