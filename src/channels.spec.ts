@@ -1,5 +1,5 @@
 import { Interaction } from "@pact-foundation/pact";
-import { exportedForTesting, createChannel, pollForAirgapReleaseStatus, getDownloadUrlAirgapBuildRelease } from "./channels";
+import { exportedForTesting, createChannel, pollForAirgapReleaseStatus, getDownloadUrlAirgapBuildRelease, getAirgapBuildStatus, getLatestAirgapStatusForRelease, getAirgapBundleDownloadURL } from "./channels";
 import { VendorPortalApi } from "./configuration";
 import * as mockttp from "mockttp";
 
@@ -221,5 +221,144 @@ describe("getDownloadUrlAirgapBuildRelease", () => {
 
     const downloadUrlResult = await getDownloadUrlAirgapBuildRelease(apiClient, "1234abcd", "1", 0);
     expect(downloadUrlResult).toEqual("https://s3.amazonaws.com/airgap.replicated.com/xxxxxxxxx/7.airgap?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=xxxxxx%2F20250317%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=");
+  });
+});
+
+describe("getAirgapBuildStatus", () => {
+  let mockServer: mockttp.Mockttp;
+  const apiClient = new VendorPortalApi();
+  apiClient.apiToken = "abcd1234";
+
+  beforeEach(async () => {
+    mockServer = mockttp.getLocal();
+    await mockServer.start();
+    apiClient.endpoint = "http://localhost:" + mockServer.port;
+  });
+  afterEach(async () => {
+    await mockServer.stop();
+  });
+
+  it("returns the airgap build status for a known channel-release", async () => {
+    const statusBody = {
+      channelId: "1234abcd",
+      channelSequence: 7,
+      channelName: "Stable",
+      airgapBuildStatus: "built",
+      airgapBuildError: "",
+      fullAirgapBuild: true
+    };
+    await mockServer.forGet("/app/app1/channel/1234abcd/release/7/airgap/status").once().thenReply(200, JSON.stringify(statusBody));
+
+    const result = await getAirgapBuildStatus(apiClient, "app1", "1234abcd", 7);
+    expect(result).not.toBeNull();
+    expect(result!.airgapBuildStatus).toBe("built");
+    expect(result!.fullAirgapBuild).toBe(true);
+    expect(result!.channelName).toBe("Stable");
+  });
+
+  it("returns the synthesized pending status when the worker has not started yet", async () => {
+    const statusBody = {
+      channelId: "1234abcd",
+      channelSequence: 7,
+      channelName: "Stable",
+      airgapBuildStatus: "pending",
+      airgapBuildError: ""
+    };
+    await mockServer.forGet("/app/app1/channel/1234abcd/release/7/airgap/status").once().thenReply(200, JSON.stringify(statusBody));
+
+    const result = await getAirgapBuildStatus(apiClient, "app1", "1234abcd", 7);
+    expect(result!.airgapBuildStatus).toBe("pending");
+  });
+
+  it("returns null on 404", async () => {
+    await mockServer.forGet("/app/app1/channel/1234abcd/release/7/airgap/status").once().thenReply(404, "");
+
+    const result = await getAirgapBuildStatus(apiClient, "app1", "1234abcd", 7);
+    expect(result).toBeNull();
+  });
+
+  it("throws on non-200 / non-404 responses", async () => {
+    await mockServer.forGet("/app/app1/channel/1234abcd/release/7/airgap/status").once().thenReply(500, "");
+
+    await expect(getAirgapBuildStatus(apiClient, "app1", "1234abcd", 7)).rejects.toThrow(/500/);
+  });
+});
+
+describe("getLatestAirgapStatusForRelease", () => {
+  let mockServer: mockttp.Mockttp;
+  const apiClient = new VendorPortalApi();
+  apiClient.apiToken = "abcd1234";
+
+  beforeEach(async () => {
+    mockServer = mockttp.getLocal();
+    await mockServer.start();
+    apiClient.endpoint = "http://localhost:" + mockServer.port;
+  });
+  afterEach(async () => {
+    await mockServer.stop();
+  });
+
+  it("picks the most recent channelSequence when a release was promoted multiple times", async () => {
+    // Same release (sequence 5) was promoted twice, producing two channel-releases.
+    // The second promote (channelSequence 12) is the one the caller is waiting on.
+    const releaseData = {
+      releases: [
+        { sequence: 5, channelSequence: 9, channelName: "Stable", airgapBuildStatus: "failed", airgapBuildError: "old failure" },
+        { sequence: 5, channelSequence: 12, channelName: "Stable", airgapBuildStatus: "building", airgapBuildError: "" },
+        { sequence: 6, channelSequence: 13, channelName: "Stable", airgapBuildStatus: "pending", airgapBuildError: "" }
+      ]
+    };
+    await mockServer.forGet("/app/app1/channel/1234abcd/releases").once().thenReply(200, JSON.stringify(releaseData));
+
+    const result = await getLatestAirgapStatusForRelease(apiClient, "app1", "1234abcd", 5);
+    expect(result).not.toBeNull();
+    expect(result!.channelSequence).toBe(12);
+    expect(result!.airgapBuildStatus).toBe("building");
+  });
+
+  it("returns null when the release sequence has no channel-releases", async () => {
+    const releaseData = {
+      releases: [{ sequence: 5, channelSequence: 9, airgapBuildStatus: "built" }]
+    };
+    await mockServer.forGet("/app/app1/channel/1234abcd/releases").once().thenReply(200, JSON.stringify(releaseData));
+
+    const result = await getLatestAirgapStatusForRelease(apiClient, "app1", "1234abcd", 99);
+    expect(result).toBeNull();
+  });
+
+  it("returns null when the response has no releases array", async () => {
+    await mockServer.forGet("/app/app1/channel/1234abcd/releases").once().thenReply(200, JSON.stringify({}));
+
+    const result = await getLatestAirgapStatusForRelease(apiClient, "app1", "1234abcd", 5);
+    expect(result).toBeNull();
+  });
+});
+
+describe("getAirgapBundleDownloadURL", () => {
+  let mockServer: mockttp.Mockttp;
+  const apiClient = new VendorPortalApi();
+  apiClient.apiToken = "abcd1234";
+
+  beforeEach(async () => {
+    mockServer = mockttp.getLocal();
+    await mockServer.start();
+    apiClient.endpoint = "http://localhost:" + mockServer.port;
+  });
+  afterEach(async () => {
+    await mockServer.stop();
+  });
+
+  it("fetches the download URL for a known channelSequence without scraping /releases", async () => {
+    const downloadUrlData = { url: "https://s3.amazonaws.com/airgap.replicated.com/xxx/7.airgap?sig=abc" };
+    await mockServer.forGet("/app/app1/channel/1234abcd/airgap/download-url").withQuery({ channelSequence: 7 }).once().thenReply(200, JSON.stringify(downloadUrlData));
+
+    const url = await getAirgapBundleDownloadURL(apiClient, "app1", "1234abcd", 7);
+    expect(url).toBe("https://s3.amazonaws.com/airgap.replicated.com/xxx/7.airgap?sig=abc");
+  });
+
+  it("throws on non-200 responses", async () => {
+    await mockServer.forGet("/app/app1/channel/1234abcd/airgap/download-url").withQuery({ channelSequence: 7 }).once().thenReply(500, "");
+
+    await expect(getAirgapBundleDownloadURL(apiClient, "app1", "1234abcd", 7)).rejects.toThrow(/500/);
   });
 });
