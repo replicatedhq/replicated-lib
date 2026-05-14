@@ -4,6 +4,20 @@ export interface ChannelRelease {
   sequence: string;
   channelSequence?: string;
   airgapBuildStatus?: string;
+  airgapBuildError?: string;
+}
+
+// AirgapBuildStatus is the wire shape returned by the dedicated
+// /airgap/status endpoint (vendor-api PR replicatedhq/vandoor#9761). The
+// channelName is included to make logging / job summaries easier without an
+// extra channel lookup.
+export interface AirgapBuildStatus {
+  channelId: string;
+  channelSequence: number;
+  channelName: string;
+  airgapBuildStatus: string;
+  airgapBuildError: string;
+  fullAirgapBuild?: boolean;
 }
 
 export class Channel {
@@ -192,4 +206,85 @@ async function getAirgapBuildRelease(vendorPortalApi: VendorPortalApi, appId: st
     channelSequence: release.channelSequence,
     airgapBuildStatus: release.airgapBuildStatus
   };
+}
+
+// getAirgapBuildStatus reads the airgap-build status for a single channel-
+// release using the dedicated GET /v3/app/{appId}/channel/{channelId}/release/
+// {channelSequence}/airgap/status endpoint (vendor-api PR
+// replicatedhq/vandoor#9761). This is the canonical polling entry point for
+// "I just promoted, give me a real-time view of the build" use cases — it
+// returns "pending" (synthesized) when no kots_airgap_build_status row exists
+// yet, building / built / failed / failed_with_metadata / cancelled / warn /
+// metadata once the worker has written one. Returns null on 404.
+export async function getAirgapBuildStatus(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, channelSequence: number): Promise<AirgapBuildStatus | null> {
+  const http = await vendorPortalApi.client();
+  const uri = `${vendorPortalApi.endpoint}/app/${appId}/channel/${channelId}/release/${channelSequence}/airgap/status`;
+  const res = await http.get(uri);
+  if (res.message.statusCode === 404) {
+    await res.readBody();
+    return null;
+  }
+  if (res.message.statusCode !== 200) {
+    await res.readBody();
+    throw new Error(`Failed to get airgap build status: Server responded with ${res.message.statusCode}`);
+  }
+  const body: any = JSON.parse(await res.readBody());
+  return {
+    channelId: body.channelId || channelId,
+    channelSequence: body.channelSequence ?? channelSequence,
+    channelName: body.channelName || "",
+    airgapBuildStatus: body.airgapBuildStatus || "",
+    airgapBuildError: body.airgapBuildError || "",
+    fullAirgapBuild: body.fullAirgapBuild
+  };
+}
+
+// getLatestAirgapStatusForRelease finds the most recent channel-release for
+// the given (channel, release) pair and returns its airgap-build status.
+// A release can be promoted to the same channel multiple times — each promote
+// produces a distinct channelSequence with its own airgap build — and the
+// caller almost always wants the latest one (their freshly-promoted build).
+//
+// Returns null if no channel-release matches the release sequence.
+export async function getLatestAirgapStatusForRelease(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, releaseSequence: number): Promise<AirgapBuildStatus | null> {
+  const http = await vendorPortalApi.client();
+  const uri = `${vendorPortalApi.endpoint}/app/${appId}/channel/${channelId}/releases`;
+  const res = await http.get(uri);
+  if (res.message.statusCode !== 200) {
+    await res.readBody();
+    throw new Error(`Failed to get channel releases: Server responded with ${res.message.statusCode}`);
+  }
+  const body: any = JSON.parse(await res.readBody());
+  if (!body.releases || !Array.isArray(body.releases)) {
+    return null;
+  }
+  const matching = body.releases.filter((r: any) => r.sequence === releaseSequence);
+  if (matching.length === 0) {
+    return null;
+  }
+  const release = matching.reduce((latest: any, r: any) => ((r.channelSequence ?? 0) > (latest.channelSequence ?? 0) ? r : latest));
+  return {
+    channelId: channelId,
+    channelSequence: release.channelSequence ?? 0,
+    channelName: release.channelName || "",
+    airgapBuildStatus: release.airgapBuildStatus || "",
+    airgapBuildError: release.airgapBuildError || "",
+    fullAirgapBuild: release.fullAirgapBuild
+  };
+}
+
+// getAirgapBundleDownloadURL is a variant of getDownloadUrlAirgapBuildRelease
+// that takes a pre-known channelSequence directly. Use this when the caller
+// already has the channelSequence from a promote response or status poll —
+// it skips the redundant /releases scrape that the older function performs.
+export async function getAirgapBundleDownloadURL(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, channelSequence: number): Promise<string> {
+  const http = await vendorPortalApi.client();
+  const uri = `${vendorPortalApi.endpoint}/app/${appId}/channel/${channelId}/airgap/download-url?channelSequence=${channelSequence}`;
+  const res = await http.get(uri);
+  if (res.message.statusCode !== 200) {
+    await res.readBody();
+    throw new Error(`Failed to get airgap bundle download URL: Server responded with ${res.message.statusCode}`);
+  }
+  const body: any = JSON.parse(await res.readBody());
+  return body.url;
 }
