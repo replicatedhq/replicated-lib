@@ -213,15 +213,15 @@ function isSupportedExt(ext: string): boolean {
   return supportedExts.includes(ext);
 }
 
-export async function promoteRelease(vendorPortalApi: VendorPortalApi, appSlug: string, channelId: string, releaseSequence: number, version: string, releaseNotes?: string) {
+export async function promoteRelease(vendorPortalApi: VendorPortalApi, appSlug: string, channelId: string, releaseSequence: number, version: string, releaseNotes?: string, notifyUsers?: boolean) {
   // 1. get the app id from the app slug
   const app = await getApplicationDetails(vendorPortalApi, appSlug);
 
   // 2. promote the release
-  await promoteReleaseByAppId(vendorPortalApi, app.id, channelId, releaseSequence, version, releaseNotes);
+  await promoteReleaseByAppId(vendorPortalApi, app.id, channelId, releaseSequence, version, releaseNotes, notifyUsers);
 }
 
-async function promoteReleaseByAppId(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, releaseSequence: number, version: string, releaseNotes?: string) {
+async function promoteReleaseByAppId(vendorPortalApi: VendorPortalApi, appId: string, channelId: string, releaseSequence: number, version: string, releaseNotes?: string, notifyUsers?: boolean) {
   const http = await vendorPortalApi.client();
   const reqBody = {
     versionLabel: version,
@@ -229,6 +229,9 @@ async function promoteReleaseByAppId(vendorPortalApi: VendorPortalApi, appId: st
   };
   if (releaseNotes) {
     reqBody["releaseNotesGzip"] = gzipData(releaseNotes);
+  }
+  if (notifyUsers !== undefined) {
+    reqBody["notifyUsers"] = notifyUsers;
   }
   const uri = `${vendorPortalApi.endpoint}/app/${appId}/release/${releaseSequence}/promote`;
   const res = await http.post(uri, JSON.stringify(reqBody));
