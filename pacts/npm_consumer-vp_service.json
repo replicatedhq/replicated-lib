@@ -183,7 +183,7 @@
   ],
   "metadata": {
     "pact-js": {
-      "version": "17.1.2"
+      "version": "17.1.3"
     },
     "pactRust": {
       "ffi": "0.5.6",
