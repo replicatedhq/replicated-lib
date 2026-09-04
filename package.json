@@ -41,7 +41,7 @@
         "@types/jest": "^30.0.0",
         "@types/pako": "^2.0.4",
         "fs-extra": "^11.4.0",
-        "get-port": "^6.1.2",
+        "get-port": "^7.2.0",
         "jest": "^30.5.0",
         "jest-util": "^30.5.0",
         "mockttp": "^4.6.1",
