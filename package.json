@@ -29,7 +29,6 @@
         "base64-js": "^1.5.1",
         "date-fns": "^4.4.0",
         "date-fns-tz": "^3.2.0",
-        "esbuild-jest": "^0.5.0",
         "pako": "^2.2.0",
         "picomatch": "^4.0.7",
         "ts-node": "^10.9.2",
@@ -50,6 +49,7 @@
         "typescript": "^5.9.3"
     },
     "overrides": {
+        "@graphql-tools/utils": "^12.0.1",
         "basic-ftp": "^6.2.1",
         "braces": "^3.0.3",
         "micromatch": "^4.0.8",
