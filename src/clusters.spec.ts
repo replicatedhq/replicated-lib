@@ -186,6 +186,29 @@ describe("pollForCluster", () => {
 
     await expect(pollForStatus(apiClient, "1234abcd", "running", 1, 10)).rejects.toThrow(StatusError);
   });
+
+  test("should include the scheduling status in the timeout error", async () => {
+    await mockServer.forGet(`/cluster/1234abcd`).thenReply(
+      200,
+      JSON.stringify({
+        cluster: { id: "1234abcd", name: "cluster1", status: "queued", last_scheduling_status: "exceeds-limits" }
+      })
+    );
+
+    await expect(pollForStatus(apiClient, "1234abcd", "running", 0.05, 10)).rejects.toThrow("Cluster did not reach state running within 0.05 seconds. Last status: queued, last scheduling status: exceeds-limits (quota exceeded");
+  });
+
+  test("should fail when the cluster enters upgrade_error", async () => {
+    const getCluster = await mockServer.forGet(`/cluster/1234abcd`).thenReply(
+      200,
+      JSON.stringify({
+        cluster: { id: "1234abcd", name: "cluster1", status: "upgrade_error" }
+      })
+    );
+
+    await expect(pollForStatus(apiClient, "1234abcd", "running", 1, 10)).rejects.toThrow("Cluster has entered upgrade_error state");
+    expect(await getCluster.getSeenRequests()).toHaveLength(1);
+  });
 });
 
 describe("Cluster Add-ons", () => {
