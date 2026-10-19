@@ -1,10 +1,11 @@
 import { VendorPortalApi } from "./configuration";
-import { StatusError } from "./clusters";
+import { StatusError, schedulingStatusSuffix } from "./clusters";
 
 export class VM {
   name: string;
   id: string;
   status: string;
+  last_scheduling_status?: string;
   network_id?: string;
   sshEndpoint?: string;
   sshPort?: number;
@@ -98,6 +99,7 @@ export async function getVMDetails(vendorPortalApi: VendorPortalApi, vmId: strin
     name: body.vm.name,
     id: body.vm.id,
     status: body.vm.status,
+    last_scheduling_status: body.vm.last_scheduling_status,
     network_id: body.vm.network_id,
     sshEndpoint: body.vm.direct_ssh_endpoint,
     sshPort: body.vm.direct_ssh_port
@@ -106,22 +108,27 @@ export async function getVMDetails(vendorPortalApi: VendorPortalApi, vmId: strin
 
 export async function pollForVMStatus(vendorPortalApi: VendorPortalApi, vmId: string, expectedStatus: string, timeout: number = 120, sleeptimeMs: number = 5000): Promise<VM> {
   await new Promise(f => setTimeout(f, sleeptimeMs));
+  let lastVM: VM | undefined;
+  let lastErrorStatusCode: number | undefined; // set when the most recent poll failed with a 5xx
   const iterations = (timeout * 1000) / sleeptimeMs;
   for (let i = 0; i < iterations; i++) {
     try {
       const vmDetails = await getVMDetails(vendorPortalApi, vmId);
+      lastVM = vmDetails;
+      lastErrorStatusCode = undefined;
       if (vmDetails.status === expectedStatus) {
         return vmDetails;
       }
 
       if (vmDetails.status === "error") {
-        throw new Error(`VM has entered error state`);
+        throw new Error(`VM has entered error state${schedulingStatusSuffix(vmDetails, false)}`);
       }
 
-      console.debug(`VM status is ${vmDetails.status}, sleeping for ${sleeptimeMs / 1000} seconds`);
+      console.debug(`VM status is ${vmDetails.status}${schedulingStatusSuffix(vmDetails)}, sleeping for ${sleeptimeMs / 1000} seconds`);
     } catch (err) {
       if (err instanceof StatusError) {
         if (err.statusCode >= 500) {
+          lastErrorStatusCode = err.statusCode;
           console.debug(`Got HTTP error with status ${err.statusCode}, sleeping for ${sleeptimeMs / 1000} seconds`);
         } else {
           console.debug(`Got HTTP error with status ${err.statusCode}, exiting`);
@@ -135,7 +142,14 @@ export async function pollForVMStatus(vendorPortalApi: VendorPortalApi, vmId: st
     await new Promise(f => setTimeout(f, sleeptimeMs));
   }
 
-  throw new Error(`VM did not reach state ${expectedStatus} within ${timeout} seconds`);
+  let details = "";
+  if (lastVM) {
+    details += `. Last observed status: ${lastVM.status}${schedulingStatusSuffix(lastVM)}`;
+  }
+  if (lastErrorStatusCode) {
+    details += lastVM ? `; later polls failed with HTTP ${lastErrorStatusCode}` : `. All polls failed, the last with HTTP ${lastErrorStatusCode}`;
+  }
+  throw new Error(`VM did not reach state ${expectedStatus} within ${timeout} seconds${details}`);
 }
 
 export async function removeVM(vendorPortalApi: VendorPortalApi, vmId: string) {

@@ -220,6 +220,49 @@ describe("pollForVM", () => {
 
     await expect(pollForVMStatus(apiClient, "1234abcd", "running", 1, 10)).rejects.toThrow(StatusError);
   });
+
+  test("should include the scheduling status in the timeout error", async () => {
+    await mockServer.forGet(`/vm/1234abcd`).thenReply(
+      200,
+      JSON.stringify({
+        vm: { id: "1234abcd", name: "vm1", status: "queued", last_scheduling_status: "exceeds-limits" }
+      })
+    );
+
+    await expect(pollForVMStatus(apiClient, "1234abcd", "running", 0.05, 10)).rejects.toThrow("VM did not reach state running within 0.05 seconds. Last observed status: queued, last scheduling status: exceeds-limits (quota exceeded");
+  });
+
+  test("should report the HTTP error when every poll fails", async () => {
+    await mockServer.forGet(`/vm/1234abcd`).thenReply(503);
+
+    await expect(pollForVMStatus(apiClient, "1234abcd", "running", 0.05, 10)).rejects.toThrow("VM did not reach state running within 0.05 seconds. All polls failed, the last with HTTP 503");
+  });
+
+  test("should report that polls failed after the last observed status", async () => {
+    await mockServer
+      .forGet(`/vm/1234abcd`)
+      .once()
+      .thenReply(
+        200,
+        JSON.stringify({
+          vm: { id: "1234abcd", name: "vm1", status: "queued", last_scheduling_status: "no-provisioners" }
+        })
+      );
+    await mockServer.forGet(`/vm/1234abcd`).thenReply(503);
+
+    await expect(pollForVMStatus(apiClient, "1234abcd", "running", 0.05, 10)).rejects.toThrow("Last observed status: queued, last scheduling status: no-provisioners (waiting for an available server); later polls failed with HTTP 503");
+  });
+
+  test("should not explain the scheduling status when the VM enters error", async () => {
+    await mockServer.forGet(`/vm/1234abcd`).thenReply(
+      200,
+      JSON.stringify({
+        vm: { id: "1234abcd", name: "vm1", status: "error", last_scheduling_status: "not-attempted" }
+      })
+    );
+
+    await expect(pollForVMStatus(apiClient, "1234abcd", "running", 1, 10)).rejects.toThrow(/^VM has entered error state, last scheduling status: not-attempted$/);
+  });
 });
 
 describe("VM Exposed Ports", () => {

@@ -165,7 +165,7 @@ export async function createClusterWithLicense(
   };
 }
 
-// Human-readable explanations for the cluster's last_scheduling_status, matching
+// Human-readable explanations for a cluster's or VM's last_scheduling_status, matching
 // the messages shown in the vendor portal.
 const schedulingStatusMessages: { [key: string]: string } = {
   "not-attempted": "waiting for an available server",
@@ -174,11 +174,11 @@ const schedulingStatusMessages: { [key: string]: string } = {
   "exceeds-limits": "quota exceeded, manage your quota on the Compatibility Matrix settings page in the vendor portal"
 };
 
-// Returns ", last scheduling status: <status>" for a cluster that has one, or "".
+// Returns ", last scheduling status: <status>" for a cluster or VM that has one, or "".
 // The explanation is left out for terminal states, where "waiting for an
 // available server" would be misleading.
-function schedulingStatusSuffix(cluster: Cluster, explain: boolean = true): string {
-  const schedulingStatus = cluster.last_scheduling_status;
+export function schedulingStatusSuffix(resource: { last_scheduling_status?: string }, explain: boolean = true): string {
+  const schedulingStatus = resource.last_scheduling_status;
   if (!schedulingStatus) {
     return "";
   }
