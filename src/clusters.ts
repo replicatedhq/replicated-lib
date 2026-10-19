@@ -165,6 +165,27 @@ export async function createClusterWithLicense(
   };
 }
 
+// Human-readable explanations for the cluster's last_scheduling_status, matching
+// the messages shown in the vendor portal.
+const schedulingStatusMessages: { [key: string]: string } = {
+  "not-attempted": "waiting for an available server",
+  "no-provisioners": "waiting for an available server",
+  "insufficient-credits": "insufficient credits, add more credits in the vendor portal",
+  "exceeds-limits": "quota exceeded, manage your quota on the Compatibility Matrix settings page in the vendor portal"
+};
+
+// Returns ", last scheduling status: <status>" for a cluster that has one, or "".
+// The explanation is left out for terminal states, where "waiting for an
+// available server" would be misleading.
+function schedulingStatusSuffix(cluster: Cluster, explain: boolean = true): string {
+  const schedulingStatus = cluster.last_scheduling_status;
+  if (!schedulingStatus) {
+    return "";
+  }
+  const message = explain ? schedulingStatusMessages[schedulingStatus] : undefined;
+  return `, last scheduling status: ${message ? `${schedulingStatus} (${message})` : schedulingStatus}`;
+}
+
 export async function pollForStatus(vendorPortalApi: VendorPortalApi, clusterId: string, expectedStatus: string, timeout: number = 120, sleeptimeMs: number = 5000): Promise<Cluster> {
   // get clusters from the api, look for the status of the id to be ${status}
   // if it's not ${status}, sleep for 5 seconds and try again
@@ -172,24 +193,28 @@ export async function pollForStatus(vendorPortalApi: VendorPortalApi, clusterId:
 
   await new Promise(f => setTimeout(f, sleeptimeMs)); // sleep for 5 seconds before polling as the cluster takes a few seconds to start provisioning
   // iterate for timeout/sleeptime times
+  let lastCluster: Cluster | undefined;
+  let lastErrorStatusCode: number | undefined; // set when the most recent poll failed with a 5xx
   const iterations = (timeout * 1000) / sleeptimeMs;
   for (let i = 0; i < iterations; i++) {
     try {
       const clusterDetails = await getClusterDetails(vendorPortalApi, clusterId);
+      lastCluster = clusterDetails;
+      lastErrorStatusCode = undefined;
       if (clusterDetails.status === expectedStatus) {
         return clusterDetails;
       }
 
-      if (clusterDetails.status === "error") {
-        const schedulingStatus = clusterDetails.last_scheduling_status ? `, last scheduling status: ${clusterDetails.last_scheduling_status}` : "";
-        throw new Error(`Cluster has entered error state${schedulingStatus}`);
+      if (clusterDetails.status === "error" || clusterDetails.status === "upgrade_error") {
+        throw new Error(`Cluster has entered ${clusterDetails.status} state${schedulingStatusSuffix(clusterDetails, false)}`);
       }
 
-      console.debug(`Cluster status is ${clusterDetails.status}, sleeping for ${sleeptimeMs / 1000} seconds`);
+      console.debug(`Cluster status is ${clusterDetails.status}${schedulingStatusSuffix(clusterDetails)}, sleeping for ${sleeptimeMs / 1000} seconds`);
     } catch (err) {
       if (err instanceof StatusError) {
         if (err.statusCode >= 500) {
           // 5xx errors are likely transient, so we should retry
+          lastErrorStatusCode = err.statusCode;
           console.debug(`Got HTTP error with status ${err.statusCode}, sleeping for ${sleeptimeMs / 1000} seconds`);
         } else {
           console.debug(`Got HTTP error with status ${err.statusCode}, exiting`);
@@ -203,7 +228,14 @@ export async function pollForStatus(vendorPortalApi: VendorPortalApi, clusterId:
     await new Promise(f => setTimeout(f, sleeptimeMs));
   }
 
-  throw new Error(`Cluster did not reach state ${expectedStatus} within ${timeout} seconds`);
+  let details = "";
+  if (lastCluster) {
+    details += `. Last observed status: ${lastCluster.status}${schedulingStatusSuffix(lastCluster)}`;
+  }
+  if (lastErrorStatusCode) {
+    details += lastCluster ? `; later polls failed with HTTP ${lastErrorStatusCode}` : `. All polls failed, the last with HTTP ${lastErrorStatusCode}`;
+  }
+  throw new Error(`Cluster did not reach state ${expectedStatus} within ${timeout} seconds${details}`);
 }
 
 async function getClusterDetails(vendorPortalApi: VendorPortalApi, clusterId: string): Promise<Cluster> {
